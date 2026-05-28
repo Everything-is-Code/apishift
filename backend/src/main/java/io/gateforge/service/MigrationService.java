@@ -164,19 +164,29 @@ public class MigrationService {
                         ctx.backendSvcName, ctx.resolvedBackends));
             }
 
-            resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, product));
-            resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, product));
+            resources.add(buildApiProduct(sysName, ns, routeName, product));
 
             if (product.applicationPlans() != null && !product.applicationPlans().isEmpty()) {
                 resources.add(buildPlanPolicy(sysName + "-plans", ns, routeName, product));
             }
 
-            resources.add(buildApiProduct(sysName, ns, routeName, product));
-
-            if (product.applications() != null && !product.applications().isEmpty()) {
-                List<MigrationPlan.GeneratedResource> apiKeys = buildApiKeys(sysName, ns, product);
-                resources.addAll(apiKeys);
+            ThreeScaleProduct productWithApps = threeScaleService.refreshApplications(product);
+            List<MigrationPlan.GeneratedResource> apiKeySecrets =
+                    buildConsumerApiKeySecrets(sysName, ns, productWithApps, consolidationWarnings);
+            if (!apiKeySecrets.isEmpty()) {
+                resources.addAll(apiKeySecrets);
+                int appCount = productWithApps.applications() != null ? productWithApps.applications().size() : 0;
+                consolidationWarnings.add(
+                        "Product '%s': %d 3scale application(s) → %d API key Secret(s) (one Secret per application with user_key)."
+                                .formatted(sysName, appCount, apiKeySecrets.size()));
+            } else if (productWithApps.applications() != null && !productWithApps.applications().isEmpty()) {
+                consolidationWarnings.add(
+                        "Product '%s': %d application(s) found but no user_key values — no consumer Secrets generated."
+                                .formatted(sysName, productWithApps.applications().size()));
             }
+
+            resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, product));
+            resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, product));
 
             if (observabilityEnabled) {
                 resources.add(buildTelemetryPolicy(sysName + "-telemetry", ns, routeName, product));
@@ -191,6 +201,8 @@ public class MigrationService {
         String effectiveClusterId = targetClusterId != null ? targetClusterId : "local";
         io.gateforge.model.TargetCluster cluster = clusterRegistry.getCluster(effectiveClusterId);
         String clusterLabel = cluster != null ? cluster.label() : "Local (in-cluster)";
+
+        sortResourcesForApply(resources);
 
         String aiAnalysis = runAiVerification(products, resources);
 
@@ -535,6 +547,11 @@ public class MigrationService {
             resources.stream().filter(r -> "HTTPRoute".equals(r.kind())).findFirst()
                     .ifPresent(r -> prompt.append(r.yaml()));
             prompt.append("\n```\n");
+
+            long secretCount = resources.stream().filter(r -> "Secret".equals(r.kind())).count();
+            if (secretCount > 0) {
+                prompt.append("\nConsumer API keys are preserved from 3scale user_key values in Kubernetes Secrets (not new APIKey CRDs).\n");
+            }
 
             prompt.append("\nProvide: 1) Correctness assessment, 2) Potential issues, 3) Recommendations. Keep it concise (max 200 words).");
 
@@ -927,39 +944,100 @@ public class MigrationService {
         return new MigrationPlan.GeneratedResource("PlanPolicy", name, namespace, yaml);
     }
 
-    private List<MigrationPlan.GeneratedResource> buildApiKeys(
-            String sysName, String namespace, ThreeScaleProduct product) {
+    /**
+     * Preserves 3scale application user_key values as Authorino-compatible Secrets
+     * (AuthPolicy selects secrets labeled {@code app: <systemName>}).
+     */
+    private List<MigrationPlan.GeneratedResource> buildConsumerApiKeySecrets(
+            String sysName, String namespace, ThreeScaleProduct product, List<String> warnings) {
 
-        List<MigrationPlan.GeneratedResource> keys = new ArrayList<>();
+        List<MigrationPlan.GeneratedResource> secrets = new ArrayList<>();
+        if (product.applications() == null || product.applications().isEmpty()) {
+            return secrets;
+        }
+
+        Set<String> usedSecretNames = new HashSet<>();
         for (ThreeScaleProduct.Application app : product.applications()) {
+            String userKey = app.userKey();
+            if (userKey == null || userKey.isBlank()) {
+                warnings.add("Application '%s' (id %d, product %s) has no 3scale user_key — skipped."
+                        .formatted(app.name(), app.id(), sysName));
+                continue;
+            }
+
             String safeName = app.name().toLowerCase().replaceAll("[^a-z0-9-]", "-");
-            if (safeName.length() > 40) safeName = safeName.substring(0, 40);
-            String keyName = sysName + "-key-" + safeName;
+            if (safeName.isBlank()) safeName = "app";
+            if (safeName.length() > 30) safeName = safeName.substring(0, 30);
+            // Unique per 3scale application id (multiple apps per API / product)
+            String secretName = truncateDnsLabel(sysName + "-apikey-" + app.id() + "-" + safeName);
+            int suffix = 1;
+            while (!usedSecretNames.add(secretName)) {
+                secretName = truncateDnsLabel(sysName + "-apikey-" + app.id() + "-" + safeName + "-" + suffix++);
+            }
+
+            String planTier = app.planSystemName().isBlank() ? "default" : app.planSystemName();
+            String escapedKey = escapeYamlDoubleQuoted(userKey);
 
             String yaml = """
-                    apiVersion: devportal.kuadrant.io/v1alpha1
-                    kind: APIKey
+                    apiVersion: v1
+                    kind: Secret
                     metadata:
                       name: %s
                       namespace: %s
                       labels:
+                        authorino.kuadrant.io/managed-by: authorino
+                        app: %s
                         app.kubernetes.io/managed-by: gateforge
-                        "gateforge.io/product": "%s"
-                    spec:
-                      apiProductRef:
-                        name: %s
-                      planTier: "%s"
-                      requestedBy:
-                        userId: "%s"
-                        email: "%s"
-                      useCase: "Migrated from 3scale application '%s' by GateForge"
-                    """.formatted(keyName, namespace, sysName, sysName,
-                    app.planSystemName().isBlank() ? "default" : app.planSystemName(),
-                    app.accountEmail(), app.accountEmail(), app.name());
+                        gateforge.io/product: "%s"
+                      annotations:
+                        secret.kuadrant.io/plan-id: "%s"
+                        gateforge.io/3scale-application-id: "%d"
+                        gateforge.io/3scale-application-name: "%s"
+                        gateforge.io/migrated-from: "3scale-user-key"
+                    stringData:
+                      api_key: "%s"
+                    type: Opaque
+                    """.formatted(secretName, namespace, sysName, sysName, planTier,
+                    app.id(), escapeYamlDoubleQuoted(app.name()), escapedKey);
 
-            keys.add(new MigrationPlan.GeneratedResource("APIKey", keyName, namespace, yaml));
+            secrets.add(new MigrationPlan.GeneratedResource("Secret", secretName, namespace, yaml));
         }
-        return keys;
+        return secrets;
+    }
+
+    private static String escapeYamlDoubleQuoted(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    /** Kubernetes metadata.name must fit DNS subdomain rules (max 63 chars). */
+    private static String truncateDnsLabel(String name) {
+        if (name == null || name.isBlank()) return "gateforge-apikey";
+        String normalized = name.toLowerCase().replaceAll("[^a-z0-9.-]", "-").replaceAll("-+", "-");
+        normalized = normalized.replaceAll("^-+|-+$", "");
+        if (normalized.length() <= 63) return normalized;
+        return normalized.substring(0, 63).replaceAll("-+$", "");
+    }
+
+    private static final Map<String, Integer> RESOURCE_APPLY_ORDER = Map.ofEntries(
+            Map.entry("Gateway", 0),
+            Map.entry("HTTPRoute", 10),
+            Map.entry("APIProduct", 20),
+            Map.entry("PlanPolicy", 30),
+            Map.entry("Secret", 40),
+            Map.entry("AuthPolicy", 50),
+            Map.entry("RateLimitPolicy", 60),
+            Map.entry("TelemetryPolicy", 70),
+            Map.entry("Route", 80),
+            Map.entry("APIKey", 90)
+    );
+
+    private void sortResourcesForApply(List<MigrationPlan.GeneratedResource> resources) {
+        resources.sort(Comparator
+                .comparingInt((MigrationPlan.GeneratedResource r) ->
+                        RESOURCE_APPLY_ORDER.getOrDefault(r.kind(), 999))
+                .thenComparing(MigrationPlan.GeneratedResource::namespace, Comparator.nullsFirst(String::compareTo))
+                .thenComparing(MigrationPlan.GeneratedResource::name));
     }
 
     private MigrationPlan.GeneratedResource buildApiProduct(

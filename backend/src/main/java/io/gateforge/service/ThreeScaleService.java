@@ -467,56 +467,8 @@ public class ThreeScaleService {
                     LOG.log(Level.FINE, "Failed to fetch proxy for service " + serviceId, e);
                 }
 
-                List<ThreeScaleProduct.ApplicationPlan> appPlans = new ArrayList<>();
-                try {
-                    List<Map<String, Object>> rawPlans = client.listApplicationPlans(serviceId);
-                    for (Map<String, Object> rp : rawPlans) {
-                        long planId = toLong(rp.get("id"));
-                        String planName = String.valueOf(rp.getOrDefault("name", ""));
-                        String planSysName = String.valueOf(rp.getOrDefault("system_name", planName));
-                        String planState = String.valueOf(rp.getOrDefault("state", "published"));
-
-                        List<ThreeScaleProduct.PlanLimit> limits = new ArrayList<>();
-                        try {
-                            List<Map<String, Object>> rawLimits = client.listPlanLimits(planId);
-                            for (Map<String, Object> rl : rawLimits) {
-                                String metricName = String.valueOf(rl.getOrDefault("metric_name", "hits"));
-                                String period = String.valueOf(rl.getOrDefault("period", "day"));
-                                long value = toLong(rl.getOrDefault("value", 0));
-                                limits.add(new ThreeScaleProduct.PlanLimit(metricName, period, value));
-                            }
-                        } catch (Exception e) {
-                            LOG.log(Level.FINE, "Failed to fetch limits for plan " + planId, e);
-                        }
-                        appPlans.add(new ThreeScaleProduct.ApplicationPlan(planId, planName, planSysName, planState, limits));
-                    }
-                } catch (Exception e) {
-                    LOG.log(Level.FINE, "Failed to fetch application plans for service " + serviceId, e);
-                }
-
-                List<ThreeScaleProduct.Application> apps = new ArrayList<>();
-                try {
-                    List<Map<String, Object>> rawApps = client.listApplications(serviceId);
-                    for (Map<String, Object> ra : rawApps) {
-                        long appId = toLong(ra.get("id"));
-                        String appName = String.valueOf(ra.getOrDefault("name", "app-" + appId));
-                        String userKey = String.valueOf(ra.getOrDefault("user_key", ""));
-                        long planId = toLong(ra.get("plan_id"));
-                        String planRef = String.valueOf(ra.getOrDefault("plan_name", ""));
-                        String planSysRef = "";
-                        for (ThreeScaleProduct.ApplicationPlan ap : appPlans) {
-                            if (ap.id() == planId) {
-                                planRef = ap.name();
-                                planSysRef = ap.systemName();
-                                break;
-                            }
-                        }
-                        String email = String.valueOf(ra.getOrDefault("user_account_id", appName + "@gateforge.io"));
-                        apps.add(new ThreeScaleProduct.Application(appId, appName, userKey, planRef, planSysRef, email));
-                    }
-                } catch (Exception e) {
-                    LOG.log(Level.FINE, "Failed to fetch applications for service " + serviceId, e);
-                }
+                List<ThreeScaleProduct.ApplicationPlan> appPlans = loadApplicationPlansForService(client, serviceId);
+                List<ThreeScaleProduct.Application> apps = loadApplicationsForService(client, serviceId, appPlans);
 
                 products.add(new ThreeScaleProduct(
                         name, "admin-api",
@@ -531,6 +483,97 @@ public class ThreeScaleService {
             LOG.log(Level.WARNING, "Admin API product discovery failed for source " + client.getSourceId(), e);
         }
         return products;
+    }
+
+    /**
+     * Re-loads all 3scale applications (and plans if missing) from the Admin API so migration
+     * generates one Secret per application, including when the product cache was stale or CRD-only.
+     */
+    public ThreeScaleProduct refreshApplications(ThreeScaleProduct product) {
+        if (product.serviceId() <= 0) {
+            return product;
+        }
+        String sourceId = product.sourceCluster() != null && !product.sourceCluster().isBlank()
+                ? product.sourceCluster() : "default";
+        ThreeScaleAdminApiClient client = sourceRegistry.getClient(sourceId);
+        if (client == null || !client.isConfigured()) {
+            return product;
+        }
+
+        List<ThreeScaleProduct.ApplicationPlan> plans = product.applicationPlans();
+        if (plans == null || plans.isEmpty()) {
+            plans = loadApplicationPlansForService(client, product.serviceId());
+        }
+        List<ThreeScaleProduct.Application> apps = loadApplicationsForService(client, product.serviceId(), plans);
+        LOG.info("Refreshed %d application(s) for product %s (service %d) from Admin API"
+                .formatted(apps.size(), product.systemName(), product.serviceId()));
+
+        return new ThreeScaleProduct(
+                product.name(), product.namespace(), product.systemName(), product.serviceId(),
+                product.description(), product.deploymentOption(),
+                product.mappingRules(), product.backendUsages(), product.authentication(),
+                product.source(), product.backendNamespace(), product.backendServiceName(),
+                product.sourceCluster(), plans, apps
+        );
+    }
+
+    private List<ThreeScaleProduct.ApplicationPlan> loadApplicationPlansForService(
+            ThreeScaleAdminApiClient client, long serviceId) {
+        List<ThreeScaleProduct.ApplicationPlan> appPlans = new ArrayList<>();
+        try {
+            for (Map<String, Object> rp : client.listApplicationPlans(serviceId)) {
+                long planId = toLong(rp.get("id"));
+                String planName = String.valueOf(rp.getOrDefault("name", ""));
+                String planSysName = String.valueOf(rp.getOrDefault("system_name", planName));
+                String planState = String.valueOf(rp.getOrDefault("state", "published"));
+
+                List<ThreeScaleProduct.PlanLimit> limits = new ArrayList<>();
+                try {
+                    for (Map<String, Object> rl : client.listPlanLimits(planId)) {
+                        limits.add(new ThreeScaleProduct.PlanLimit(
+                                String.valueOf(rl.getOrDefault("metric_name", "hits")),
+                                String.valueOf(rl.getOrDefault("period", "day")),
+                                toLong(rl.getOrDefault("value", 0))));
+                    }
+                } catch (Exception e) {
+                    LOG.log(Level.FINE, "Failed to fetch limits for plan " + planId, e);
+                }
+                appPlans.add(new ThreeScaleProduct.ApplicationPlan(planId, planName, planSysName, planState, limits));
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to fetch application plans for service " + serviceId, e);
+        }
+        return appPlans;
+    }
+
+    private List<ThreeScaleProduct.Application> loadApplicationsForService(
+            ThreeScaleAdminApiClient client, long serviceId,
+            List<ThreeScaleProduct.ApplicationPlan> appPlans) {
+
+        List<ThreeScaleProduct.Application> apps = new ArrayList<>();
+        try {
+            List<Map<String, Object>> rawApps = client.listApplications(serviceId);
+            for (Map<String, Object> ra : rawApps) {
+                long appId = toLong(ra.get("id"));
+                String appName = String.valueOf(ra.getOrDefault("name", "app-" + appId));
+                String userKey = String.valueOf(ra.getOrDefault("user_key", ""));
+                long planId = toLong(ra.get("plan_id"));
+                String planRef = String.valueOf(ra.getOrDefault("plan_name", ""));
+                String planSysRef = "";
+                for (ThreeScaleProduct.ApplicationPlan ap : appPlans) {
+                    if (ap.id() == planId) {
+                        planRef = ap.name();
+                        planSysRef = ap.systemName();
+                        break;
+                    }
+                }
+                String email = String.valueOf(ra.getOrDefault("user_account_id", appName + "@gateforge.io"));
+                apps.add(new ThreeScaleProduct.Application(appId, appName, userKey, planRef, planSysRef, email));
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to fetch applications for service " + serviceId, e);
+        }
+        return apps;
     }
 
     private Map<String, String[]> resolveBackendEndpointMap() {

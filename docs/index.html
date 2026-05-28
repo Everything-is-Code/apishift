@@ -599,7 +599,7 @@ flowchart LR
   Product --> Route["OpenShift Route"]
 
   Plans["Application Plans"] --> PlanPolicy["PlanPolicy\n(extensions.kuadrant.io)"]
-  Keys["Application Keys"] --> APIKey["APIKey\n(devportal.kuadrant.io)"]
+  Keys["Application Keys"] --> APIKey["Secret\n(api_key from 3scale user_key)"]
 
   Observability{"Observability\nenabled?"} -->|Yes| TelemetryPolicy["TelemetryPolicy\n(extensions.kuadrant.io)"]
   Observability -->|No| Skip["Skipped"]
@@ -662,7 +662,7 @@ sequenceDiagram
           <tr><td>Backend</td><td>Service/Endpoints (HTTPRoute backendRefs)</td></tr>
           <tr><td>Mapping Rules</td><td>HTTPRoute rules (path, method matches)</td></tr>
           <tr><td>Application Plans (limits)</td><td>RateLimitPolicy + <strong>PlanPolicy</strong> (rates, counters, tier mapping)</td></tr>
-          <tr><td>Application Keys / Credentials</td><td><strong>APIKey</strong> (consumer credentials linked to APIProduct)</td></tr>
+          <tr><td>Application Keys / Credentials</td><td><strong>Secret</strong> (<code>api_key</code> preserved from 3scale <code>user_key</code>, labels for AuthPolicy / PlanPolicy)</td></tr>
           <tr><td>Auth (OAuth2, API Key)</td><td>AuthPolicy (via Authorino/Keycloak)</td></tr>
           <tr><td>Proxy/Gateway config</td><td>Gateway listener configuration</td></tr>
           <tr><td>DNS/TLS settings</td><td>DNSPolicy + TLSPolicy</td></tr>
