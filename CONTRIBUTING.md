@@ -24,6 +24,15 @@ Thank you for your interest in contributing.
 
 See the main [README](README.md) for how to run the backend, frontend, and local stack.
 
+**Fastest path (containers):**
+
+```bash
+cp .env.example .env   # add 3scale token + optional AI key
+./scripts/local-up.sh
+```
+
+No Kuadrant or OpenShift cluster is required for 3scale Admin API discovery and migration analysis.
+
 ## Code of Conduct
 
 This project follows the [Contributor Covenant](https://www.contributor-covenant.org/) Code of Conduct. By participating, you are expected to uphold a respectful, inclusive environment for everyone.

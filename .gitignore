@@ -36,3 +36,6 @@ Thumbs.db
 # Env
 .env
 *.env.local
+
+# ATL / SDD local agent cache
+.atl/
