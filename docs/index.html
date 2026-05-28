@@ -662,8 +662,9 @@ sequenceDiagram
           <tr><td>Backend</td><td>Service/Endpoints (HTTPRoute backendRefs)</td></tr>
           <tr><td>Mapping Rules</td><td>HTTPRoute rules (path, method matches)</td></tr>
           <tr><td>Application Plans (limits)</td><td>RateLimitPolicy + <strong>PlanPolicy</strong> (rates, counters, tier mapping)</td></tr>
-          <tr><td>Application Keys / Credentials</td><td><strong>Secret</strong> (<code>api_key</code> preserved from 3scale <code>user_key</code>, labels for AuthPolicy / PlanPolicy)</td></tr>
-          <tr><td>Auth (OAuth2, API Key)</td><td>AuthPolicy (via Authorino/Keycloak)</td></tr>
+          <tr><td>Application Keys (API Key mode)</td><td>One <strong>Secret</strong> per app (<code>user_key</code> → <code>stringData.api_key</code>); PlanPolicy via <code>secret.kuadrant.io/plan-id</code></td></tr>
+          <tr><td>OIDC applications (<code>application_id</code> / <code>application_key</code>)</td><td>No API key Secrets; <strong>AuthPolicy</strong> JWT (<code>issuerUrl</code> from <code>oidc_issuer_endpoint</code>); PlanPolicy tiers match JWT <code>clientID</code></td></tr>
+          <tr><td>Auth (API Key or OIDC, mutually exclusive per API)</td><td>AuthPolicy — apiKey selector or JWT validation (Authorino)</td></tr>
           <tr><td>Proxy/Gateway config</td><td>Gateway listener configuration</td></tr>
           <tr><td>DNS/TLS settings</td><td>DNSPolicy + TLSPolicy</td></tr>
           <tr><td>Metrics / Analytics</td><td><strong>TelemetryPolicy</strong> (optional, via OpenTelemetry)</td></tr>
