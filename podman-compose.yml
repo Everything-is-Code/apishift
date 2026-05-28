@@ -1,58 +1,103 @@
+# GateForge local stack — Podman Compose
+# Quick start: cp .env.example .env  (fill secrets)  &&  ./scripts/local-up.sh
+# Discovery-only mode (no Kuadrant): uses 3scale Admin API; K8s/CRD/APICast off by default.
+
 version: "3.8"
+
 services:
   postgresql:
-    image: registry.redhat.io/rhel9/postgresql-15:latest
+    image: docker.io/library/postgres:15-alpine
     container_name: gateforge-postgresql
+    restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRESQL_USER: gateforge
-      POSTGRESQL_PASSWORD: gateforge
-      POSTGRESQL_DATABASE: gateforge
+      POSTGRES_USER: gateforge
+      POSTGRES_PASSWORD: gateforge
+      POSTGRES_DB: gateforge
+    volumes:
+      - gateforge-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "gateforge"]
+      test: ["CMD-SHELL", "pg_isready -U gateforge -d gateforge"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  datagrid:
+    image: quay.io/infinispan/server:15.0
+    container_name: gateforge-datagrid
+    restart: unless-stopped
+    ports:
+      - "11222:11222"
+    environment:
+      USER: developer
+      PASS: changeme
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/11222 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.jvm
     container_name: gateforge-backend
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
       QUARKUS_PROFILE: dev
+      # LiteLLM / AI (set AI_API_KEY in .env)
       AI_ENDPOINT: ${AI_ENDPOINT:-https://litellm-prod.apps.maas.redhatworkshops.io/v1}
-      AI_MODEL: ${AI_MODEL:-deepseek-r1-distill-qwen-14b}
-      AI_API_KEY: ${AI_API_KEY:-dummy}
+      AI_MODEL: ${AI_MODEL:-openai/deepseek-r1-distill-qwen-14b}
+      AI_API_KEY: ${AI_API_KEY:-}
+      # 3scale Admin API (required for discovery / effort estimation)
       THREESCALE_ADMIN_URL: ${THREESCALE_ADMIN_URL:-}
       THREESCALE_ACCESS_TOKEN: ${THREESCALE_ACCESS_TOKEN:-}
       THREESCALE_SOURCES: ${THREESCALE_SOURCES:-}
+      # Local defaults: no OpenShift/Kuadrant required
+      THREESCALE_CRD_DISCOVERY: ${THREESCALE_CRD_DISCOVERY:-false}
+      APICAST_DISCOVERY: ${APICAST_DISCOVERY:-false}
       TARGET_CLUSTERS: ${TARGET_CLUSTERS:-}
       ARGOCD_CLUSTER_DISCOVERY: ${ARGOCD_CLUSTER_DISCOVERY:-false}
+      CLUSTER_DOMAIN: ${CLUSTER_DOMAIN:-apps.cluster.example.com}
+      # PostgreSQL (compose service)
       DATASOURCE_URL: jdbc:postgresql://postgresql:5432/gateforge
       DATASOURCE_USERNAME: gateforge
       DATASOURCE_PASSWORD: gateforge
+      # Infinispan cache (compose service)
+      DATAGRID_HOST: datagrid
+      DATAGRID_PORT: "11222"
+      DATAGRID_USERNAME: developer
+      DATAGRID_PASSWORD: changeme
+      # Optional OpenShift API (enable APICAST_DISCOVERY / THREESCALE_CRD_DISCOVERY in .env)
       QUARKUS_KUBERNETES_CLIENT_MASTER_URL: ${KUBE_API_URL:-}
       QUARKUS_KUBERNETES_CLIENT_TOKEN: ${KUBE_TOKEN:-}
     depends_on:
       postgresql:
         condition: service_healthy
+      datagrid:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8080/q/health/ready >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 90s
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.ci
     container_name: gateforge-frontend
+    restart: unless-stopped
     ports:
       - "4200:8080"
     depends_on:
       backend:
         condition: service_healthy
+
+volumes:
+  gateforge-pgdata:

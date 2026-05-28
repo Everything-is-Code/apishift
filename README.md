@@ -135,13 +135,24 @@ flowchart LR
 
 ## Prerequisites
 
+**Full migration to Connectivity Link (OpenShift):**
+
 * **OpenShift 4.21** with cluster-admin or least-privilege RBAC
 * **3scale Operator** installed (for CRD discovery)
 * **Kuadrant Operator** / Connectivity Link installed
-* **Podman** (and optionally **podman-compose**) for local development
+* **Helm 3** for deployment
+
+**Local development / discovery-only (no Kuadrant required):**
+
+* **Podman** + **podman-compose**
+* **3scale Admin API** URL and access token (inventory and effort estimation via Admin API)
+* Optional: **LiteLLM** API key for the AI assistant
+* Optional: **OpenShift API** token only if you enable CRD or APICast discovery in `.env`
+
+**Traditional dev (without containers):**
+
 * **Java 17** + **Maven 3.9+** for backend development
 * **Node.js 20** for frontend development
-* **Helm 3** for deployment
 
 ---
 
@@ -166,16 +177,47 @@ npm start
 
 Open **http://localhost:4200**. The Angular dev server proxies `/api` to `http://localhost:8080`.
 
-### Containers (Podman Compose)
+### Containers (Podman Compose) — recommended for contributors
+
+Local stack uses **public** images (PostgreSQL, Infinispan) — no Red Hat registry login required.
+
+**Requirements:** [Podman](https://podman.io/) and [podman-compose](https://github.com/containers/podman-compose). The first `./scripts/local-up.sh` run builds backend and frontend images and may take several minutes.
+
+**Quick start:**
 
 ```bash
-podman-compose up -d --build
+cp .env.example .env
+# Edit .env: set THREESCALE_ACCESS_TOKEN, AI_API_KEY, and optional KUBE_* for cluster discovery
+./scripts/local-up.sh
 ```
 
-* **Frontend:** http://localhost:4200
-* **Backend API:** http://localhost:8080/api
-* **Health:** http://localhost:8080/q/health
-* **PostgreSQL:** localhost:5432 (user: `gateforge`, db: `gateforge`)
+**Stop / reset:**
+
+```bash
+./scripts/local-down.sh          # stop containers
+podman-compose down -v         # stop and delete DB volume
+```
+
+**Endpoints:**
+
+| Service | URL |
+|---------|-----|
+| UI | http://localhost:4200 |
+| API | http://localhost:8080/api |
+| Health | http://localhost:8080/q/health/ready |
+| 3scale status | http://localhost:8080/api/threescale/status |
+| PostgreSQL | localhost:5432 (`gateforge` / `gateforge`) |
+
+**Discovery-only mode (default in compose):** `THREESCALE_CRD_DISCOVERY=false` and `APICAST_DISCOVERY=false` — enough to explore 3scale products/backends via Admin API and run migration **analysis** without Kuadrant or cluster write access. Set both to `true` in `.env` plus `KUBE_*` for CRD/APICast inventory (read-only RBAC is sufficient; cluster-admin is not required).
+
+**Verify:**
+
+```bash
+curl -sf http://localhost:8080/q/health/ready
+curl -sf http://localhost:8080/api/threescale/status
+```
+
+See [.env.example](.env.example) for all variables.
 
 ### Helm Chart (OpenShift)
 
