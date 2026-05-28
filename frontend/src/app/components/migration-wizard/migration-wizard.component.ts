@@ -150,6 +150,9 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
             <span class="pill pill-strategy">Strategy: {{ plan.gatewayStrategy }}</span>
             <span class="pill pill-muted">Products: {{ plan.sourceProducts.join(', ') || '—' }}</span>
             <span class="pill pill-cluster" *ngIf="plan.targetClusterLabel">{{ plan.targetClusterLabel }}</span>
+            <span class="pill pill-green" *ngIf="consumerApiKeySecretCount > 0">
+              {{ consumerApiKeySecretCount }} API key Secret(s)
+            </span>
           </div>
         </div>
 
@@ -159,6 +162,20 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
           </div>
           <div class="ai-analysis-body">
             <pre class="ai-analysis-content">{{ plan.aiAnalysis }}</pre>
+          </div>
+        </div>
+
+        <div *ngIf="hasConsumerApiKeySecrets" class="keyvault-warning" role="alert">
+          <span class="warning-icon" aria-hidden="true">&#9888;</span>
+          <div>
+            <strong>Credential security recommendation</strong>
+            <p>
+              This plan may include Kubernetes Secrets with API keys migrated from 3scale
+              (<code>stringData.api_key</code>). For production, prefer storing credentials in a
+              key vault (for example OpenShift Secrets Store CSI, HashiCorp Vault, or Azure Key Vault)
+              and syncing them into the cluster instead of keeping long-lived keys only in etcd.
+              Rotate keys after migration if your security policy requires it.
+            </p>
           </div>
         </div>
 
@@ -674,6 +691,33 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
       color: #151515;
       font-family: 'Red Hat Text', sans-serif;
     }
+    .keyvault-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fff8e6;
+      border: 1px solid #e0a800;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      font-size: 0.88rem;
+      color: #6a4e00;
+      line-height: 1.5;
+    }
+    .keyvault-warning strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #5c4500;
+    }
+    .keyvault-warning p {
+      margin: 0;
+    }
+    .keyvault-warning code {
+      font-size: 0.82rem;
+      background: rgba(0, 0, 0, 0.06);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
     .consolidation-warnings {
       margin-bottom: 22px;
     }
@@ -1129,6 +1173,14 @@ export class MigrationWizardComponent implements OnInit {
     }
   ];
 
+  get hasConsumerApiKeySecrets(): boolean {
+    return this.consumerApiKeySecretCount > 0;
+  }
+
+  get consumerApiKeySecretCount(): number {
+    return this.plan?.resources?.filter(r => r.kind === 'Secret').length ?? 0;
+  }
+
   get selectedCount(): number {
     return this.products.filter(p => p.selected).length;
   }
@@ -1399,8 +1451,8 @@ export class MigrationWizardComponent implements OnInit {
     if (!folder) return;
 
     const kindOrder: Record<string, number> = {
-      Gateway: 0, HTTPRoute: 1, AuthPolicy: 2, RateLimitPolicy: 3,
-      PlanPolicy: 4, APIProduct: 5, APIKey: 6, TelemetryPolicy: 7, Route: 8
+      Gateway: 0, HTTPRoute: 1, APIProduct: 2, PlanPolicy: 3, Secret: 4,
+      AuthPolicy: 5, RateLimitPolicy: 6, TelemetryPolicy: 7, Route: 8, APIKey: 9
     };
 
     const sorted = [...this.plan.resources].sort((a, b) =>

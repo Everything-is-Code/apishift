@@ -27,12 +27,13 @@ const kindColors: Record<string, string> = {
   PlanPolicy: '#6a6e73',
   APIProduct: '#8a5500',
   APIKey: '#004080',
+  Secret: '#004080',
   TelemetryPolicy: '#6c3483',
 };
 
 const kindOrder = [
-  'Gateway', 'HTTPRoute', 'AuthPolicy', 'RateLimitPolicy',
-  'PlanPolicy', 'TelemetryPolicy', 'APIProduct', 'APIKey',
+  'Gateway', 'HTTPRoute', 'PlanPolicy', 'APIProduct', 'Secret',
+  'AuthPolicy', 'RateLimitPolicy', 'TelemetryPolicy', 'APIKey',
 ];
 
 const useStyles = makeStyles(() => ({
