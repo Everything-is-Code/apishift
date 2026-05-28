@@ -24,5 +24,20 @@ public record ThreeScaleProduct(
     public record BackendUsage(String backendName, String path) {}
     public record ApplicationPlan(long id, String name, String systemName, String state, List<PlanLimit> limits) {}
     public record PlanLimit(String metricName, String period, long value) {}
-    public record Application(long id, String name, String userKey, String planName, String planSystemName, String accountEmail) {}
+    /**
+     * @param userKey API Key mode credential ({@code user_key} in 3scale)
+     * @param applicationId OIDC mode client_id ({@code application_id} in 3scale)
+     * @param applicationKey OIDC mode client_secret ({@code application_key} in 3scale)
+     */
+    public record Application(
+            long id,
+            String name,
+            String userKey,
+            String planName,
+            String planSystemName,
+            String accountEmail,
+            String applicationId,
+            String applicationKey,
+            String redirectUrl
+    ) {}
 }

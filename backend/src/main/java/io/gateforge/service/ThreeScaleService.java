@@ -457,15 +457,12 @@ public class ThreeScaleService {
                 Map<String, Object> auth = new LinkedHashMap<>();
                 try {
                     Map<String, Object> proxy = client.getServiceProxy(serviceId);
-                    if (!proxy.isEmpty()) {
-                        auth.put("credentials_location", proxy.getOrDefault("credentials_location", ""));
-                        auth.put("auth_app_key", proxy.getOrDefault("auth_app_key", ""));
-                        auth.put("auth_app_id", proxy.getOrDefault("auth_app_id", ""));
-                        auth.put("auth_user_key", proxy.getOrDefault("auth_user_key", ""));
-                    }
+                    ThreeScaleAuthMode.enrichAuthFromProxy(auth, proxy);
                 } catch (Exception e) {
                     LOG.log(Level.FINE, "Failed to fetch proxy for service " + serviceId, e);
                 }
+                ThreeScaleAuthMode.markOidcFromBackendVersion(auth,
+                        String.valueOf(svc.getOrDefault("backend_version", "")));
 
                 List<ThreeScaleProduct.ApplicationPlan> appPlans = loadApplicationPlansForService(client, serviceId);
                 List<ThreeScaleProduct.Application> apps = loadApplicationsForService(client, serviceId, appPlans);
@@ -486,10 +483,9 @@ public class ThreeScaleService {
     }
 
     /**
-     * Re-loads all 3scale applications (and plans if missing) from the Admin API so migration
-     * generates one Secret per application, including when the product cache was stale or CRD-only.
+     * Re-loads applications, plans, and proxy/OIDC auth settings from the Admin API before migration.
      */
-    public ThreeScaleProduct refreshApplications(ThreeScaleProduct product) {
+    public ThreeScaleProduct refreshProductForMigration(ThreeScaleProduct product) {
         if (product.serviceId() <= 0) {
             return product;
         }
@@ -500,21 +496,37 @@ public class ThreeScaleService {
             return product;
         }
 
+        Map<String, Object> auth = product.authentication() != null
+                ? new LinkedHashMap<>(product.authentication())
+                : new LinkedHashMap<>();
+        try {
+            Map<String, Object> proxy = client.getServiceProxy(product.serviceId());
+            ThreeScaleAuthMode.enrichAuthFromProxy(auth, proxy);
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to refresh proxy auth for service " + product.serviceId(), e);
+        }
+
         List<ThreeScaleProduct.ApplicationPlan> plans = product.applicationPlans();
         if (plans == null || plans.isEmpty()) {
             plans = loadApplicationPlansForService(client, product.serviceId());
         }
         List<ThreeScaleProduct.Application> apps = loadApplicationsForService(client, product.serviceId(), plans);
-        LOG.info("Refreshed %d application(s) for product %s (service %d) from Admin API"
-                .formatted(apps.size(), product.systemName(), product.serviceId()));
+        LOG.info("Refreshed %d application(s) for product %s (service %d, auth %s) from Admin API"
+                .formatted(apps.size(), product.systemName(), product.serviceId(),
+                        ThreeScaleAuthMode.fromAuthMap(auth).name()));
 
         return new ThreeScaleProduct(
                 product.name(), product.namespace(), product.systemName(), product.serviceId(),
                 product.description(), product.deploymentOption(),
-                product.mappingRules(), product.backendUsages(), product.authentication(),
+                product.mappingRules(), product.backendUsages(), auth,
                 product.source(), product.backendNamespace(), product.backendServiceName(),
                 product.sourceCluster(), plans, apps
         );
+    }
+
+    /** @deprecated use {@link #refreshProductForMigration} */
+    public ThreeScaleProduct refreshApplications(ThreeScaleProduct product) {
+        return refreshProductForMigration(product);
     }
 
     private List<ThreeScaleProduct.ApplicationPlan> loadApplicationPlansForService(
@@ -568,7 +580,12 @@ public class ThreeScaleService {
                     }
                 }
                 String email = String.valueOf(ra.getOrDefault("user_account_id", appName + "@gateforge.io"));
-                apps.add(new ThreeScaleProduct.Application(appId, appName, userKey, planRef, planSysRef, email));
+                String applicationId = String.valueOf(ra.getOrDefault("application_id", ""));
+                String applicationKey = String.valueOf(ra.getOrDefault("application_key", ""));
+                String redirectUrl = String.valueOf(ra.getOrDefault("redirect_url", ""));
+                apps.add(new ThreeScaleProduct.Application(
+                        appId, appName, userKey, planRef, planSysRef, email,
+                        applicationId, applicationKey, redirectUrl));
             }
         } catch (Exception e) {
             LOG.log(Level.FINE, "Failed to fetch applications for service " + serviceId, e);

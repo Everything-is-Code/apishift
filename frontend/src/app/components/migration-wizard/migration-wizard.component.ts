@@ -153,6 +153,7 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
             <span class="pill pill-green" *ngIf="consumerApiKeySecretCount > 0">
               {{ consumerApiKeySecretCount }} API key Secret(s)
             </span>
+            <span class="pill pill-blue" *ngIf="hasOidcJwtAuth">OIDC (JWT)</span>
           </div>
         </div>
 
@@ -162,6 +163,19 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
           </div>
           <div class="ai-analysis-body">
             <pre class="ai-analysis-content">{{ plan.aiAnalysis }}</pre>
+          </div>
+        </div>
+
+        <div *ngIf="hasOidcJwtAuth" class="oidc-info-banner" role="status">
+          <span class="info-icon" aria-hidden="true">&#8505;</span>
+          <div>
+            <strong>OpenID Connect migration</strong>
+            <p>
+              This API uses OIDC only (no API key Secrets). Clients should keep the same identity provider,
+              <code>application_id</code> / <code>application_key</code>, token endpoint, and
+              <code>Authorization: Bearer</code> flow. PlanPolicy tiers match OAuth
+              <code>client_id</code> claims in validated JWTs. Cut over DNS to Connectivity Link when ready.
+            </p>
           </div>
         </div>
 
@@ -604,6 +618,32 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
       color: #151515;
     }
     .pill-green { background: #e6f5e0; border-color: rgba(63,156,53,0.35); color: #2d6b24; }
+    .pill-blue { background: #e8f0fe; border-color: rgba(0,68,153,0.35); color: #004499; }
+    .oidc-info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #e8f4fd;
+      border: 1px solid #6cb6ff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      font-size: 0.88rem;
+      color: #003d6b;
+      line-height: 1.5;
+    }
+    .oidc-info-banner strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #002a4d;
+    }
+    .oidc-info-banner p { margin: 0; }
+    .oidc-info-banner code {
+      font-size: 0.82rem;
+      background: rgba(0, 0, 0, 0.06);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
     .strategy-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1175,6 +1215,12 @@ export class MigrationWizardComponent implements OnInit {
 
   get hasConsumerApiKeySecrets(): boolean {
     return this.consumerApiKeySecretCount > 0;
+  }
+
+  get hasOidcJwtAuth(): boolean {
+    return this.plan?.resources?.some(
+      r => r.kind === 'AuthPolicy' && (r.yaml?.includes('issuerUrl:') ?? false)
+    ) ?? false;
   }
 
   get consumerApiKeySecretCount(): number {

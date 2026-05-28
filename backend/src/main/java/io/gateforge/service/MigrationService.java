@@ -164,28 +164,34 @@ public class MigrationService {
                         ctx.backendSvcName, ctx.resolvedBackends));
             }
 
-            resources.add(buildApiProduct(sysName, ns, routeName, product));
+            ThreeScaleProduct productReady = threeScaleService.refreshProductForMigration(product);
+            ThreeScaleAuthMode authMode = ThreeScaleAuthMode.fromProduct(productReady);
 
-            if (product.applicationPlans() != null && !product.applicationPlans().isEmpty()) {
-                resources.add(buildPlanPolicy(sysName + "-plans", ns, routeName, product));
+            resources.add(buildApiProduct(sysName, ns, routeName, productReady));
+
+            if (productReady.applicationPlans() != null && !productReady.applicationPlans().isEmpty()) {
+                resources.add(buildPlanPolicy(sysName + "-plans", ns, routeName, productReady, authMode));
             }
 
-            ThreeScaleProduct productWithApps = threeScaleService.refreshApplications(product);
-            List<MigrationPlan.GeneratedResource> apiKeySecrets =
-                    buildConsumerApiKeySecrets(sysName, ns, productWithApps, consolidationWarnings);
-            if (!apiKeySecrets.isEmpty()) {
-                resources.addAll(apiKeySecrets);
-                int appCount = productWithApps.applications() != null ? productWithApps.applications().size() : 0;
-                consolidationWarnings.add(
-                        "Product '%s': %d 3scale application(s) → %d API key Secret(s) (one Secret per application with user_key)."
-                                .formatted(sysName, appCount, apiKeySecrets.size()));
-            } else if (productWithApps.applications() != null && !productWithApps.applications().isEmpty()) {
-                consolidationWarnings.add(
-                        "Product '%s': %d application(s) found but no user_key values — no consumer Secrets generated."
-                                .formatted(sysName, productWithApps.applications().size()));
+            if (authMode == ThreeScaleAuthMode.API_KEY) {
+                List<MigrationPlan.GeneratedResource> apiKeySecrets =
+                        buildConsumerApiKeySecrets(sysName, ns, productReady, consolidationWarnings);
+                if (!apiKeySecrets.isEmpty()) {
+                    resources.addAll(apiKeySecrets);
+                    int appCount = productReady.applications() != null ? productReady.applications().size() : 0;
+                    consolidationWarnings.add(
+                            "Product '%s' (API Key): %d application(s) → %d Secret(s) with preserved user_key."
+                                    .formatted(sysName, appCount, apiKeySecrets.size()));
+                } else if (productReady.applications() != null && !productReady.applications().isEmpty()) {
+                    consolidationWarnings.add(
+                            "Product '%s' (API Key): %d application(s) but no user_key — no consumer Secrets generated."
+                                    .formatted(sysName, productReady.applications().size()));
+                }
+            } else {
+                addOidcMigrationWarnings(sysName, productReady, consolidationWarnings);
             }
 
-            resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, product));
+            resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, productReady, authMode));
             resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, product));
 
             if (observabilityEnabled) {
@@ -890,6 +896,15 @@ public class MigrationService {
     }
 
     private MigrationPlan.GeneratedResource buildPlanPolicy(
+            String name, String namespace, String routeName, ThreeScaleProduct product,
+            ThreeScaleAuthMode authMode) {
+
+        return authMode == ThreeScaleAuthMode.OIDC
+                ? buildPlanPolicyOidc(name, namespace, routeName, product)
+                : buildPlanPolicyApiKey(name, namespace, routeName, product);
+    }
+
+    private MigrationPlan.GeneratedResource buildPlanPolicyApiKey(
             String name, String namespace, String routeName, ThreeScaleProduct product) {
 
         StringBuilder plans = new StringBuilder();
@@ -898,31 +913,52 @@ public class MigrationService {
             plans.append("    - tier: \"").append(plan.systemName()).append("\"\n");
             plans.append("      predicate: |\n");
             plans.append("        has(auth.identity) && auth.identity.metadata.annotations[\"secret.kuadrant.io/plan-id\"] == \"")
-                    .append(plan.systemName()).append("\"\n");
-            plans.append("      limits:\n");
-
-            for (ThreeScaleProduct.PlanLimit limit : plan.limits()) {
-                switch (limit.period()) {
-                    case "day" -> plans.append("        daily: ").append(limit.value()).append("\n");
-                    case "month" -> plans.append("        monthly: ").append(limit.value()).append("\n");
-                    case "week" -> plans.append("        weekly: ").append(limit.value()).append("\n");
-                    case "year", "eternity" -> plans.append("        yearly: ").append(limit.value()).append("\n");
-                    case "hour" -> {
-                        plans.append("        custom:\n");
-                        plans.append("          - limit: ").append(limit.value()).append("\n");
-                        plans.append("            window: \"1h\"\n");
-                    }
-                    case "minute" -> {
-                        plans.append("        custom:\n");
-                        plans.append("          - limit: ").append(limit.value()).append("\n");
-                        plans.append("            window: \"1m\"\n");
-                    }
-                }
-            }
-            if (plan.limits().isEmpty()) {
-                plans.append("        daily: 1000\n");
-            }
+                    .append(escapePredicateLiteral(plan.systemName())).append("\"\n");
+            appendPlanLimits(plans, plan);
         }
+
+        return wrapPlanPolicyYaml(name, namespace, routeName, product.systemName(), plans.toString());
+    }
+
+    private MigrationPlan.GeneratedResource buildPlanPolicyOidc(
+            String name, String namespace, String routeName, ThreeScaleProduct product) {
+
+        StringBuilder plans = new StringBuilder();
+        List<ThreeScaleProduct.Application> apps = product.applications() != null
+                ? product.applications() : List.of();
+
+        for (ThreeScaleProduct.ApplicationPlan plan : product.applicationPlans()) {
+            if (!"published".equalsIgnoreCase(plan.state()) && !"hidden".equalsIgnoreCase(plan.state())) continue;
+
+            List<String> clientClauses = new ArrayList<>();
+            for (ThreeScaleProduct.Application app : apps) {
+                String planTier = app.planSystemName().isBlank() ? "default" : app.planSystemName();
+                if (!plan.systemName().equals(planTier)) continue;
+                String clientId = app.applicationId();
+                if (clientId == null || clientId.isBlank()) continue;
+                clientClauses.add("auth.identity.metadata.annotations[\"clientID\"] == \""
+                        + escapePredicateLiteral(clientId) + "\"");
+            }
+
+            plans.append("    - tier: \"").append(plan.systemName()).append("\"\n");
+            plans.append("      predicate: |\n");
+            if (clientClauses.isEmpty()) {
+                plans.append("        false\n");
+            } else if (clientClauses.size() == 1) {
+                plans.append("        has(auth.identity) && ").append(clientClauses.get(0)).append("\n");
+            } else {
+                plans.append("        has(auth.identity) && (")
+                        .append(String.join(" || ", clientClauses))
+                        .append(")\n");
+            }
+            appendPlanLimits(plans, plan);
+        }
+
+        return wrapPlanPolicyYaml(name, namespace, routeName, product.systemName(), plans.toString());
+    }
+
+    private static MigrationPlan.GeneratedResource wrapPlanPolicyYaml(
+            String name, String namespace, String routeName, String systemName, String plansBody) {
 
         String yaml = """
                 apiVersion: extensions.kuadrant.io/v1alpha1
@@ -939,9 +975,70 @@ public class MigrationService {
                     kind: HTTPRoute
                     name: %s
                   plans:
-                %s""".formatted(name, namespace, product.systemName(), routeName, plans.toString());
+                %s""".formatted(name, namespace, systemName, routeName, plansBody);
 
         return new MigrationPlan.GeneratedResource("PlanPolicy", name, namespace, yaml);
+    }
+
+    private static void appendPlanLimits(StringBuilder plans, ThreeScaleProduct.ApplicationPlan plan) {
+        plans.append("      limits:\n");
+        for (ThreeScaleProduct.PlanLimit limit : plan.limits()) {
+            switch (limit.period()) {
+                case "day" -> plans.append("        daily: ").append(limit.value()).append("\n");
+                case "month" -> plans.append("        monthly: ").append(limit.value()).append("\n");
+                case "week" -> plans.append("        weekly: ").append(limit.value()).append("\n");
+                case "year", "eternity" -> plans.append("        yearly: ").append(limit.value()).append("\n");
+                case "hour" -> {
+                    plans.append("        custom:\n");
+                    plans.append("          - limit: ").append(limit.value()).append("\n");
+                    plans.append("            window: \"1h\"\n");
+                }
+                case "minute" -> {
+                    plans.append("        custom:\n");
+                    plans.append("          - limit: ").append(limit.value()).append("\n");
+                    plans.append("            window: \"1m\"\n");
+                }
+            }
+        }
+        if (plan.limits().isEmpty()) {
+            plans.append("        daily: 1000\n");
+        }
+    }
+
+    private static String escapePredicateLiteral(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private void addOidcMigrationWarnings(
+            String sysName, ThreeScaleProduct product, List<String> warnings) {
+
+        List<ThreeScaleProduct.Application> apps = product.applications() != null
+                ? product.applications() : List.of();
+        int appCount = apps.size();
+        long withClientId = apps.stream()
+                .filter(a -> a.applicationId() != null && !a.applicationId().isBlank())
+                .count();
+
+        String issuer = ThreeScaleAuthMode.resolveJwtIssuerUrl(product.authentication());
+        if (issuer == null || issuer.isBlank()) {
+            warnings.add(
+                    "Product '%s' (OIDC): oidc_issuer_endpoint not found in 3scale — AuthPolicy JWT issuer is a placeholder; set the real issuer before apply."
+                            .formatted(sysName));
+        } else {
+            warnings.add(
+                    ("Product '%s' (OIDC): %d application(s), %d with application_id (OAuth client_id). " +
+                            "JWT issuer %s. Clients keep the same IdP token endpoint and Authorization: Bearer; no API key Secrets.")
+                            .formatted(sysName, appCount, withClientId, issuer));
+        }
+
+        for (ThreeScaleProduct.Application app : apps) {
+            if (app.applicationId() == null || app.applicationId().isBlank()) {
+                warnings.add(
+                        "Application '%s' (id %d, product %s) has no application_id — excluded from OIDC PlanPolicy tier matching."
+                                .formatted(app.name(), app.id(), sysName));
+            }
+        }
     }
 
     /**
@@ -1047,13 +1144,7 @@ public class MigrationService {
                 ? product.description().replace("\"", "'")
                 : product.name();
 
-        String authType = "api-key";
-        if (product.authentication() != null) {
-            String type = String.valueOf(product.authentication().getOrDefault("type", ""));
-            if ("oidc".equalsIgnoreCase(type) || "openid_connect".equalsIgnoreCase(type)) {
-                authType = "oidc";
-            }
-        }
+        String authType = ThreeScaleAuthMode.fromProduct(product) == ThreeScaleAuthMode.OIDC ? "oidc" : "api-key";
 
         String hostname = product.systemName() + "." + clusterDomain;
 
@@ -1102,13 +1193,7 @@ public class MigrationService {
     private MigrationPlan.GeneratedResource buildTelemetryPolicy(
             String name, String namespace, String routeName, ThreeScaleProduct product) {
 
-        String authType = "api-key";
-        if (product.authentication() != null) {
-            String type = String.valueOf(product.authentication().getOrDefault("type", ""));
-            if ("oidc".equalsIgnoreCase(type) || "openid_connect".equalsIgnoreCase(type)) {
-                authType = "oidc";
-            }
-        }
+        String authType = ThreeScaleAuthMode.fromProduct(product) == ThreeScaleAuthMode.OIDC ? "oidc" : "api-key";
 
         String yaml = """
                 apiVersion: extensions.kuadrant.io/v1alpha1
@@ -1267,38 +1352,21 @@ public class MigrationService {
     }
 
     private MigrationPlan.GeneratedResource buildAuthPolicy(
-            String name, String namespace, String routeName, ThreeScaleProduct product) {
+            String name, String namespace, String routeName, ThreeScaleProduct product,
+            ThreeScaleAuthMode authMode) {
 
         String authSection;
-        Map<String, Object> auth = product.authentication();
-        if (auth != null && !auth.isEmpty()) {
-            String authType = String.valueOf(auth.getOrDefault("type", "apiKey"));
-            if ("oidc".equalsIgnoreCase(authType) || "openid_connect".equalsIgnoreCase(authType)) {
-                String issuer = String.valueOf(auth.getOrDefault("issuerEndpoint",
-                        "https://sso.example.com/realms/api"));
-                authSection = """
-                          authorization:
-                            oidc:
-                              when:
-                                - selector: request.path
-                                  operator: matches
-                                  value: ".*"
+        if (authMode == ThreeScaleAuthMode.OIDC) {
+            String issuer = ThreeScaleAuthMode.resolveJwtIssuerUrl(product.authentication());
+            if (issuer == null || issuer.isBlank()) {
+                issuer = "https://sso.example.com/realms/api";
+            }
+            authSection = """
                           authentication:
                             "oidc-auth":
                               jwt:
                                 issuerUrl: %s
                       """.formatted(issuer);
-            } else {
-                authSection = """
-                          authentication:
-                            "apikey-auth":
-                              apiKey:
-                                selector:
-                                  matchLabels:
-                                    app: %s
-                                allNamespaces: false
-                      """.formatted(product.systemName());
-            }
         } else {
             authSection = """
                           authentication:
