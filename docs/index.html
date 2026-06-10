@@ -218,6 +218,24 @@
     .api-group-p2 { background: #e0ecff; color: #0066cc; }
     .api-group-p3 { background: #fce4ec; color: #880e4f; }
     .api-group-p5 { background: #e0f7fa; color: #006064; }
+    .policy-section {
+      background: white; border: 1px solid #d2d2d2; border-radius: 8px;
+      padding: 24px; margin: 24px 0;
+    }
+    .policy-section h3 { color: #0066cc; margin-bottom: 12px; font-size: 1.15rem; }
+    .policy-section h4 { margin: 20px 0 8px; font-size: 1rem; color: #151515; }
+    .policy-section p, .policy-section li { color: #4d4d4d; font-size: 0.92rem; line-height: 1.6; }
+    .policy-section ul { margin: 8px 0 8px 20px; }
+    .policy-callout {
+      background: #f0f7ff; border-left: 4px solid #0066cc;
+      padding: 14px 18px; margin: 16px 0; border-radius: 0 6px 6px 0;
+      font-size: 0.9rem; color: #004080;
+    }
+    .code-block {
+      background: #1e1e1e; color: #d4d4d4; padding: 16px 18px;
+      border-radius: 8px; font-family: 'Red Hat Mono', monospace;
+      font-size: 0.82rem; line-height: 1.5; overflow-x: auto; margin: 12px 0;
+    }
   </style>
 </head>
 <body>
@@ -272,10 +290,15 @@
         Organizations running <strong>Red Hat 3scale API Management</strong> need a clear, automated path to <strong>Kubernetes-native API management</strong> via Red Hat Connectivity Link (Kuadrant). GateForge automates this migration end-to-end.
       </p>
       <div class="phase-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+        <div class="phase-card" style="border-left: 3px solid #2e7d32;">
+          <span class="phase-badge" style="background:#e6f5e0;color:#2d6b24;">Core Engine</span>
+          <h4>Policy Mapping Engine</h4>
+          <p>Translates 3scale Products, mapping rules, application plans, and credentials into Connectivity Link 1.3 resources: HTTPRoute, AuthPolicy, PlanPolicy, APIProduct, Secrets, and more. See <a href="#architecture" data-tab="architecture">Policy Mapping</a> for full detail.</p>
+        </div>
         <div class="phase-card" style="border-left: 3px solid #0066cc;">
           <span class="phase-badge" style="background:#e0ecff;color:#0066cc;">Discovery</span>
           <h4>Automatic 3scale Discovery</h4>
-          <p>Discovers Products, Backends, Mapping Rules, and ActiveDocs via both CRD inspection and Admin API. Supports connecting to multiple 3scale instances simultaneously.</p>
+          <p>Discovers Products, Backends, Mapping Rules, and ActiveDocs via both CRD inspection and Admin API. Supports connecting to multiple 3scale instances simultaneously. <strong>Refresh discovery</strong> bypasses cache on demand.</p>
         </div>
         <div class="phase-card" style="border-left: 3px solid #880e4f;">
           <span class="phase-badge" style="background:#fce4ec;color:#880e4f;">AI-Powered</span>
@@ -654,22 +677,199 @@ sequenceDiagram
         </pre>
       </div>
 
-      <h3 style="margin-top: 32px;">3scale to Connectivity Link Mapping</h3>
+      <h2 style="margin-top: 40px;" id="policy-mapping">Policy Mapping &amp; Core Migration Engine</h2>
+      <p style="color:#6a6e73; margin-bottom:20px; max-width:900px; line-height:1.7;">
+        The original GateForge capability — and still its core — is translating <strong>Red Hat 3scale API Management</strong>
+        configuration into <strong>Connectivity Link 1.3</strong> (Kuadrant) resources. Analysis always produces the full
+        resource set; cluster readiness is validated separately before apply.
+      </p>
+
+      <div class="policy-callout">
+        <strong>Analysis vs. apply:</strong> <code>POST /api/migration/analyze</code> never skips resources due to missing operators.
+        The Migration Wizard shows <em>Required for apply, not for analysis</em> prerequisites; use
+        <code>GET /api/cluster/readiness?planId=…</code> to probe the target cluster.
+        Machine-readable catalog: <code>GET /api/migration/policy-mapping</code>.
+      </div>
+
+      <div class="policy-section">
+        <h3>RHCL 1.3 policy taxonomy</h3>
+        <p>Do not mix these layers when suggesting migration resources:</p>
+        <table class="arch-table">
+          <thead><tr><th>Layer</th><th>API group</th><th>Resources</th></tr></thead>
+          <tbody>
+            <tr><td>Gateway API</td><td><code>gateway.networking.k8s.io/v1</code></td><td>Gateway, HTTPRoute</td></tr>
+            <tr><td>Core RHCL</td><td><code>kuadrant.io/v1</code></td><td>AuthPolicy, RateLimitPolicy, TokenRateLimitPolicy, DNSPolicy, TLSPolicy</td></tr>
+            <tr><td>Extensions</td><td><code>extensions.kuadrant.io/v1alpha1</code></td><td>PlanPolicy, OIDCPolicy, TelemetryPolicy</td></tr>
+            <tr><td>Developer Portal</td><td><code>devportal.kuadrant.io/v1alpha1</code></td><td>APIProduct, APIKey</td></tr>
+            <tr><td>Platform</td><td><code>v1</code>, <code>route.openshift.io/v1</code></td><td>Secret, Route, Service, ServiceEntry</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px;"><strong>OIDCPolicy ≠ AuthPolicy JWT.</strong> OIDCPolicy orchestrates OAuth Authorization Code (browser) flows. Bearer JWT uses <code>AuthPolicy.jwt.issuerUrl</code>. Token introspection uses <code>AuthPolicy.oauth2Introspection</code>.</p>
+      </div>
+
+      <div class="policy-section">
+        <h3>Consolidated mapping (3scale → RHCL 1.3)</h3>
+        <table class="arch-table">
+          <thead><tr><th>3scale</th><th>RHCL 1.3</th><th>GateForge</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Product / exposure</td><td>Gateway + HTTPRoute + Route</td><td><span class="compat-badge compat-tested">Generated</span></td><td>shared / dual / dedicated strategies</td></tr>
+            <tr><td>Backend / mapping rules</td><td>HTTPRoute.rules + backendRefs</td><td><span class="compat-badge compat-tested">Generated</span></td><td>PathPrefix; max 16 rules consolidated</td></tr>
+            <tr><td>Application (API Key)</td><td>Secret + AuthPolicy.apiKey</td><td><span class="compat-badge compat-tested">Generated</span></td><td><code>user_key</code> preserved</td></tr>
+            <tr><td>Application (OIDC)</td><td>AuthPolicy.jwt</td><td><span class="compat-badge compat-tested">Generated</span></td><td>No consumer Secrets</td></tr>
+            <tr><td>Application Plan + limits</td><td>PlanPolicy</td><td><span class="compat-badge compat-tested">Generated</span></td><td>Primary tier/limits vehicle</td></tr>
+            <tr><td>Global / edge limit</td><td>RateLimitPolicy</td><td><span class="compat-badge compat-compatible">Partial</span></td><td>100 req/60s placeholder baseline</td></tr>
+            <tr><td>Token-based limit (LLM)</td><td>TokenRateLimitPolicy</td><td><span class="compat-badge compat-compatible">Suggested</span></td><td>Token-metered APIs</td></tr>
+            <tr><td>TLS termination</td><td>TLSPolicy</td><td><span class="compat-badge compat-compatible">Suggested</span></td><td>cert-manager / ACME</td></tr>
+            <tr><td>DNS / multicluster</td><td>DNSPolicy</td><td><span class="compat-badge compat-compatible">Suggested</span></td><td>Multicluster exposure</td></tr>
+            <tr><td>Custom metrics labels</td><td>TelemetryPolicy</td><td><span class="compat-badge compat-tested">Generated</span></td><td>When observability enabled</td></tr>
+            <tr><td>OAuth browser flow</td><td>OIDCPolicy</td><td><span class="compat-badge compat-compatible">Suggested</span></td><td>Not a JWT substitute</td></tr>
+            <tr><td>API catalog</td><td>APIProduct</td><td><span class="compat-badge compat-tested">Generated</span></td><td>Optional Developer Portal tier</td></tr>
+            <tr><td>Custom Lua policies</td><td>EnvoyFilter / WASM</td><td><span class="compat-badge" style="background:#fce4ec;color:#880e4f;">Manual</span></td><td>No automatic migration</td></tr>
+            <tr><td>Header / URL rewrite</td><td>HTTPRoute filters</td><td><span class="compat-badge compat-compatible">Suggested</span></td><td>Gateway API filters</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="policy-section">
+        <h3>3scale APIcast policies → RHCL 1.3</h3>
+        <table class="arch-table">
+          <thead><tr><th>APIcast policy</th><th>RHCL 1.3</th><th>GateForge</th></tr></thead>
+          <tbody>
+            <tr><td>API Key</td><td>AuthPolicy apiKey + Secret</td><td>Generated</td></tr>
+            <tr><td>OIDC (Bearer JWT)</td><td>AuthPolicy jwt.issuerUrl</td><td>Generated</td></tr>
+            <tr><td>JWT Claim Check</td><td>AuthPolicy authorization</td><td>Suggested</td></tr>
+            <tr><td>OAuth 2.0 Token Introspection</td><td>AuthPolicy oauth2Introspection</td><td>Suggested</td></tr>
+            <tr><td>Keycloak Role Check</td><td>AuthPolicy authorization on JWT claims</td><td>Suggested</td></tr>
+            <tr><td>OAuth Auth Code (browser)</td><td>OIDCPolicy</td><td>Suggested</td></tr>
+            <tr><td>mTLS / TLS Client Cert</td><td>TLSPolicy + AuthPolicy x509</td><td>Suggested</td></tr>
+            <tr><td>Edge Limiting</td><td>RateLimitPolicy + PlanPolicy</td><td>Partial</td></tr>
+            <tr><td>Custom Metrics</td><td>TelemetryPolicy + Envoy metrics</td><td>Partial</td></tr>
+            <tr><td>WASM Plug-In</td><td>Envoy WASM / Extension SDK</td><td>Manual</td></tr>
+            <tr><td>Auth Caching / Batcher / Referrer</td><td>N/A</td><td>3scale-specific</td></tr>
+            <tr><td>CORS, Retry, SOAP, Caching</td><td>HTTPRoute filters / Istio / WASM</td><td>Manual</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top: 28px;">Object mapping reference (detail)</h3>
       <table class="arch-table">
-        <thead><tr><th>3scale Object</th><th>Connectivity Link Resource</th></tr></thead>
+        <thead><tr><th>3scale Object</th><th>Connectivity Link Resource</th><th>Implementation notes</th></tr></thead>
         <tbody>
-          <tr><td>Product</td><td>Gateway + HTTPRoute + AuthPolicy + RateLimitPolicy + <strong>APIProduct</strong></td></tr>
-          <tr><td>Backend</td><td>Service/Endpoints (HTTPRoute backendRefs)</td></tr>
-          <tr><td>Mapping Rules</td><td>HTTPRoute rules (path, method matches)</td></tr>
-          <tr><td>Application Plans (limits)</td><td>RateLimitPolicy + <strong>PlanPolicy</strong> (rates, counters, tier mapping)</td></tr>
-          <tr><td>Application Keys (API Key mode)</td><td>One <strong>Secret</strong> per app (<code>user_key</code> → <code>stringData.api_key</code>); PlanPolicy via <code>secret.kuadrant.io/plan-id</code></td></tr>
-          <tr><td>OIDC applications (<code>application_id</code> / <code>application_key</code>)</td><td>No API key Secrets; <strong>AuthPolicy</strong> JWT (<code>issuerUrl</code> from <code>oidc_issuer_endpoint</code>); PlanPolicy tiers match JWT <code>clientID</code></td></tr>
-          <tr><td>Auth (API Key or OIDC, mutually exclusive per API)</td><td>AuthPolicy — apiKey selector or JWT validation (Authorino)</td></tr>
-          <tr><td>Proxy/Gateway config</td><td>Gateway listener configuration</td></tr>
-          <tr><td>DNS/TLS settings</td><td>DNSPolicy + TLSPolicy</td></tr>
-          <tr><td>Metrics / Analytics</td><td><strong>TelemetryPolicy</strong> (optional, via OpenTelemetry)</td></tr>
+          <tr><td>Product</td><td>Gateway + HTTPRoute + AuthPolicy + RateLimitPolicy + <strong>APIProduct</strong> + Route</td><td>One resource bundle per selected product; labeled <code>gateforge.io/product</code></td></tr>
+          <tr><td>Backend</td><td>HTTPRoute <code>backendRefs</code></td><td>Single-backend or multi-backend <code>PathPrefix</code> rules per usage path</td></tr>
+          <tr><td>Mapping Rules</td><td>HTTPRoute rules</td><td>Regex <code>$</code> anchor removed; <code>{id}</code> params normalized; max 16 rules → prefix consolidation</td></tr>
+          <tr><td>Application Plans</td><td><strong>PlanPolicy</strong> + RateLimitPolicy</td><td>Plan limits → <code>daily</code>/<code>monthly</code>/custom windows; global 100 req/60s baseline on HTTPRoute</td></tr>
+          <tr><td>Application Keys</td><td><strong>Secret</strong> per app</td><td><code>user_key</code> preserved as <code>stringData.api_key</code>; tier via <code>secret.kuadrant.io/plan-id</code></td></tr>
+          <tr><td>OIDC apps</td><td>AuthPolicy JWT + PlanPolicy</td><td>No Secrets; tiers match JWT <code>clientID</code> to 3scale <code>application_id</code></td></tr>
+          <tr><td>Proxy auth</td><td>AuthPolicy</td><td>API Key and OIDC are <strong>mutually exclusive</strong> per API (detected from proxy metadata)</td></tr>
+          <tr><td>External access</td><td>OpenShift Route</td><td>Edge TLS termination → Istio Gateway service</td></tr>
+          <tr><td>Metrics</td><td><strong>TelemetryPolicy</strong> (optional)</td><td>Labels: product, auth_type, plan, user</td></tr>
         </tbody>
       </table>
+
+      <div class="policy-section">
+        <h3>Gateway strategies</h3>
+        <table class="arch-table">
+          <thead><tr><th>Strategy</th><th>Gateway resources</th></tr></thead>
+          <tbody>
+            <tr><td><code>shared</code> (default)</td><td>Single <code>gateforge-shared</code> Gateway for all products</td></tr>
+            <tr><td><code>dual</code></td><td>Separate internal and external Gateways</td></tr>
+            <tr><td><code>dedicated</code></td><td>One Gateway per product (<code>{systemName}-gw</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="policy-section">
+        <h3>HTTPRoute generation pipeline</h3>
+        <ol style="margin:12px 0 0 20px; color:#4d4d4d; font-size:0.92rem; line-height:1.7;">
+          <li><strong>Resolve backends</strong> — map 3scale backend usages to cluster Services (Admin API ID or name).</li>
+          <li><strong>OpenAPI discovery</strong> — probe backend URL for <code>/q/openapi</code>, <code>/openapi.json</code>, <code>/swagger.json</code>, etc.</li>
+          <li><strong>Synthetic OpenAPI</strong> — build OpenAPI 3.0 from mapping rules when no spec exists.</li>
+          <li><strong>kuadrantctl</strong> — generate HTTPRoute from OpenAPI (single-backend products only).</li>
+          <li><strong>Fallback templates</strong> — Java-built HTTPRoute when kuadrantctl fails or multi-backend routing is required.</li>
+          <li><strong>Rule consolidation</strong> — if rules exceed Gateway API limit (16), collapse to <code>PathPrefix</code> segments.</li>
+        </ol>
+        <h4>Mapping rule translation example</h4>
+        <p>3scale regex patterns become Gateway API <code>PathPrefix</code> matches (not exact regex):</p>
+        <div class="code-block"># 3scale Backend CRD (source)
+mappingRules:
+  - httpMethod: GET
+    pattern: "/api/v1/accounts$"
+  - httpMethod: GET
+    pattern: "/api/v1/accounts/{id}$"
+  - httpMethod: POST
+    pattern: "/api/v1/accounts$"
+
+# Connectivity Link HTTPRoute (generated)
+rules:
+  - matches:
+      - path: { type: PathPrefix, value: /api/v1/accounts }
+    backendRefs:
+      - name: accounts-service
+        port: 8080</div>
+      </div>
+
+      <div class="policy-section">
+        <h3>Authentication policies</h3>
+        <h4>API Key mode</h4>
+        <ul>
+          <li><code>AuthPolicy</code> selects Secrets labeled <code>app: &lt;productSystemName&gt;</code> (Authorino-managed).</li>
+          <li>Each 3scale application with a <code>user_key</code> becomes a dedicated <code>Secret</code> preserving the original key.</li>
+          <li><code>PlanPolicy</code> tiers use predicates on <code>secret.kuadrant.io/plan-id</code>.</li>
+        </ul>
+        <h4>OIDC mode</h4>
+        <ul>
+          <li><code>AuthPolicy</code> uses <code>jwt.issuerUrl</code> from 3scale <code>oidc_issuer_endpoint</code> (embedded credentials stripped).</li>
+          <li>No consumer Secrets — clients keep IdP, token endpoint, and <code>Authorization: Bearer</code>.</li>
+          <li><code>PlanPolicy</code> tiers match <code>auth.identity.metadata.annotations["clientID"]</code> to 3scale <code>application_id</code>.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h3>PlanPolicy &amp; rate limits</h3>
+        <p>3scale application plan periods map to PlanPolicy limit fields:</p>
+        <table class="arch-table">
+          <thead><tr><th>3scale period</th><th>PlanPolicy field</th></tr></thead>
+          <tbody>
+            <tr><td><code>minute</code></td><td><code>custom</code> window <code>1m</code></td></tr>
+            <tr><td><code>hour</code></td><td><code>custom</code> window <code>1h</code></td></tr>
+            <tr><td><code>day</code></td><td><code>daily</code></td></tr>
+            <tr><td><code>week</code></td><td><code>weekly</code></td></tr>
+            <tr><td><code>month</code></td><td><code>monthly</code></td></tr>
+            <tr><td><code>year</code> / <code>eternity</code></td><td><code>yearly</code></td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:12px;">A global <code>RateLimitPolicy</code> (100 requests / 60s) is attached to each HTTPRoute as a baseline guardrail.</p>
+      </div>
+
+      <div class="policy-section">
+        <h3>Apply order &amp; prerequisites</h3>
+        <p>Resources are applied in dependency order:</p>
+        <div class="code-block">Gateway → HTTPRoute → APIProduct → PlanPolicy → Secret(s) → AuthPolicy → RateLimitPolicy → TelemetryPolicy → Route</div>
+        <p>Prerequisites inferred from generated resources:</p>
+        <table class="arch-table">
+          <thead><tr><th>Prerequisite</th><th>CRD probe</th><th>Triggered by</th></tr></thead>
+          <tbody>
+            <tr><td>Gateway API</td><td><code>gateways.gateway.networking.k8s.io</code></td><td>Gateway, HTTPRoute</td></tr>
+            <tr><td>RHCL / Kuadrant core</td><td><code>authpolicies.kuadrant.io</code></td><td>AuthPolicy, RateLimitPolicy</td></tr>
+            <tr><td>Kuadrant extensions</td><td><code>planpolicies.extensions.kuadrant.io</code></td><td>PlanPolicy, TelemetryPolicy</td></tr>
+            <tr><td>Developer Portal</td><td><code>apiproducts.devportal.kuadrant.io</code></td><td>APIProduct</td></tr>
+            <tr><td>OpenShift Routes</td><td><code>routes.route.openshift.io</code></td><td>Route</td></tr>
+            <tr><td>Authorino secrets</td><td>—</td><td>Secret with <code>api_key</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="policy-section">
+        <h3>Migration Wizard workflow</h3>
+        <ol style="margin:12px 0 0 20px; color:#4d4d4d; font-size:0.92rem; line-height:1.7;">
+          <li><strong>Select products</strong> — multi-select from CRD + Admin API discovery.</li>
+          <li><strong>Gateway strategy</strong> — shared / dual / dedicated + target cluster.</li>
+          <li><strong>Analyze</strong> — full-page loading overlay; generates plan, AI review, prerequisites, editable YAML.</li>
+          <li><strong>Review</strong> — collapsible prerequisites and AI analysis panels; per-resource YAML edit/toggle.</li>
+          <li><strong>Apply / Revert</strong> — apply to cluster or bulk-revert to 3scale with audit trail.</li>
+        </ol>
+      </div>
     </div>
   </section>
 
@@ -685,6 +885,8 @@ sequenceDiagram
           <tr><td><code>/api/threescale/products</code></td><td>GET</td><td>List 3scale Products (all sources)</td></tr>
           <tr><td><code>/api/threescale/backends</code></td><td>GET</td><td>List 3scale Backends (all sources)</td></tr>
           <tr><td><code>/api/threescale/status</code></td><td>GET</td><td>Admin API connectivity status</td></tr>
+          <tr><td><code>/api/threescale/refresh</code></td><td>POST</td><td>Evict discovery cache and reload products/backends from 3scale</td></tr>
+          <tr><td><code>/api/migration/policy-mapping</code></td><td>GET</td><td>Consolidated 3scale → RHCL 1.3 mapping catalog (taxonomy, consolidated table, APIcast policies)</td></tr>
           <tr><td><code>/api/migration/analyze</code></td><td>POST</td><td>Analyze and plan migration; returns <code>prerequisites[]</code> for apply-time readiness</td></tr>
           <tr><td><code>/api/migration/plans/{id}/apply</code></td><td>POST</td><td>Apply plan to target cluster</td></tr>
           <tr><td><code>/api/migration/plans/{id}/revert</code></td><td>POST</td><td>Revert plan from target cluster</td></tr>
