@@ -6,6 +6,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.gateforge.model.AuditEntry;
 import io.gateforge.model.MigrationPlan;
+import io.gateforge.model.PolicyMappingCatalog;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.GateForgeMetrics;
 import io.gateforge.service.MigrationService;
@@ -69,6 +70,12 @@ public class MigrationResource {
     public record ResourceResult(String kind, String name, String namespace, boolean success, String message) {}
     public record BulkRevertRequest(List<String> planIds, boolean deleteGateway) {}
     public record BulkRevertResult(int totalPlans, int totalReverted, int totalFailed, List<ApplyResult> planResults) {}
+
+    @GET
+    @Path("/policy-mapping")
+    public PolicyMappingCatalog.PolicyMappingReference policyMapping() {
+        return PolicyMappingCatalog.reference();
+    }
 
     @POST
     @Path("/analyze")

@@ -16,6 +16,7 @@ import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.commons.configuration.StringConfiguration;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -309,6 +310,36 @@ public class ThreeScaleService {
                     .inAnyNamespace().list().getItems();
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Evicts Data Grid discovery caches and reloads products/backends from 3scale sources.
+     */
+    public Map<String, Object> refreshDiscovery() {
+        evictDiscoveryCache();
+        List<ThreeScaleProduct> products = listProducts();
+        List<Map<String, Object>> backends = listBackendsCombined();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("productCount", products.size());
+        result.put("backendCount", backends.size());
+        result.put("refreshedAt", Instant.now().toString());
+        return result;
+    }
+
+    public void evictDiscoveryCache() {
+        try {
+            RemoteCache<String, String> productsCache = getOrCreateCache(PRODUCTS_CACHE);
+            if (productsCache != null) {
+                productsCache.remove(CACHE_KEY);
+            }
+            RemoteCache<String, String> backendsCache = getOrCreateCache(BACKENDS_CACHE);
+            if (backendsCache != null) {
+                backendsCache.remove(CACHE_KEY);
+            }
+            LOG.info("Evicted 3scale discovery caches");
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to evict 3scale discovery cache", e);
         }
     }
 
