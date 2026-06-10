@@ -11,6 +11,7 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
   imports: [CommonModule, FormsModule, RouterLink],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
+    <div class="wizard-root" [class.is-analyzing]="analyzing">
     <header class="page-header">
       <div class="container">
         <div class="header-row">
@@ -158,16 +159,21 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
         </div>
 
         <div *ngIf="plan.prerequisites && plan.prerequisites.length > 0" class="prerequisites-panel">
-          <div class="prerequisites-banner">
+          <div class="prerequisites-banner collapsible-header" (click)="togglePrerequisites()"
+               role="button" [attr.aria-expanded]="prerequisitesOpen" tabindex="0"
+               (keydown.enter)="togglePrerequisites()"
+               (keydown.space)="$event.preventDefault(); togglePrerequisites()">
             <span class="info-icon" aria-hidden="true">&#8505;</span>
-            <div>
+            <div class="collapsible-header-text">
               <strong>Required for apply, not for analysis</strong>
               <p>
                 Install or configure these components on the target cluster before applying.
                 Analysis always generates the full resource set regardless of cluster readiness.
               </p>
             </div>
+            <span class="chevron" [class.open]="prerequisitesOpen">⌄</span>
           </div>
+          <div *ngIf="prerequisitesOpen">
           <div *ngFor="let section of prerequisiteSections" class="prerequisite-section">
             <h3>{{ section.label }}</h3>
             <div *ngFor="let item of section.items" class="prerequisite-row">
@@ -194,13 +200,18 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
               {{ readinessLoading ? 'Checking…' : 'Refresh cluster status' }}
             </button>
           </div>
+          </div>
         </div>
 
         <div *ngIf="plan.aiAnalysis" class="ai-analysis-panel">
-          <div class="ai-analysis-header">
+          <div class="ai-analysis-header collapsible-header" (click)="toggleAiAnalysis()"
+               role="button" [attr.aria-expanded]="aiAnalysisOpen" tabindex="0"
+               (keydown.enter)="toggleAiAnalysis()"
+               (keydown.space)="$event.preventDefault(); toggleAiAnalysis()">
             <h3>AI Pre-Migration Analysis</h3>
+            <span class="chevron" [class.open]="aiAnalysisOpen">⌄</span>
           </div>
-          <div class="ai-analysis-body">
+          <div *ngIf="aiAnalysisOpen" class="ai-analysis-body">
             <pre class="ai-analysis-content">{{ plan.aiAnalysis }}</pre>
           </div>
         </div>
@@ -459,8 +470,77 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
         </div>
       </div>
     </section>
+
+    <div *ngIf="analyzing" class="busy-overlay" role="alertdialog" aria-modal="true" aria-busy="true"
+         aria-labelledby="analyze-overlay-title">
+      <div class="busy-overlay-panel">
+        <div class="busy-spinner" aria-hidden="true"></div>
+        <p id="analyze-overlay-title" class="busy-overlay-title">Analyzing migration</p>
+        <p class="busy-overlay-stage">{{ analyzeStage }}</p>
+        <p class="busy-overlay-hint">Please wait — generating Connectivity Link resources for your selection.</p>
+      </div>
+    </div>
+    </div>
   `,
   styles: [`
+    .wizard-root.is-analyzing {
+      pointer-events: none;
+      user-select: none;
+    }
+    .busy-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(21, 21, 21, 0.62);
+      backdrop-filter: blur(3px);
+      pointer-events: all;
+    }
+    .busy-overlay-panel {
+      width: min(420px, 100%);
+      background: white;
+      border-radius: 12px;
+      padding: 36px 32px 28px;
+      text-align: center;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+      border: 1px solid #e8e8e8;
+    }
+    .busy-spinner {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      border: 4px solid #f0f0f0;
+      border-top-color: #ee0000;
+      border-right-color: #0066cc;
+      animation: spin 0.9s linear infinite;
+    }
+    .busy-overlay-title {
+      margin: 0 0 8px;
+      font-family: 'Red Hat Display', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #151515;
+    }
+    .busy-overlay-stage {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: #0066cc;
+      font-weight: 600;
+      animation: fadeText 2s ease-in-out infinite alternate;
+    }
+    .busy-overlay-hint {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #6a6e73;
+      line-height: 1.45;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeText { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
     .page-header {
       background: #151515;
       color: white;
@@ -732,10 +812,17 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
       margin-bottom: 22px;
       background: white;
     }
-    .prerequisites-banner {
+    .collapsible-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .collapsible-header-text { flex: 1; min-width: 0; }
+    .prerequisites-banner {
+      align-items: flex-start;
       background: #f0f7ff;
       border-bottom: 1px solid rgba(0, 102, 204, 0.2);
       padding: 14px 18px;
@@ -743,6 +830,8 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
       color: #004080;
       line-height: 1.5;
     }
+    .prerequisites-banner:hover { background: #e3f0ff; }
+    .prerequisites-banner .chevron { margin-top: 2px; flex-shrink: 0; }
     .prerequisites-banner strong { display: block; margin-bottom: 4px; }
     .prerequisites-banner p { margin: 0; }
     .prerequisite-section {
@@ -845,12 +934,17 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
       background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
       padding: 14px 20px;
     }
+    .ai-analysis-header:hover {
+      background: linear-gradient(135deg, #dde0f0 0%, #b8bdd8 100%);
+    }
     .ai-analysis-header h3 {
       margin: 0;
+      flex: 1;
       font-size: 1rem;
       font-weight: 600;
       color: #283593;
     }
+    .ai-analysis-header .chevron { flex-shrink: 0; }
     .ai-analysis-body {
       padding: 16px 20px;
     }
@@ -1291,7 +1385,10 @@ export class MigrationWizardComponent implements OnInit {
   productsLoading = true;
   gatewayStrategy = 'shared';
   analyzing = false;
+  analyzeStage = 'Preparing analysis…';
   plan: MigrationPlan | null = null;
+  prerequisitesOpen = true;
+  aiAnalysisOpen = true;
   readinessLoading = false;
   private readonly prerequisiteCategoryOrder = [
     'connectivity', 'core-policy', 'extension', 'portal', 'platform', 'tool-config'
@@ -1464,17 +1561,23 @@ export class MigrationWizardComponent implements OnInit {
   }
 
   analyze(): void {
+    if (this.analyzing) return;
     this.analyzing = true;
+    this.analyzeStage = 'Reading selected products and gateway strategy…';
     this.applyResult = null;
     this.revertResult = null;
     const selected = this.products.filter(p => p.selected).map(p => p.product.name);
+    this.analyzeStage = 'Generating Connectivity Link resources…';
     this.api.analyzeMigration(this.gatewayStrategy, selected, this.selectedClusterId).subscribe({
       next: (plan) => {
+        this.analyzeStage = 'Finalizing migration plan…';
         this.plan = plan;
         this.yamlOpen = {};
         this.editMode = {};
         this.editedYamls = {};
         this.resourceEnabled = {};
+        this.prerequisitesOpen = true;
+        this.aiAnalysisOpen = true;
         this.step = 3;
         this.analyzing = false;
       },
@@ -1597,6 +1700,14 @@ export class MigrationWizardComponent implements OnInit {
       next: (cmds) => this.testCommands = cmds,
       error: () => this.testCommands = []
     });
+  }
+
+  togglePrerequisites(): void {
+    this.prerequisitesOpen = !this.prerequisitesOpen;
+  }
+
+  toggleAiAnalysis(): void {
+    this.aiAnalysisOpen = !this.aiAnalysisOpen;
   }
 
   toggleHistory(): void {
