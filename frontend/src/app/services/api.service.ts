@@ -67,11 +67,36 @@ export interface ThreeScaleStatus {
   error?: string;
 }
 
+export interface ThreeScaleRefreshResult {
+  productCount: number;
+  backendCount: number;
+  refreshedAt: string;
+}
+
 export interface GeneratedResource {
   kind: string;
   name: string;
   namespace: string;
   yaml: string;
+}
+
+export interface MigrationPrerequisite {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  requiredByPlan: boolean;
+  optionalTier: boolean;
+  docUrl?: string;
+  status: 'satisfied' | 'missing' | 'unknown' | 'not_applicable';
+  triggeredByCount: number;
+}
+
+export interface ClusterReadiness {
+  clusterConnected: boolean;
+  targetClusterId: string;
+  connectionStatus: string;
+  prerequisites: MigrationPrerequisite[];
 }
 
 export interface MigrationPlan {
@@ -86,6 +111,7 @@ export interface MigrationPlan {
   targetClusterId?: string;
   targetClusterLabel?: string;
   consolidationWarnings?: string[];
+  prerequisites?: MigrationPrerequisite[];
 }
 
 export interface DriftEntry {
@@ -178,6 +204,12 @@ export class ApiService {
     return this.http.get<ThreeScaleStatus>(`${this.baseUrl}/threescale/status`);
   }
 
+  refreshThreeScaleDiscovery(): Observable<ThreeScaleRefreshResult> {
+    return this.http.post<ThreeScaleRefreshResult>(`${this.baseUrl}/threescale/refresh`, {}).pipe(
+      timeout(120000)
+    );
+  }
+
   analyzeMigration(gatewayStrategy: string, products: string[], targetClusterId?: string): Observable<MigrationPlan> {
     return this.http.post<MigrationPlan>(`${this.baseUrl}/migration/analyze`, {
       gatewayStrategy, products, targetClusterId: targetClusterId || 'local'
@@ -266,5 +298,13 @@ export class ApiService {
 
   validateTargetCluster(id: string): Observable<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>(`${this.baseUrl}/cluster/targets/${id}/validate`);
+  }
+
+  getClusterReadiness(targetClusterId?: string, planId?: string): Observable<ClusterReadiness> {
+    const params: string[] = [];
+    if (targetClusterId) params.push(`targetClusterId=${encodeURIComponent(targetClusterId)}`);
+    if (planId) params.push(`planId=${encodeURIComponent(planId)}`);
+    const query = params.length ? `?${params.join('&')}` : '';
+    return this.http.get<ClusterReadiness>(`${this.baseUrl}/cluster/readiness${query}`);
   }
 }
