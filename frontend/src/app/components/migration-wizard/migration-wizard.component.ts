@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import JSZip from 'jszip';
-import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry } from '../../services/api.service';
+import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry } from '../../services/api.service';
 
 @Component({
   selector: 'app-migration-wizard',
@@ -154,6 +154,45 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
               {{ consumerApiKeySecretCount }} API key Secret(s)
             </span>
             <span class="pill pill-blue" *ngIf="hasOidcJwtAuth">OIDC (JWT)</span>
+          </div>
+        </div>
+
+        <div *ngIf="plan.prerequisites && plan.prerequisites.length > 0" class="prerequisites-panel">
+          <div class="prerequisites-banner">
+            <span class="info-icon" aria-hidden="true">&#8505;</span>
+            <div>
+              <strong>Required for apply, not for analysis</strong>
+              <p>
+                Install or configure these components on the target cluster before applying.
+                Analysis always generates the full resource set regardless of cluster readiness.
+              </p>
+            </div>
+          </div>
+          <div *ngFor="let section of prerequisiteSections" class="prerequisite-section">
+            <h3>{{ section.label }}</h3>
+            <div *ngFor="let item of section.items" class="prerequisite-row">
+              <div class="prerequisite-main">
+                <span class="prerequisite-title">{{ item.title }}</span>
+                <span *ngIf="item.optionalTier" class="prerequisite-optional">Optional catalog extension</span>
+                <p class="prerequisite-desc">{{ item.description }}</p>
+                <span *ngIf="item.triggeredByCount > 0" class="prerequisite-count">
+                  Triggered by {{ item.triggeredByCount }} plan resource(s)
+                </span>
+              </div>
+              <span class="prerequisite-badge"
+                    [class.badge-satisfied]="item.status === 'satisfied'"
+                    [class.badge-missing]="item.status === 'missing'"
+                    [class.badge-unknown]="item.status === 'unknown' || item.status === 'not_applicable'">
+                {{ item.status }}
+              </span>
+            </div>
+          </div>
+          <div class="prerequisites-actions">
+            <button type="button" class="btn-refresh-readiness"
+                    (click)="refreshReadiness()"
+                    [disabled]="readinessLoading">
+              {{ readinessLoading ? 'Checking…' : 'Refresh cluster status' }}
+            </button>
           </div>
         </div>
 
@@ -686,6 +725,99 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, ApplyResult, FeatureFlags
       color: #6a6e73;
       line-height: 1.45;
     }
+    .prerequisites-panel {
+      border: 1px solid #d2d2d2;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 22px;
+      background: white;
+    }
+    .prerequisites-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #f0f7ff;
+      border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: #004080;
+      line-height: 1.5;
+    }
+    .prerequisites-banner strong { display: block; margin-bottom: 4px; }
+    .prerequisites-banner p { margin: 0; }
+    .prerequisite-section {
+      padding: 14px 18px 6px;
+      border-bottom: 1px solid #eee;
+    }
+    .prerequisite-section:last-of-type { border-bottom: none; }
+    .prerequisite-section h3 {
+      margin: 0 0 10px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6a6e73;
+      font-weight: 600;
+    }
+    .prerequisite-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      border-top: 1px solid #f0f0f0;
+    }
+    .prerequisite-row:first-of-type { border-top: none; }
+    .prerequisite-main { flex: 1; min-width: 0; }
+    .prerequisite-title { font-weight: 600; color: #151515; font-size: 0.92rem; }
+    .prerequisite-optional {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 0.72rem;
+      color: #6a6e73;
+      font-style: italic;
+    }
+    .prerequisite-desc {
+      margin: 4px 0 0;
+      font-size: 0.84rem;
+      color: #4d4d4d;
+      line-height: 1.45;
+    }
+    .prerequisite-count {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: #6a6e73;
+    }
+    .prerequisite-badge {
+      flex-shrink: 0;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-satisfied { background: #e6f5e0; color: #2d6b24; }
+    .badge-missing { background: #fff3cd; color: #8a5500; }
+    .badge-unknown { background: #f0f0f0; color: #6a6e73; }
+    .prerequisites-actions {
+      padding: 12px 18px;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+    .btn-refresh-readiness {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #0066cc;
+      background: white;
+      color: #0066cc;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+    .btn-refresh-readiness:hover:not(:disabled) { background: #0066cc; color: white; }
+    .btn-refresh-readiness:disabled { opacity: 0.5; cursor: not-allowed; }
+
     .info-banner {
       background: #e6f0ff;
       border: 1px solid rgba(0,102,204,0.35);
@@ -1160,6 +1292,18 @@ export class MigrationWizardComponent implements OnInit {
   gatewayStrategy = 'shared';
   analyzing = false;
   plan: MigrationPlan | null = null;
+  readinessLoading = false;
+  private readonly prerequisiteCategoryOrder = [
+    'connectivity', 'core-policy', 'extension', 'portal', 'platform', 'tool-config'
+  ];
+  private readonly prerequisiteCategoryLabels: Record<string, string> = {
+    connectivity: 'Connectivity',
+    'core-policy': 'Core policies',
+    extension: 'Extensions',
+    portal: 'Portal',
+    platform: 'Platform',
+    'tool-config': 'GateForge configuration'
+  };
   yamlOpen: Record<number, boolean> = {};
   editMode: Record<number, boolean> = {};
   editedYamls: Record<number, string> = {};
@@ -1227,6 +1371,24 @@ export class MigrationWizardComponent implements OnInit {
     return this.plan?.resources?.filter(r => r.kind === 'Secret').length ?? 0;
   }
 
+  get prerequisiteSections(): { category: string; label: string; items: MigrationPrerequisite[] }[] {
+    const prerequisites = this.plan?.prerequisites;
+    if (!prerequisites?.length) return [];
+    const grouped = new Map<string, MigrationPrerequisite[]>();
+    for (const item of prerequisites) {
+      const list = grouped.get(item.category) ?? [];
+      list.push(item);
+      grouped.set(item.category, list);
+    }
+    return this.prerequisiteCategoryOrder
+      .filter(cat => grouped.has(cat))
+      .map(cat => ({
+        category: cat,
+        label: this.prerequisiteCategoryLabels[cat] ?? cat,
+        items: grouped.get(cat)!
+      }));
+  }
+
   get selectedCount(): number {
     return this.products.filter(p => p.selected).length;
   }
@@ -1282,6 +1444,22 @@ export class MigrationWizardComponent implements OnInit {
     this.api.getTargetClusters().subscribe({
       next: (clusters) => this.targetClusters = clusters,
       error: () => this.targetClusters = [{ id: 'local', label: 'Local (in-cluster)', apiServerUrl: '', token: '', authType: 'in-cluster', verifySsl: true, enabled: true }]
+    });
+  }
+
+  refreshReadiness(): void {
+    if (!this.plan) return;
+    this.readinessLoading = true;
+    this.api.getClusterReadiness(this.plan.targetClusterId, this.plan.id).subscribe({
+      next: (readiness) => {
+        if (readiness.prerequisites?.length) {
+          this.plan = { ...this.plan!, prerequisites: readiness.prerequisites };
+        }
+        this.readinessLoading = false;
+      },
+      error: () => {
+        this.readinessLoading = false;
+      }
     });
   }
 

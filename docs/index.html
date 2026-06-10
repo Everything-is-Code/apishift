@@ -685,7 +685,7 @@ sequenceDiagram
           <tr><td><code>/api/threescale/products</code></td><td>GET</td><td>List 3scale Products (all sources)</td></tr>
           <tr><td><code>/api/threescale/backends</code></td><td>GET</td><td>List 3scale Backends (all sources)</td></tr>
           <tr><td><code>/api/threescale/status</code></td><td>GET</td><td>Admin API connectivity status</td></tr>
-          <tr><td><code>/api/migration/analyze</code></td><td>POST</td><td>Analyze and plan migration (with target cluster)</td></tr>
+          <tr><td><code>/api/migration/analyze</code></td><td>POST</td><td>Analyze and plan migration; returns <code>prerequisites[]</code> for apply-time readiness</td></tr>
           <tr><td><code>/api/migration/plans/{id}/apply</code></td><td>POST</td><td>Apply plan to target cluster</td></tr>
           <tr><td><code>/api/migration/plans/{id}/revert</code></td><td>POST</td><td>Revert plan from target cluster</td></tr>
           <tr><td><code>/api/migration/revert-bulk</code></td><td>POST</td><td>Bulk revert to 3scale</td></tr>
@@ -715,6 +715,7 @@ sequenceDiagram
           <tr><td><code>/api/cluster/targets</code></td><td>POST</td><td>Add a target cluster</td></tr>
           <tr><td><code>/api/cluster/targets/{id}</code></td><td>DELETE</td><td>Remove a target cluster</td></tr>
           <tr><td><code>/api/cluster/targets/{id}/validate</code></td><td>GET</td><td>Validate RBAC access on target</td></tr>
+          <tr><td><code>/api/cluster/readiness</code></td><td>GET</td><td>Probe cluster RHCL readiness; optional <code>planId</code> and <code>targetClusterId</code></td></tr>
         </tbody>
       </table>
 
@@ -1499,7 +1500,7 @@ flowchart TD
         <a href="#" data-tab="architecture">Architecture &amp; API</a>
         <a href="#" data-tab="configuration">Configuration</a>
         <a href="#" data-tab="devhub-integration">Developer Hub</a>
-        <a href="https://github.com/maximilianoPizarro/gateforge">GitHub</a>
+        <a href="https://github.com/Everything-is-Code/gateforge">GitHub</a>
         <a href="https://quay.io/repository/maximilianopizarro/gateforge-backend">Quay.io</a>
         <a href="https://docs.redhat.com/en/documentation/red_hat_connectivity_link">Connectivity Link</a>
         <a href="https://docs.kuadrant.io/">Kuadrant</a>
