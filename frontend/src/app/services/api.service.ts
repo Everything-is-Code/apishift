@@ -67,6 +67,12 @@ export interface ThreeScaleStatus {
   error?: string;
 }
 
+export interface ThreeScaleRefreshResult {
+  productCount: number;
+  backendCount: number;
+  refreshedAt: string;
+}
+
 export interface GeneratedResource {
   kind: string;
   name: string;
@@ -196,6 +202,12 @@ export class ApiService {
 
   getThreeScaleStatus(): Observable<ThreeScaleStatus> {
     return this.http.get<ThreeScaleStatus>(`${this.baseUrl}/threescale/status`);
+  }
+
+  refreshThreeScaleDiscovery(): Observable<ThreeScaleRefreshResult> {
+    return this.http.post<ThreeScaleRefreshResult>(`${this.baseUrl}/threescale/refresh`, {}).pipe(
+      timeout(120000)
+    );
   }
 
   analyzeMigration(gatewayStrategy: string, products: string[], targetClusterId?: string): Observable<MigrationPlan> {

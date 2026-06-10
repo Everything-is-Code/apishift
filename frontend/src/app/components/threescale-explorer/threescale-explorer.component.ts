@@ -13,6 +13,7 @@ type SourceTab = 'all' | 'crd' | 'admin-api';
   imports: [CommonModule, FormsModule, RouterLink],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
+    <div class="explorer-root" [class.is-refreshing]="refreshing">
     <header class="page-header">
       <div class="container">
         <div class="header-row">
@@ -20,7 +21,14 @@ type SourceTab = 'all' | 'crd' | 'admin-api';
             <h1>3scale Explorer</h1>
             <p class="subtitle">Discover Products, Backends and Mapping Rules from CRDs and the 3scale Admin API.</p>
           </div>
-          <a routerLink="/" class="header-link">Dashboard</a>
+          <div class="header-actions">
+            <a routerLink="/" class="header-link">Dashboard</a>
+            <button type="button" class="btn-refresh" (click)="refreshDiscovery()" [disabled]="refreshing"
+                    title="Reload products and backends from 3scale (bypasses cache)">
+              {{ refreshing ? 'Refreshing…' : 'Refresh discovery' }}
+            </button>
+            <span *ngIf="refreshMessage" class="refresh-hint" role="status">{{ refreshMessage }}</span>
+          </div>
         </div>
 
         <div class="status-bar" *ngIf="!loading">
@@ -214,8 +222,76 @@ type SourceTab = 'all' | 'crd' | 'admin-api';
         </div>
       </div>
     </section>
+
+    <div *ngIf="refreshing" class="refresh-overlay" role="alertdialog" aria-modal="true" aria-busy="true"
+         aria-labelledby="refresh-overlay-title">
+      <div class="refresh-overlay-panel">
+        <div class="refresh-spinner" aria-hidden="true"></div>
+        <p id="refresh-overlay-title" class="refresh-overlay-title">Refreshing discovery</p>
+        <p class="refresh-overlay-stage">{{ refreshStage }}</p>
+        <p class="refresh-overlay-hint">Please wait — reloading products and backends from 3scale.</p>
+      </div>
+    </div>
+    </div>
   `,
   styles: [`
+    .explorer-root.is-refreshing {
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .refresh-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(21, 21, 21, 0.62);
+      backdrop-filter: blur(3px);
+      pointer-events: all;
+    }
+    .refresh-overlay-panel {
+      width: min(420px, 100%);
+      background: white;
+      border-radius: 12px;
+      padding: 36px 32px 28px;
+      text-align: center;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+      border: 1px solid #e8e8e8;
+    }
+    .refresh-spinner {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      border: 4px solid #f0f0f0;
+      border-top-color: #ee0000;
+      border-right-color: #0066cc;
+      animation: spin 0.9s linear infinite;
+    }
+    .refresh-overlay-title {
+      margin: 0 0 8px;
+      font-family: 'Red Hat Display', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #151515;
+    }
+    .refresh-overlay-stage {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: #0066cc;
+      font-weight: 600;
+      animation: fadeText 2s ease-in-out infinite alternate;
+    }
+    .refresh-overlay-hint {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #6a6e73;
+      line-height: 1.45;
+    }
+
     .page-header {
       background: #151515; color: white; padding: 32px 0;
     }
@@ -229,11 +305,25 @@ type SourceTab = 'all' | 'crd' | 'admin-api';
       display: flex; align-items: flex-start; justify-content: space-between;
       gap: 16px; flex-wrap: wrap;
     }
+    .header-actions {
+      display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+      min-width: 168px; align-self: center;
+    }
     .header-link {
-      color: white; text-decoration: none; font-weight: 600;
-      padding: 8px 16px; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px; align-self: center;
+      color: white; text-decoration: none; font-weight: 600; text-align: center;
+      padding: 8px 16px; border: 1px solid rgba(255,255,255,0.35); border-radius: 6px;
     }
     .header-link:hover { background: rgba(255,255,255,0.08); text-decoration: none; }
+    .btn-refresh {
+      padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;
+      border: 1px solid rgba(0, 102, 204, 0.8); background: rgba(0, 102, 204, 0.25);
+      color: white; font-family: inherit; font-size: 0.88rem;
+    }
+    .btn-refresh:hover:not(:disabled) { background: rgba(0, 102, 204, 0.45); }
+    .btn-refresh:disabled { opacity: 0.55; cursor: not-allowed; }
+    .refresh-hint {
+      font-size: 0.72rem; color: #c9c9c9; text-align: center; line-height: 1.35;
+    }
 
     .status-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
     .status-pill {
@@ -497,6 +587,49 @@ export class ThreeScaleExplorerComponent implements OnInit {
       { key: 'crd', label: 'CRDs', count: this.products.filter(p => this.isCrd(p.source)).length + this.backends.filter(b => this.isCrd(b.source)).length },
       { key: 'admin-api', label: 'Admin API', count: this.products.filter(p => this.isApi(p.source)).length + this.backends.filter(b => this.isApi(b.source)).length }
     ];
+  }
+
+  refreshing = false;
+  refreshMessage = '';
+  refreshStage = 'Connecting to 3scale…';
+
+  refreshDiscovery(): void {
+    if (this.refreshing) return;
+    this.refreshing = true;
+    this.refreshMessage = '';
+    this.refreshStage = 'Clearing cache and reconnecting to 3scale…';
+    this.api.refreshThreeScaleDiscovery().subscribe({
+      next: (result) => {
+        this.refreshStage = 'Loading products and backends…';
+        this.api.getThreeScaleStatus().subscribe({
+          next: (s) => this.status = s,
+          error: () => { /* keep previous status */ }
+        });
+        forkJoin({
+          products: this.api.getProducts(),
+          backends: this.api.getBackends()
+        }).subscribe({
+          next: ({ products, backends }) => {
+            this.products = products;
+            this.backends = backends;
+            this.productPage = 1;
+            this.backendPage = 1;
+            this.expandedKey = null;
+            this.refreshStage = 'Done';
+            this.refreshing = false;
+            this.refreshMessage = `Updated: ${result.productCount} products, ${result.backendCount} backends`;
+          },
+          error: () => {
+            this.refreshing = false;
+            this.refreshMessage = 'Refresh failed — try again';
+          }
+        });
+      },
+      error: () => {
+        this.refreshing = false;
+        this.refreshMessage = 'Refresh failed — try again';
+      }
+    });
   }
 
   ngOnInit(): void {
