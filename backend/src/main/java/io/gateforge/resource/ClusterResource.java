@@ -1,7 +1,9 @@
 package io.gateforge.resource;
 
+import io.gateforge.model.ClusterReadiness;
 import io.gateforge.model.ProjectInfo;
 import io.gateforge.model.TargetCluster;
+import io.gateforge.service.ClusterReadinessService;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.ClusterService;
 import jakarta.inject.Inject;
@@ -23,6 +25,9 @@ public class ClusterResource {
 
     @Inject
     ClusterRegistry clusterRegistry;
+
+    @Inject
+    ClusterReadinessService clusterReadinessService;
 
     @ConfigProperty(name = "gateforge.developer-hub.enabled", defaultValue = "false")
     boolean developerHubEnabled;
@@ -83,5 +88,13 @@ public class ClusterResource {
     @Path("/targets/{id}/validate")
     public Map<String, Object> validateTargetCluster(@PathParam("id") String id) {
         return clusterRegistry.validateAccess(id);
+    }
+
+    @GET
+    @Path("/readiness")
+    public ClusterReadiness getReadiness(
+            @QueryParam("targetClusterId") String targetClusterId,
+            @QueryParam("planId") String planId) {
+        return clusterReadinessService.probe(targetClusterId, planId);
     }
 }

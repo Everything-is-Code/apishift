@@ -7,6 +7,7 @@ import io.gateforge.entity.AuditEntryEntity;
 import io.gateforge.entity.GeneratedResourceEntity;
 import io.gateforge.entity.MigrationPlanEntity;
 import io.gateforge.model.MigrationPlan;
+import io.gateforge.model.MigrationPrerequisite;
 import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -49,6 +50,15 @@ public class MigrationService {
 
     @Inject
     GateForgeMetrics metrics;
+
+    @Inject
+    PrerequisiteCatalogService prerequisiteCatalogService;
+
+    @Inject
+    ToolConfigPrerequisiteChecker toolConfigPrerequisiteChecker;
+
+    @Inject
+    ClusterReadinessService clusterReadinessService;
 
     @ConfigProperty(name = "gateforge.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
@@ -212,11 +222,14 @@ public class MigrationService {
 
         String aiAnalysis = runAiVerification(products, resources);
 
+        List<MigrationPrerequisite> prerequisites = buildPrerequisites(resources, effectiveClusterId);
+
         MigrationPlan plan = new MigrationPlan(
                 planId, gatewayStrategy,
                 products.stream().map(ThreeScaleProduct::systemName).toList(),
                 resources, aiAnalysis, Instant.now(),
-                catalogInfo, "ACTIVE", effectiveClusterId, clusterLabel, consolidationWarnings
+                catalogInfo, "ACTIVE", effectiveClusterId, clusterLabel,
+                consolidationWarnings, prerequisites
         );
 
         persistPlan(plan);
@@ -630,6 +643,12 @@ public class MigrationService {
         entity.status = plan.status();
         entity.targetClusterId = plan.targetClusterId();
         entity.targetClusterLabel = plan.targetClusterLabel();
+        try {
+            entity.prerequisitesJson = objectMapper.writeValueAsString(
+                    plan.prerequisites() != null ? plan.prerequisites() : List.of());
+        } catch (Exception e) {
+            entity.prerequisitesJson = "[]";
+        }
 
         List<GeneratedResourceEntity> resourceEntities = new ArrayList<>();
         for (MigrationPlan.GeneratedResource r : plan.resources()) {
@@ -661,7 +680,8 @@ public class MigrationService {
         return new MigrationPlan(
                 e.id, e.gatewayStrategy, products, resources,
                 e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of()
+                e.targetClusterId, e.targetClusterLabel, List.of(),
+                deserializePrerequisites(e.prerequisitesJson)
         );
     }
 
@@ -680,8 +700,54 @@ public class MigrationService {
                 e.id, e.gatewayStrategy, products,
                 List.of(),
                 e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of()
+                e.targetClusterId, e.targetClusterLabel, List.of(),
+                deserializePrerequisites(e.prerequisitesJson)
         );
+    }
+
+    private List<MigrationPrerequisite> buildPrerequisites(
+            List<MigrationPlan.GeneratedResource> resources, String targetClusterId) {
+        List<MigrationPrerequisite> merged = new ArrayList<>();
+        merged.addAll(prerequisiteCatalogService.fromPlan(resources, gatewayClassName, gatewayNamespace));
+        merged.addAll(toolConfigPrerequisiteChecker.fromConfig(targetClusterId));
+        merged = mergePrerequisitesById(merged);
+        try {
+            return clusterReadinessService.enrich(merged, targetClusterId);
+        } catch (Exception e) {
+            LOG.warn("Prerequisite enrichment failed; returning unknown statuses", e);
+            return merged.stream().map(p -> p.withStatus("unknown")).toList();
+        }
+    }
+
+    private List<MigrationPrerequisite> mergePrerequisitesById(List<MigrationPrerequisite> items) {
+        Map<String, MigrationPrerequisite> byId = new LinkedHashMap<>();
+        for (MigrationPrerequisite p : items) {
+            byId.merge(p.id(), p, (a, b) -> new MigrationPrerequisite(
+                    a.id(),
+                    a.category(),
+                    a.title(),
+                    a.description(),
+                    a.requiredByPlan() || b.requiredByPlan(),
+                    a.optionalTier() || b.optionalTier(),
+                    a.docUrl() != null ? a.docUrl() : b.docUrl(),
+                    a.status(),
+                    a.triggeredByCount() + b.triggeredByCount()
+            ));
+        }
+        return new ArrayList<>(byId.values());
+    }
+
+    private List<MigrationPrerequisite> deserializePrerequisites(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, MigrationPrerequisite.class));
+        } catch (Exception e) {
+            LOG.warn("Failed to deserialize prerequisites JSON", e);
+            return List.of();
+        }
     }
 
     private AuditEntry toAuditEntry(AuditEntryEntity e) {
