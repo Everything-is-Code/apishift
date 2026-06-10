@@ -51,6 +51,12 @@ public class ThreeScaleResource {
         return threeScaleService.getAdminApiStatus();
     }
 
+    @POST
+    @Path("/refresh")
+    public Map<String, Object> refreshDiscovery() {
+        return threeScaleService.refreshDiscovery();
+    }
+
     @GET
     @Path("/sources")
     public List<ThreeScaleSource> listSources() {
