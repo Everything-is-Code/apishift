@@ -43,7 +43,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <a href="https://docs.redhat.com/en/documentation/red_hat_3scale_api_management" target="_blank">3scale Docs</a>
             <a href="https://gateway-api.sigs.k8s.io/" target="_blank">Gateway API</a>
             <a href="https://maximilianopizarro.github.io/gateforge/" target="_blank">GateForge Docs</a>
-            <a href="https://github.com/maximilianoPizarro/gateforge" target="_blank">GitHub</a>
+            <a href="https://github.com/Everything-is-Code/gateforge" target="_blank">GitHub</a>
           </div>
           <p class="copyright">GateForge v0.1.9 &copy; 2026 Maximiliano Pizarro &mdash; Apache 2.0 License</p>
         </div>
