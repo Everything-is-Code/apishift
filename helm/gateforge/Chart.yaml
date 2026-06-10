@@ -7,7 +7,7 @@ appVersion: "0.1.9"
 icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
 home: https://maximilianopizarro.github.io/gateforge/
 sources:
-  - https://github.com/maximilianoPizarro/gateforge
+  - https://github.com/Everything-is-Code/gateforge
 maintainers:
   - name: Maximiliano Pizarro
     email: maximiliano.pizarro.5@gmail.com
