@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing.
 
+## Language
+
+**English only** for README, docs, issues, PR descriptions, code comments, and user-facing UI strings.
+
+Program policy: [rhcl-ai AGENTS.md — Language policy](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#language-policy).
+
 ## Reporting issues
 
 - Use the project’s GitHub **Issues** tab to report bugs, request features, or ask questions.

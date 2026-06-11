@@ -4,6 +4,8 @@
 
 # GateForge - 3scale to Connectivity Link Migration
 
+**Language:** Documentation and contributions are **English only**. Program policy: [rhcl-ai AGENTS.md — Language policy](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#language-policy).
+
 [![Build](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml/badge.svg)](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/gateforge)](https://artifacthub.io/packages/search?repo=gateforge)
 [![Quay.io Backend](https://img.shields.io/badge/quay.io-backend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-backend)
