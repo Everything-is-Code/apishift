@@ -314,6 +314,13 @@ cd backend
 mvn quarkus:dev
 ```
 
+**Offline export fixture (tests):** Import/parser tests extract the versioned tarball from [3scaleextract `testdata/export-minimal-1.0.tar.gz`](https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata) (`backend/src/test/resources/fixtures/`). Refresh from a local checkout:
+
+```bash
+./scripts/sync-export-minimal-fixture.sh
+./scripts/verify-export-minimal-fixture.sh
+```
+
 **Frontend:**
 
 ```bash

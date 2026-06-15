@@ -1,6 +1,7 @@
 package io.gateforge.service.export;
 
 import io.gateforge.service.support.ExportZipTestSupport;
+import io.gateforge.service.support.ExportMinimalFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ExportArchiveExtractorTest {
 
     private Path fixtureRoot() {
-        return Path.of("src/test/resources/export-minimal").toAbsolutePath().normalize();
+        return ExportMinimalFixture.root();
     }
 
     @Test

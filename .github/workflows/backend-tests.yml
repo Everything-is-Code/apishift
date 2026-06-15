@@ -28,5 +28,8 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
+      - name: Verify export-minimal fixture
+        run: ../scripts/verify-export-minimal-fixture.sh
+
       - name: Run backend unit tests
         run: mvn test

@@ -3,6 +3,7 @@ package io.gateforge.service;
 import io.gateforge.model.MigrationPlan;
 import io.gateforge.service.export.ThreeScaleExportParser;
 import io.gateforge.service.support.MigrationServiceTestSupport;
+import io.gateforge.service.support.ExportMinimalFixture;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -30,6 +31,6 @@ class ThreeScaleExportAnalyzeTest extends MigrationServiceTestSupport {
     }
 
     private static Path fixtureRoot() {
-        return Path.of("src/test/resources/export-minimal").toAbsolutePath().normalize();
+        return ExportMinimalFixture.root();
     }
 }
