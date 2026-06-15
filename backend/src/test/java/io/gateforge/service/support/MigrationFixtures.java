@@ -74,4 +74,51 @@ public final class MigrationFixtures {
                         "",
                         "")));
     }
+
+    public static ThreeScaleProduct apiKeyProductWithPlans() {
+        return new ThreeScaleProduct(
+                "demo-api",
+                "default",
+                "demo-api",
+                1L,
+                "Demo API with plans",
+                "hosted",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                Map.of(),
+                "default",
+                "default",
+                "api-backend",
+                null,
+                List.of(new ThreeScaleProduct.ApplicationPlan(
+                        10L,
+                        "Basic",
+                        "basic",
+                        "published",
+                        List.of(new ThreeScaleProduct.PlanLimit("hits", "minute", 60)))),
+                List.of());
+    }
+
+    public static ThreeScaleProduct oidcIntrospectionProduct() {
+        return new ThreeScaleProduct(
+                "demo-api",
+                "default",
+                "demo-api",
+                1L,
+                "Demo API introspection",
+                "hosted",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                Map.of(
+                        "type", "oidc",
+                        "auth_type", "introspection",
+                        "token_introspection_endpoint",
+                        "https://sso.example.com/realms/api/protocol/openid-connect/token/introspect"),
+                "default",
+                "default",
+                "api-backend",
+                null,
+                List.of(),
+                List.of());
+    }
 }

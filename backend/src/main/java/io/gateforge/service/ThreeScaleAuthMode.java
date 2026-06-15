@@ -3,6 +3,7 @@ package io.gateforge.service;
 import io.gateforge.model.ThreeScaleProduct;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -120,5 +121,54 @@ public enum ThreeScaleAuthMode {
         if ("oidc".equalsIgnoreCase(backendVersion.trim())) {
             auth.put("type", "oidc");
         }
+    }
+
+    public static boolean isTokenIntrospection(Map<String, Object> auth) {
+        if (auth == null || auth.isEmpty()) {
+            return false;
+        }
+        String authType = String.valueOf(auth.getOrDefault("auth_type", auth.getOrDefault("type", ""))).trim();
+        if (authType.toLowerCase().contains("introspection")) {
+            return true;
+        }
+        String credentialsLocation = String.valueOf(auth.getOrDefault("credentials_location", "")).trim();
+        return credentialsLocation.toLowerCase().contains("introspection");
+    }
+
+    public static String resolveIntrospectionUrl(Map<String, Object> auth) {
+        if (auth == null || auth.isEmpty()) {
+            return null;
+        }
+        for (String key : List.of("token_introspection_endpoint", "oidc_introspection_endpoint", "introspection_endpoint")) {
+            String value = String.valueOf(auth.getOrDefault(key, "")).trim();
+            if (!value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    public static boolean suggestsBrowserOAuthFlow(Map<String, Object> auth) {
+        if (auth == null || auth.isEmpty()) {
+            return false;
+        }
+        String issuerType = String.valueOf(auth.getOrDefault("oidc_issuer_type", "")).trim();
+        if (issuerType.isBlank()) {
+            return false;
+        }
+        String normalized = issuerType.toLowerCase();
+        return normalized.contains("browser") || normalized.contains("authorization_code");
+    }
+
+    public static boolean suggestsTlsTermination(ThreeScaleProduct product) {
+        if (product == null || product.deploymentOption() == null) {
+            return false;
+        }
+        String deployment = product.deploymentOption().toLowerCase();
+        return deployment.contains("custom") || deployment.contains("ssl") || deployment.contains("tls");
+    }
+
+    public static boolean suggestsDnsPolicy(String gatewayStrategy, ThreeScaleProduct product) {
+        return "dual".equals(gatewayStrategy);
     }
 }

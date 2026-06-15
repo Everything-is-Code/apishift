@@ -177,7 +177,20 @@ public class MigrationService {
             ThreeScaleProduct productReady = threeScaleService.refreshProductForMigration(product);
             ThreeScaleAuthMode authMode = ThreeScaleAuthMode.fromProduct(productReady);
 
-            resources.add(buildApiProduct(sysName, ns, routeName, productReady));
+            if (developerHubEnabled) {
+                resources.add(buildApiProduct(sysName, ns, routeName, productReady));
+            } else {
+                consolidationWarnings.add(
+                        "Product '%s': APIProduct skipped — enable gateforge.developer-hub.enabled for Developer Portal catalog tier."
+                                .formatted(sysName));
+            }
+
+            DerivedRateLimit derivedRateLimit = deriveGlobalRateLimit(productReady);
+            if (derivedRateLimit.placeholder()) {
+                consolidationWarnings.add(
+                        "Product '%s': RateLimitPolicy uses placeholder 100 req/60s — no application plan minute/hour limits found in 3scale."
+                                .formatted(sysName));
+            }
 
             if (productReady.applicationPlans() != null && !productReady.applicationPlans().isEmpty()) {
                 resources.add(buildPlanPolicy(sysName + "-plans", ns, routeName, productReady, authMode));
@@ -201,8 +214,16 @@ public class MigrationService {
                 addOidcMigrationWarnings(sysName, productReady, consolidationWarnings);
             }
 
+            if (ThreeScaleAuthMode.isTokenIntrospection(productReady.authentication())
+                    && ThreeScaleAuthMode.resolveIntrospectionUrl(productReady.authentication()) == null) {
+                consolidationWarnings.add(
+                        "Product '%s' (OIDC introspection): token introspection endpoint not found — AuthPolicy uses placeholder introspection URL."
+                                .formatted(sysName));
+            }
+
             resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, productReady, authMode));
-            resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, product));
+            resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, productReady, derivedRateLimit));
+            addSuggestedPolicyWarnings(sysName, productReady, gatewayStrategy, consolidationWarnings);
 
             if (observabilityEnabled) {
                 resources.add(buildTelemetryPolicy(sysName + "-telemetry", ns, routeName, product));
@@ -1417,12 +1438,75 @@ public class MigrationService {
         return new MigrationPlan.GeneratedResource("HTTPRoute", name, namespace, yaml);
     }
 
+    private record DerivedRateLimit(long limit, String window, boolean placeholder) {}
+
+    static DerivedRateLimit deriveGlobalRateLimit(ThreeScaleProduct product) {
+        long maxMinute = 0;
+        long maxHour = 0;
+        if (product != null && product.applicationPlans() != null) {
+            for (ThreeScaleProduct.ApplicationPlan plan : product.applicationPlans()) {
+                if (plan.limits() == null) {
+                    continue;
+                }
+                for (ThreeScaleProduct.PlanLimit limit : plan.limits()) {
+                    if ("minute".equals(limit.period()) && limit.value() > maxMinute) {
+                        maxMinute = limit.value();
+                    } else if ("hour".equals(limit.period()) && limit.value() > maxHour) {
+                        maxHour = limit.value();
+                    }
+                }
+            }
+        }
+        if (maxMinute > 0) {
+            return new DerivedRateLimit(maxMinute, "1m", false);
+        }
+        if (maxHour > 0) {
+            return new DerivedRateLimit(maxHour, "1h", false);
+        }
+        return new DerivedRateLimit(100, "60s", true);
+    }
+
+    private void addSuggestedPolicyWarnings(
+            String sysName, ThreeScaleProduct product, String gatewayStrategy, List<String> warnings) {
+
+        Map<String, Object> auth = product.authentication();
+        if (ThreeScaleAuthMode.suggestsBrowserOAuthFlow(auth)) {
+            warnings.add(
+                    "Product '%s': consider OIDCPolicy (extensions.kuadrant.io) for OAuth Authorization Code browser flow."
+                            .formatted(sysName));
+        }
+        if (ThreeScaleAuthMode.suggestsTlsTermination(product)) {
+            warnings.add(
+                    "Product '%s': consider TLSPolicy for TLS termination; AuthPolicy x509/mTLS deferred."
+                            .formatted(sysName));
+        }
+        if (ThreeScaleAuthMode.suggestsDnsPolicy(gatewayStrategy, product)) {
+            warnings.add(
+                    "Product '%s': dual gateway strategy — consider DNSPolicy for multicluster DNS exposure."
+                            .formatted(sysName));
+        }
+    }
+
     private MigrationPlan.GeneratedResource buildAuthPolicy(
             String name, String namespace, String routeName, ThreeScaleProduct product,
             ThreeScaleAuthMode authMode) {
 
         String authSection;
-        if (authMode == ThreeScaleAuthMode.OIDC) {
+        if (ThreeScaleAuthMode.isTokenIntrospection(product.authentication())) {
+            String endpoint = ThreeScaleAuthMode.resolveIntrospectionUrl(product.authentication());
+            if (endpoint == null || endpoint.isBlank()) {
+                endpoint = "https://sso.example.com/realms/api/protocol/openid-connect/token/introspect";
+            }
+            String credentialsSecret = product.systemName() + "-introspection-credentials";
+            authSection = """
+                          authentication:
+                            "introspection-auth":
+                              oauth2Introspection:
+                                endpoint: %s
+                                credentialsRef:
+                                  name: %s
+                      """.formatted(endpoint, credentialsSecret);
+        } else if (authMode == ThreeScaleAuthMode.OIDC) {
             String issuer = ThreeScaleAuthMode.resolveJwtIssuerUrl(product.authentication());
             if (issuer == null || issuer.isBlank()) {
                 issuer = "https://sso.example.com/realms/api";
@@ -1466,7 +1550,8 @@ public class MigrationService {
     }
 
     private MigrationPlan.GeneratedResource buildRateLimitPolicy(
-            String name, String namespace, String routeName, ThreeScaleProduct product) {
+            String name, String namespace, String routeName, ThreeScaleProduct product,
+            DerivedRateLimit derivedRateLimit) {
 
         String yaml = """
                 apiVersion: kuadrant.io/v1
@@ -1485,9 +1570,10 @@ public class MigrationService {
                   limits:
                     "global":
                       rates:
-                        - limit: 100
-                          window: 60s
-                """.formatted(name, namespace, product.systemName(), routeName);
+                        - limit: %d
+                          window: %s
+                """.formatted(name, namespace, product.systemName(), routeName,
+                derivedRateLimit.limit(), derivedRateLimit.window());
 
         return new MigrationPlan.GeneratedResource("RateLimitPolicy", name, namespace, yaml);
     }

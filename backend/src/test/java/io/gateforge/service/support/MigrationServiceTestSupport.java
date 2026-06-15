@@ -28,4 +28,12 @@ public abstract class MigrationServiceTestSupport {
         return plan.consolidationWarnings().stream()
                 .anyMatch(w -> w.contains(substring));
     }
+
+    protected static String resourceYaml(MigrationPlan plan, String kind) {
+        return plan.resources().stream()
+                .filter(r -> kind.equals(r.kind()))
+                .findFirst()
+                .map(MigrationPlan.GeneratedResource::yaml)
+                .orElse("");
+    }
 }

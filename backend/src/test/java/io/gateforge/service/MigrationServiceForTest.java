@@ -16,6 +16,10 @@ import java.util.List;
 class MigrationServiceForTest extends MigrationService {
 
     static MigrationServiceForTest createWithProducts(List<ThreeScaleProduct> products) {
+        return createWithProducts(products, false);
+    }
+
+    static MigrationServiceForTest createWithProducts(List<ThreeScaleProduct> products, boolean developerHubEnabled) {
         MigrationServiceForTest migrationService = new MigrationServiceForTest();
 
         PrerequisiteCatalogService catalogService = new PrerequisiteCatalogService();
@@ -41,7 +45,9 @@ class MigrationServiceForTest extends MigrationService {
         ReflectionTestSupport.inject(migrationService, "gatewayClassName", "istio");
         ReflectionTestSupport.inject(migrationService, "gatewayNamespace", "kuadrant-system");
         ReflectionTestSupport.inject(migrationService, "clusterDomain", "apps.example.com");
-        ReflectionTestSupport.inject(migrationService, "developerHubEnabled", false);
+        ReflectionTestSupport.inject(migrationService, "developerHubEnabled", developerHubEnabled);
+        ReflectionTestSupport.inject(migrationService, "developerHubUrl", "none");
+        ReflectionTestSupport.inject(migrationService, "componentSuffix", "-product");
         ReflectionTestSupport.inject(migrationService, "observabilityEnabled", false);
 
         return migrationService;

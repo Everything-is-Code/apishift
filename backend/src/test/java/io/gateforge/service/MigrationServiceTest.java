@@ -72,4 +72,73 @@ class MigrationServiceTest extends MigrationServiceTestSupport {
         assertTrue(warningsContain(plan, "user_key"));
         assertEquals(1, countKind(plan, "Secret"));
     }
+
+    @Test
+    void analyze_derivesRateLimitFromPlanLimits() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProductWithPlans()));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        String rateLimitYaml = resourceYaml(plan, "RateLimitPolicy");
+        assertTrue(rateLimitYaml.contains("limit: 60"));
+        assertTrue(rateLimitYaml.contains("window: 1m"));
+        assertFalse(rateLimitYaml.contains("limit: 100"));
+    }
+
+    @Test
+    void analyze_placeholderRateLimit_whenNoPlans() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct()));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        String rateLimitYaml = resourceYaml(plan, "RateLimitPolicy");
+        assertTrue(rateLimitYaml.contains("limit: 100"));
+        assertTrue(rateLimitYaml.contains("window: 60s"));
+        assertTrue(warningsContain(plan, "placeholder 100 req/60s"));
+    }
+
+    @Test
+    void analyze_skipsApiProduct_whenHubDisabled() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct()), false);
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertFalse(hasKind(plan, "APIProduct"));
+        assertTrue(warningsContain(plan, "APIProduct skipped"));
+    }
+
+    @Test
+    void analyze_includesApiProduct_whenHubEnabled() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct()), true);
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertTrue(hasKind(plan, "APIProduct"));
+    }
+
+    @Test
+    void analyze_introspectionAuth_usesOauth2Introspection() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.oidcIntrospectionProduct()));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        String authYaml = resourceYaml(plan, "AuthPolicy");
+        assertTrue(authYaml.contains("oauth2Introspection"));
+        assertTrue(authYaml.contains("token/introspect"));
+    }
+
+    @Test
+    void analyze_suggestedWarnings_forDualStrategy() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct()));
+
+        MigrationPlan plan = service.analyze("dual", List.of("demo-api"), "local");
+
+        assertTrue(warningsContain(plan, "DNSPolicy"));
+    }
 }
