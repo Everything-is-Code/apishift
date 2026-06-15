@@ -1,0 +1,42 @@
+package io.gateforge.service.export;
+
+import io.gateforge.service.support.ExportZipTestSupport;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ExportArchiveExtractorTest {
+
+    private Path fixtureRoot() {
+        return Path.of("src/test/resources/export-minimal").toAbsolutePath().normalize();
+    }
+
+    @Test
+    void extractZip_validArchive_extractsManifest(@TempDir Path tempDir) throws Exception {
+        Path zipFile = tempDir.resolve("export-minimal.zip");
+        ExportZipTestSupport.zipDirectory(fixtureRoot(), zipFile);
+        Path target = tempDir.resolve("extracted");
+
+        ExportArchiveExtractor.extractZip(zipFile, target);
+
+        assertTrue(Files.isRegularFile(target.resolve("manifest.json")));
+        assertTrue(Files.isDirectory(target.resolve("products/seed_alpha")));
+    }
+
+    @Test
+    void extractZip_zipSlipEntry_rejected(@TempDir Path tempDir) throws Exception {
+        Path zipFile = tempDir.resolve("evil.zip");
+        ExportZipTestSupport.zipWithEntry(zipFile, "../../escape.txt", "pwnd".getBytes());
+        Path target = tempDir.resolve("extracted");
+
+        ExportImportException ex = assertThrows(
+                ExportImportException.class,
+                () -> ExportArchiveExtractor.extractZip(zipFile, target));
+        assertTrue(ex.getMessage().contains("escapes target directory"));
+        assertFalse(Files.exists(target.resolve("escape.txt")));
+    }
+}
