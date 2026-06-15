@@ -138,4 +138,24 @@ describe('ApiService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
+
+  it('importExport_postsMultipartFile', () => {
+    const file = new File(['zip'], 'export-minimal.zip', { type: 'application/zip' });
+
+    service.importExport(file).subscribe(result => {
+      expect(result.importMode).toBe('export-v1');
+      expect(result.productCount).toBe(2);
+    });
+
+    const req = httpMock.expectOne('/api/migration/import-export');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body instanceof FormData).toBe(true);
+    expect((req.request.body as FormData).get('file')).toBeTruthy();
+    req.flush({
+      importMode: 'export-v1',
+      productCount: 2,
+      products: [{ name: 'Seed Alpha', systemName: 'seed_alpha', serviceId: 1 }],
+      manifest: { schemaVersion: '1.0', adminUrl: 'https://example.com', exportedAt: '2024-01-01' },
+    });
+  });
 });

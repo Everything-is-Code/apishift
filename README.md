@@ -173,7 +173,7 @@ Use `GET /api/cluster/readiness?planId={id}` to probe CRD/install status on the 
 
 ### Analysis workflow (Migration Wizard)
 
-1. **Select products** — from CRD and/or Admin API discovery (filter, paginate, multi-select).
+1. **Select products** — live discovery (CRD / Admin API) **or** upload a 3scale export `.zip` for offline import; filter, paginate, multi-select.
 2. **Choose strategy** — shared / dual / dedicated + optional target cluster.
 3. **Analyze** — generates plan, AI pre-migration review, prerequisites, and editable YAML per resource.
 4. **Review** — collapsible panels for prerequisites and AI analysis; per-resource YAML edit/toggle.
