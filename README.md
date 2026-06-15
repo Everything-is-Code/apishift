@@ -69,13 +69,13 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 | Application (API Key) | Secret + AuthPolicy.apiKey | Generated |
 | Application (OIDC) | AuthPolicy.jwt (no Secret) | Generated |
 | Application Plan + limits | PlanPolicy (`extensions.kuadrant.io`) | Generated |
-| Global / edge limit | RateLimitPolicy (`kuadrant.io`) | Partial (100 req/60s placeholder) |
+| Global / edge limit | RateLimitPolicy (`kuadrant.io`) | Generated (derived from plan limits; placeholder when none) |
 | Token-based limit (LLM) | TokenRateLimitPolicy | Suggested only |
 | TLS termination | TLSPolicy | Suggested only |
 | DNS / multicluster | DNSPolicy | Suggested only |
 | Custom metrics labels | TelemetryPolicy | Generated when observability enabled |
 | OAuth browser flow | OIDCPolicy | Suggested only |
-| API catalog / discovery | APIProduct | Generated (optional portal tier) |
+| API catalog / discovery | APIProduct | Generated when Developer Hub enabled |
 | Custom Lua policies | EnvoyFilter / WASM Extension SDK | Manual — no auto-migration |
 | Header / URL rewrite | HTTPRoute filters (Gateway API) | Suggested only |
 
@@ -86,7 +86,7 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 | API Key | AuthPolicy apiKey + Secret | Generated |
 | OIDC (Bearer JWT) | AuthPolicy jwt.issuerUrl | Generated |
 | JWT Claim Check | AuthPolicy authorization (patternMatching / OPA) | Suggested |
-| OAuth 2.0 Token Introspection | AuthPolicy oauth2Introspection | Suggested |
+| OAuth 2.0 Token Introspection | AuthPolicy oauth2Introspection | Partial |
 | RH-SSO / Keycloak Role Check | AuthPolicy authorization on JWT claims | Suggested |
 | OAuth Authorization Code (browser) | OIDCPolicy extension | Suggested |
 | OAuth mTLS / TLS Client Cert | TLSPolicy + AuthPolicy x509 | Suggested |
@@ -145,14 +145,14 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 ### Plan & rate-limit mapping
 
 - **Application plan limits** (`minute`, `hour`, `day`, `week`, `month`, `year`) map to `PlanPolicy.spec.plans[].limits` (`daily`, `monthly`, `weekly`, `yearly`, or custom windows).
-- A **global** `RateLimitPolicy` (100 req/60s default) is attached to each `HTTPRoute` as a baseline guardrail.
+- A **global** `RateLimitPolicy` is attached to each `HTTPRoute`, derived from the highest application plan `minute` or `hour` limit when available (placeholder 100 req/60s otherwise).
 - Custom 3scale metrics (`metricMethodRef`) are reflected in synthetic OpenAPI operation summaries for kuadrantctl.
 
 ### Generated resources & apply order
 
 Per product, GateForge may emit (in apply order):
 
-`Gateway` → `HTTPRoute` → `APIProduct` → `PlanPolicy` → `Secret`(s) → `AuthPolicy` → `RateLimitPolicy` → `TelemetryPolicy` → `Route`
+`Gateway` → `HTTPRoute` → `APIProduct` (when Developer Hub enabled) → `PlanPolicy` → `Secret`(s) → `AuthPolicy` → `RateLimitPolicy` → `TelemetryPolicy` → `Route`
 
 Optional `catalog-info.yaml` for Red Hat Developer Hub registration is generated when Developer Hub integration is enabled.
 

@@ -116,7 +116,7 @@ public final class PolicyMappingCatalog {
                         "kuadrant.io/v1",
                         Layer.CORE_POLICY,
                         ImplementationStatus.PARTIAL,
-                        "Placeholder 100 req/60s baseline; should derive from 3scale when possible"),
+                        "Derived from plan minute/hour limits when available; placeholder 100 req/60s when no plans"),
                 new ConsolidatedMapping(
                         "Token-based limit (LLM)",
                         "TokenRateLimitPolicy",
@@ -157,8 +157,8 @@ public final class PolicyMappingCatalog {
                         "APIProduct",
                         "devportal.kuadrant.io/v1alpha1",
                         Layer.PORTAL,
-                        ImplementationStatus.GENERATED,
-                        "Optional Developer Portal tier; always in plan as export suggestion"),
+                        ImplementationStatus.PARTIAL,
+                        "Generated only when gateforge.developer-hub.enabled=true"),
                 new ConsolidatedMapping(
                         "Custom Lua policies",
                         "EnvoyFilter / WASM Extension SDK",
@@ -186,7 +186,7 @@ public final class PolicyMappingCatalog {
                 new ApicastPolicyMapping("JWT Claim Check", "AuthPolicy authorization (patternMatching / OPA)",
                         ImplementationStatus.SUGGESTED, "Post-auth authorization on JWT claims"),
                 new ApicastPolicyMapping("OAuth 2.0 Token Introspection", "AuthPolicy oauth2Introspection",
-                        ImplementationStatus.SUGGESTED, "Direct parity when proxy uses introspection"),
+                        ImplementationStatus.PARTIAL, "AuthPolicy oauth2Introspection when proxy uses introspection"),
                 new ApicastPolicyMapping("RH-SSO / Keycloak Role Check", "AuthPolicy authorization on realm_access.roles",
                         ImplementationStatus.SUGGESTED, "See Kuadrant OIDC+RBAC guide"),
                 new ApicastPolicyMapping("OIDC (Bearer JWT)", "AuthPolicy jwt.issuerUrl",
