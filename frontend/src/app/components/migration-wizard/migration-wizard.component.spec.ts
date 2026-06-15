@@ -1,8 +1,230 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { MigrationWizardComponent } from './migration-wizard.component';
-import { ApiService, MigrationPlan, MigrationPrerequisite } from '../../services/api.service';
+import {
+  ApiService,
+  MigrationPlan,
+  MigrationPrerequisite,
+  ThreeScaleProduct,
+} from '../../services/api.service';
+
+const mockProduct: ThreeScaleProduct = {
+  name: 'demo-api',
+  namespace: 'default',
+  systemName: 'demo-api',
+  description: 'Demo API',
+  deploymentOption: 'hosted',
+  mappingRules: [],
+  backendUsages: [{ backendName: 'api', path: '/' }],
+  authentication: {},
+  source: 'local',
+};
+
+const otherProduct: ThreeScaleProduct = {
+  ...mockProduct,
+  name: 'other-api',
+  systemName: 'other-api',
+};
+
+const localCluster = {
+  id: 'local',
+  label: 'Local',
+  apiServerUrl: '',
+  token: '',
+  authType: 'in-cluster',
+  verifySsl: true,
+  enabled: true,
+};
+
+function createApiSpy(): jasmine.SpyObj<ApiService> {
+  return jasmine.createSpyObj<ApiService>('ApiService', [
+    'getProducts',
+    'getFeatures',
+    'getTargetClusters',
+    'analyzeMigration',
+    'getClusterReadiness',
+  ]);
+}
+
+function stubApiDefaults(apiSpy: jasmine.SpyObj<ApiService>): void {
+  apiSpy.getProducts.and.returnValue(of([]));
+  apiSpy.getFeatures.and.returnValue(of({ developerHub: { enabled: false, url: '' } }));
+  apiSpy.getTargetClusters.and.returnValue(of([localCluster]));
+}
+
+async function configureWizard(apiSpy: jasmine.SpyObj<ApiService>): Promise<{
+  fixture: ComponentFixture<MigrationWizardComponent>;
+  component: MigrationWizardComponent;
+}> {
+  await TestBed.configureTestingModule({
+    imports: [MigrationWizardComponent],
+    providers: [
+      { provide: ApiService, useValue: apiSpy },
+      provideRouter([]),
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(MigrationWizardComponent);
+  return { fixture, component: fixture.componentInstance };
+}
+
+describe('MigrationWizardComponent init', () => {
+  let apiSpy: jasmine.SpyObj<ApiService>;
+
+  beforeEach(() => {
+    apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+  });
+
+  it('ngOnInit_loadsProducts', async () => {
+    apiSpy.getProducts.and.returnValue(of([mockProduct, otherProduct]));
+    const { fixture, component } = await configureWizard(apiSpy);
+
+    fixture.detectChanges();
+
+    expect(component.products.length).toBe(2);
+    expect(component.products.every(p => !p.selected)).toBe(true);
+    expect(component.productsLoading).toBe(false);
+  });
+
+  it('ngOnInit_productError_clearsLoading', async () => {
+    apiSpy.getProducts.and.returnValue(throwError(() => new Error('load failed')));
+    const { fixture, component } = await configureWizard(apiSpy);
+
+    fixture.detectChanges();
+
+    expect(component.productsLoading).toBe(false);
+    expect(component.products.length).toBe(0);
+  });
+
+  it('ngOnInit_clusterError_fallsBackToLocal', async () => {
+    apiSpy.getTargetClusters.and.returnValue(throwError(() => new Error('cluster failed')));
+    const { fixture, component } = await configureWizard(apiSpy);
+
+    fixture.detectChanges();
+
+    expect(component.targetClusters.length).toBe(1);
+    expect(component.targetClusters[0].id).toBe('local');
+  });
+});
+
+describe('MigrationWizardComponent step 1', () => {
+  let component: MigrationWizardComponent;
+
+  beforeEach(async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.getProducts.and.returnValue(of([mockProduct, otherProduct]));
+    const configured = await configureWizard(apiSpy);
+    configured.fixture.detectChanges();
+    component = configured.component;
+  });
+
+  it('selectedCount_reflectsSelection', () => {
+    component.products[0].selected = true;
+    expect(component.selectedCount).toBe(1);
+  });
+
+  it('visibleProducts_filtersByQuery', () => {
+    component.productSearchQuery = 'other';
+    expect(component.visibleProducts.length).toBe(1);
+    expect(component.visibleProducts[0].product.name).toBe('other-api');
+  });
+
+  it('selectAllFiltered_togglesVisible', () => {
+    component.productSearchQuery = 'demo';
+    component.selectAllFiltered();
+    expect(component.visibleProducts.every(p => p.selected)).toBe(true);
+    component.selectAllFiltered();
+    expect(component.visibleProducts.every(p => !p.selected)).toBe(true);
+  });
+});
+
+describe('MigrationWizardComponent analyze', () => {
+  const mockPlan: MigrationPlan = {
+    id: 'plan-1',
+    gatewayStrategy: 'dual',
+    sourceProducts: ['demo-api'],
+    resources: [{ kind: 'Gateway', name: 'gw', namespace: 'ns', yaml: 'kind: Gateway' }],
+    aiAnalysis: 'ok',
+    createdAt: new Date().toISOString(),
+    targetClusterId: 'local',
+    targetClusterLabel: 'Local',
+  };
+
+  it('analyze_advancesToStep3', async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.getProducts.and.returnValue(of([mockProduct]));
+    apiSpy.analyzeMigration.and.returnValue(of(mockPlan));
+    const { fixture, component } = await configureWizard(apiSpy);
+    fixture.detectChanges();
+
+    component.products[0].selected = true;
+    component.step = 2;
+    component.gatewayStrategy = 'dual';
+    component.analyze();
+
+    expect(apiSpy.analyzeMigration).toHaveBeenCalledWith('dual', ['demo-api'], 'local');
+    expect(component.step).toBe(3);
+    expect(component.plan).toEqual(mockPlan);
+    expect(component.analyzing).toBe(false);
+  });
+
+  it('analyze_skipsWhenAlreadyAnalyzing', async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.analyzeMigration.and.returnValue(of(mockPlan));
+    const { component } = await configureWizard(apiSpy);
+
+    component.analyzing = true;
+    component.analyze();
+
+    expect(apiSpy.analyzeMigration).not.toHaveBeenCalled();
+  });
+});
+
+describe('MigrationWizardComponent review helpers', () => {
+  let component: MigrationWizardComponent;
+
+  beforeEach(async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    const configured = await configureWizard(apiSpy);
+    component = configured.component;
+  });
+
+  it('hasConsumerApiKeySecrets_trueWhenSecretPresent', () => {
+    component.plan = {
+      id: 'p',
+      gatewayStrategy: 'shared',
+      sourceProducts: [],
+      resources: [{ kind: 'Secret', name: 's', namespace: 'ns', yaml: 'kind: Secret' }],
+      aiAnalysis: '',
+      createdAt: '',
+    };
+    expect(component.hasConsumerApiKeySecrets).toBe(true);
+    expect(component.consumerApiKeySecretCount).toBe(1);
+  });
+
+  it('hasOidcJwtAuth_trueWhenIssuerInYaml', () => {
+    component.plan = {
+      id: 'p',
+      gatewayStrategy: 'shared',
+      sourceProducts: [],
+      resources: [{
+        kind: 'AuthPolicy',
+        name: 'auth',
+        namespace: 'ns',
+        yaml: 'issuerUrl: https://sso.example.com',
+      }],
+      aiAnalysis: '',
+      createdAt: '',
+    };
+    expect(component.hasOidcJwtAuth).toBe(true);
+  });
+});
 
 describe('MigrationWizardComponent prerequisites', () => {
   let fixture: ComponentFixture<MigrationWizardComponent>;
@@ -54,24 +276,13 @@ describe('MigrationWizardComponent prerequisites', () => {
   };
 
   beforeEach(async () => {
-    const apiMock = {
-      getProducts: () => of([]),
-      getFeatures: () => of({ developerHub: { enabled: false, url: '' } }),
-      getTargetClusters: () => of([{
-        id: 'local',
-        label: 'Local',
-        apiServerUrl: '',
-        token: '',
-        authType: 'in-cluster',
-        verifySsl: true,
-        enabled: true,
-      }]),
-    } as Partial<ApiService>;
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
 
     await TestBed.configureTestingModule({
       imports: [MigrationWizardComponent],
       providers: [
-        { provide: ApiService, useValue: apiMock },
+        { provide: ApiService, useValue: apiSpy },
         provideRouter([]),
       ],
     }).compileComponents();

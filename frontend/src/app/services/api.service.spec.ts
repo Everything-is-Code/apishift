@@ -1,0 +1,141 @@
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { ApiService, MigrationPlan } from './api.service';
+
+describe('ApiService', () => {
+  let service: ApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [ApiService],
+    });
+    service = TestBed.inject(ApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('getProducts_requestsCorrectUrl', () => {
+    service.getProducts().subscribe(products => {
+      expect(products.length).toBe(1);
+      expect(products[0].name).toBe('demo-api');
+    });
+
+    const req = httpMock.expectOne('/api/threescale/products');
+    expect(req.request.method).toBe('GET');
+    req.flush([{
+      name: 'demo-api',
+      namespace: 'default',
+      systemName: 'demo-api',
+      description: 'Demo',
+      deploymentOption: 'hosted',
+      mappingRules: [],
+      backendUsages: [],
+      authentication: {},
+      source: 'local',
+    }]);
+  });
+
+  it('analyzeMigration_postsBody', () => {
+    const plan: MigrationPlan = {
+      id: 'plan-1',
+      gatewayStrategy: 'shared',
+      sourceProducts: ['demo-api'],
+      resources: [],
+      aiAnalysis: 'ok',
+      createdAt: new Date().toISOString(),
+    };
+
+    service.analyzeMigration('shared', ['demo-api'], 'local').subscribe(result => {
+      expect(result.id).toBe('plan-1');
+    });
+
+    const req = httpMock.expectOne('/api/migration/analyze');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      gatewayStrategy: 'shared',
+      products: ['demo-api'],
+      targetClusterId: 'local',
+    });
+    req.flush(plan);
+  });
+
+  it('getTargetClusters_requestsCorrectUrl', () => {
+    service.getTargetClusters().subscribe(clusters => {
+      expect(clusters[0].id).toBe('local');
+    });
+
+    const req = httpMock.expectOne('/api/cluster/targets');
+    expect(req.request.method).toBe('GET');
+    req.flush([{
+      id: 'local',
+      label: 'Local',
+      apiServerUrl: '',
+      token: '',
+      authType: 'in-cluster',
+      verifySsl: true,
+      enabled: true,
+    }]);
+  });
+
+  it('getFeatures_requestsCorrectUrl', () => {
+    service.getFeatures().subscribe(features => {
+      expect(features.developerHub.enabled).toBe(false);
+    });
+
+    const req = httpMock.expectOne('/api/cluster/features');
+    expect(req.request.method).toBe('GET');
+    req.flush({ developerHub: { enabled: false, url: '' } });
+  });
+
+  it('getClusterReadiness_buildsQuery', () => {
+    service.getClusterReadiness('lab', 'plan-abc').subscribe();
+
+    const req = httpMock.expectOne('/api/cluster/readiness?targetClusterId=lab&planId=plan-abc');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      clusterConnected: true,
+      targetClusterId: 'lab',
+      connectionStatus: 'ok',
+      prerequisites: [],
+    });
+  });
+
+  it('validateTargetCluster_requestsCorrectUrl', () => {
+    service.validateTargetCluster('lab').subscribe(result => {
+      expect(result['connected']).toBe(true);
+    });
+
+    const req = httpMock.expectOne('/api/cluster/targets/lab/validate');
+    expect(req.request.method).toBe('GET');
+    req.flush({ connected: true });
+  });
+
+  it('applyPlan_postsExclusionsAndOverrides', () => {
+    service.applyPlan('plan-1', [0, 2], { '1': 'custom: yaml' }).subscribe(result => {
+      expect(result.applied).toBe(1);
+    });
+
+    const req = httpMock.expectOne('/api/migration/plans/plan-1/apply');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      excludedIndexes: [0, 2],
+      yamlOverrides: { '1': 'custom: yaml' },
+    });
+    req.flush({ planId: 'plan-1', applied: 1, failed: 0, results: [] });
+  });
+
+  it('getPlans_requestsCorrectUrl', () => {
+    service.getPlans().subscribe(plans => {
+      expect(plans.length).toBe(0);
+    });
+
+    const req = httpMock.expectOne('/api/migration/plans');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+});
