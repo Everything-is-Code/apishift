@@ -31,6 +31,13 @@ For large changes (>400 lines), prefer **stacked PRs** (e.g. backend first, then
 
 See the main [README](README.md) for how to run the backend, frontend, and local stack.
 
+## Continuous integration
+
+- **Backend unit tests** run on every pull request and push to `main` via the [Backend tests](.github/workflows/backend-tests.yml) workflow (`mvn test` in `backend/`).
+- Reproduce locally: `cd backend && mvn test` (Java 17).
+- `backend/Dockerfile.jvm` uses `-DskipTests` during image builds for speed; CI is the validation path for tests.
+- Maintainers: consider marking **Backend tests / backend-test** as a required status check on `main` after this workflow is merged.
+
 **Fastest path (containers):**
 
 ```bash
