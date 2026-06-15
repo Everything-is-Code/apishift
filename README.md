@@ -411,6 +411,7 @@ helm install gateforge gateforge/gateforge \
 | /api/threescale/refresh | POST | Evict discovery cache and reload products/backends |
 | /api/migration/policy-mapping | GET | Consolidated 3scale → RHCL 1.3 mapping reference |
 | /api/migration/analyze | POST | Analyze and plan migration (returns `prerequisites[]`) |
+| /api/migration/import-export | POST | Upload 3scale export `.zip` (`multipart/form-data`, field `file`); loads products for analyze |
 | /api/cluster/readiness | GET | Probe RHCL readiness on target cluster (optional `planId`) |
 | /api/migration/plans | GET | List migration plans |
 | /api/migration/plans/{id}/apply | POST | Apply plan to target cluster |

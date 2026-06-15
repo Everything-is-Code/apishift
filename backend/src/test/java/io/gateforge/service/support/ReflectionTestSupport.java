@@ -16,6 +16,16 @@ public final class ReflectionTestSupport {
         }
     }
 
+    public static Object getField(Object target, String fieldName) {
+        try {
+            Field field = findField(target.getClass(), fieldName);
+            field.setAccessible(true);
+            return field.get(target);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Failed to read " + fieldName + " on " + target.getClass().getName(), e);
+        }
+    }
+
     private static Field findField(Class<?> type, String fieldName) throws NoSuchFieldException {
         Class<?> current = type;
         while (current != null) {
