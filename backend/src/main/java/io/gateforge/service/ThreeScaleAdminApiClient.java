@@ -120,20 +120,35 @@ public class ThreeScaleAdminApiClient {
                 JsonNode root = doGet(url);
                 if (root == null) break;
 
+                List<Map<String, Object>> pageItems = parsePaginatedList(root, collectionKey, itemKey, objectMapper);
+                if (pageItems.isEmpty()) break;
+                result.addAll(pageItems);
+
                 JsonNode collection = root.has(collectionKey) ? root.get(collectionKey) : root;
-                if (!collection.isArray() || collection.isEmpty()) break;
-
-                for (JsonNode node : collection) {
-                    JsonNode item = node.has(itemKey) ? node.get(itemKey) : node;
-                    result.add(objectMapper.convertValue(item, Map.class));
-                }
-
                 if (collection.size() < perPage) break;
                 page++;
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Error fetching " + path + " page " + page + " from source " + sourceId, e);
                 break;
             }
+        }
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    static List<Map<String, Object>> parsePaginatedList(
+            JsonNode root, String collectionKey, String itemKey, ObjectMapper mapper) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (root == null) {
+            return result;
+        }
+        JsonNode collection = root.has(collectionKey) ? root.get(collectionKey) : root;
+        if (!collection.isArray() || collection.isEmpty()) {
+            return result;
+        }
+        for (JsonNode node : collection) {
+            JsonNode item = node.has(itemKey) ? node.get(itemKey) : node;
+            result.add(mapper.convertValue(item, Map.class));
         }
         return result;
     }
