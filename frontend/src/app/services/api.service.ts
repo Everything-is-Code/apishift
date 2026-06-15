@@ -176,6 +176,17 @@ export interface FeatureFlags {
   };
 }
 
+export interface ImportExportResponse {
+  importMode: string;
+  productCount: number;
+  products: { name: string; systemName: string; serviceId: number }[];
+  manifest: {
+    schemaVersion: string;
+    adminUrl: string;
+    exportedAt: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private baseUrl = '/api';
@@ -214,6 +225,14 @@ export class ApiService {
     return this.http.post<MigrationPlan>(`${this.baseUrl}/migration/analyze`, {
       gatewayStrategy, products, targetClusterId: targetClusterId || 'local'
     });
+  }
+
+  importExport(file: File): Observable<ImportExportResponse> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<ImportExportResponse>(`${this.baseUrl}/migration/import-export`, formData).pipe(
+      timeout(120000)
+    );
   }
 
   getPlans(): Observable<MigrationPlan[]> {

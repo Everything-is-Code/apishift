@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import JSZip from 'jszip';
-import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry } from '../../services/api.service';
+import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry, ImportExportResponse } from '../../services/api.service';
 
 @Component({
   selector: 'app-migration-wizard',
@@ -42,7 +42,7 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
         </div>
       </nav>
 
-      <div *ngIf="productsLoading" class="loading-state">
+      <div *ngIf="productsLoading || importing" class="loading-state">
         <div class="skeleton-bar wide"></div>
         <div class="skeleton-grid-cards">
           <div *ngFor="let i of [1,2,3,4,5,6]" class="skeleton-card">
@@ -50,10 +50,10 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
             <div class="skeleton-line short"></div>
           </div>
         </div>
-        <p class="loading-text">Loading products from cluster…</p>
+        <p class="loading-text">{{ productsLoadingMessage }}</p>
       </div>
 
-      <div *ngIf="!productsLoading && step === 1" class="step-panel">
+      <div *ngIf="!productsLoading && !importing && step === 1" class="step-panel">
         <div class="step-head">
           <h2>Select products</h2>
           <span class="count-badge" *ngIf="selectedCount > 0">{{ selectedCount }} selected</span>
@@ -61,8 +61,62 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
         </div>
         <p class="step-desc">Choose one or more 3scale products to include in the migration analysis.</p>
 
+        <div class="source-selector">
+          <h3>Product source</h3>
+          <div class="source-grid">
+            <label class="source-card card" [class.selected]="productSource === 'live'">
+              <input type="radio" class="visually-hidden" name="productSource" value="live"
+                     [checked]="productSource === 'live'" (change)="setProductSource('live')">
+              <div class="source-icon" aria-hidden="true">⎈</div>
+              <div class="source-text">
+                <span class="source-title">Live discovery</span>
+                <p>Load products from cluster CRDs and the 3scale Admin API.</p>
+              </div>
+            </label>
+            <label class="source-card card" [class.selected]="productSource === 'export'">
+              <input type="radio" class="visually-hidden" name="productSource" value="export"
+                     [checked]="productSource === 'export'" (change)="setProductSource('export')">
+              <div class="source-icon" aria-hidden="true">📦</div>
+              <div class="source-text">
+                <span class="source-title">Import offline export</span>
+                <p>Upload a 3scale export <code>.zip</code> archive for offline migration analysis.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div *ngIf="productSource === 'export'" class="export-import-panel card">
+          <div class="export-import-head">
+            <strong>Upload export archive</strong>
+            <span class="pill pill-muted" *ngIf="importResult">Schema {{ importResult.manifest.schemaVersion }}</span>
+          </div>
+          <p class="export-import-desc">
+            Select a <code>threescale-export</code> <code>.zip</code> file. Parsed products appear below for selection.
+          </p>
+          <div class="export-import-row">
+            <input type="file" class="export-file-input" accept=".zip,application/zip"
+                   (change)="onExportFileSelected($event)" [disabled]="importing">
+            <button type="button" class="btn-primary btn-import"
+                    (click)="importExportArchive()"
+                    [disabled]="importing || !selectedExportFile">
+              {{ importing ? 'Importing…' : 'Import export' }}
+            </button>
+          </div>
+          <p *ngIf="importError" class="export-import-error" role="alert">{{ importError }}</p>
+          <div *ngIf="importResult" class="export-import-success" role="status">
+            Loaded <strong>{{ importResult.productCount }}</strong> product(s) from
+            <span class="pill pill-green">{{ importResult.importMode }}</span>
+            <span class="pill pill-muted" *ngIf="importResult.manifest.adminUrl">{{ importResult.manifest.adminUrl }}</span>
+          </div>
+        </div>
+
         <div *ngIf="products.length === 0" class="empty-inline card">
-          <p>No products were found. Explore the cluster in <a routerLink="/threescale">3scale Explorer</a> or verify CRDs.</p>
+          <p *ngIf="productSource === 'live'">
+            No products were found. Explore the cluster in <a routerLink="/threescale">3scale Explorer</a> or verify CRDs.
+          </p>
+          <p *ngIf="productSource === 'export'">
+            No imported products yet. Upload a 3scale export <code>.zip</code> above to continue.
+          </p>
         </div>
 
         <div *ngIf="products.length > 0">
@@ -82,6 +136,7 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
                   <span class="badge badge-ns">{{ p.product.backendNamespace || p.product.namespace }}</span>
                 </div>
                 <div class="select-stats">
+                  <span class="pill pill-export" *ngIf="isExportProduct(p.product)">offline export</span>
                   <span class="pill" *ngIf="p.product.backendServiceName">{{ p.product.backendServiceName }}</span>
                   <span class="pill pill-green">{{ p.product.backendUsages.length }} backends</span>
                 </div>
@@ -1376,6 +1431,120 @@ import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, Ap
     .btn-register:disabled { opacity: 0.5; cursor: not-allowed; }
     .registration-error { color: #c9190b; font-size: 0.85rem; max-width: 500px; }
     .registration-success { color: #3f9c35; font-weight: 600; font-size: 0.88rem; }
+
+    .source-selector { margin-bottom: 22px; }
+    .source-selector h3 {
+      font-family: 'Red Hat Display', sans-serif;
+      font-size: 1.05rem;
+      margin: 0 0 10px;
+      color: #151515;
+    }
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .source-card {
+      display: flex;
+      gap: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+      align-items: flex-start;
+    }
+    .source-card.selected {
+      border-color: #0066cc;
+      box-shadow: 0 4px 18px rgba(0,102,204,0.12);
+    }
+    .source-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #f5f5f5;
+      border: 1px solid #d2d2d2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .source-title {
+      font-family: 'Red Hat Display', sans-serif;
+      font-weight: 600;
+      color: #151515;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .source-text p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: #6a6e73;
+      line-height: 1.45;
+    }
+    .source-text code {
+      font-size: 0.82rem;
+      background: #f5f5f5;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .export-import-panel {
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      background: #f8fbff;
+      border-color: rgba(0, 102, 204, 0.35);
+    }
+    .export-import-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .export-import-desc {
+      margin: 0 0 14px;
+      font-size: 0.88rem;
+      color: #4d4d4d;
+      line-height: 1.45;
+    }
+    .export-import-desc code {
+      font-size: 0.82rem;
+      background: rgba(0, 0, 0, 0.05);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .export-import-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .export-file-input {
+      flex: 1;
+      min-width: 220px;
+      font-size: 0.88rem;
+    }
+    .btn-import { padding: 10px 18px; }
+    .export-import-error {
+      margin: 12px 0 0;
+      color: #c9190b;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .export-import-success {
+      margin-top: 12px;
+      font-size: 0.88rem;
+      color: #2d6b24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pill-export {
+      background: #e8f0fe;
+      border-color: rgba(0, 68, 153, 0.35);
+      color: #004499;
+      font-weight: 600;
+    }
   `]
 })
 export class MigrationWizardComponent implements OnInit {
@@ -1432,6 +1601,11 @@ export class MigrationWizardComponent implements OnInit {
   migratePageSize = 24;
   targetClusters: TargetCluster[] = [];
   selectedClusterId = 'local';
+  productSource: 'live' | 'export' = 'live';
+  importing = false;
+  importError = '';
+  importResult: ImportExportResponse | null = null;
+  selectedExportFile: File | null = null;
 
   strategies = [
     {
@@ -1513,6 +1687,12 @@ export class MigrationWizardComponent implements OnInit {
     return vis.length > 0 && vis.every(p => p.selected);
   }
 
+  get productsLoadingMessage(): string {
+    if (this.importing) return 'Importing export archive…';
+    if (this.productSource === 'export') return 'Loading imported products…';
+    return 'Loading products from cluster…';
+  }
+
   onProductSearchChange(): void { this.migrateProductPage = 1; }
 
   selectAllFiltered(): void {
@@ -1523,15 +1703,7 @@ export class MigrationWizardComponent implements OnInit {
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
-    this.api.getProducts().subscribe({
-      next: (data) => {
-        this.products = data.map(p => ({ product: p, selected: false }));
-        this.productsLoading = false;
-      },
-      error: () => {
-        this.productsLoading = false;
-      }
-    });
+    this.loadLiveProducts();
     this.api.getFeatures().subscribe({
       next: (f) => {
         this.developerHubEnabled = f.developerHub?.enabled ?? false;
@@ -1542,6 +1714,92 @@ export class MigrationWizardComponent implements OnInit {
       next: (clusters) => this.targetClusters = clusters,
       error: () => this.targetClusters = [{ id: 'local', label: 'Local (in-cluster)', apiServerUrl: '', token: '', authType: 'in-cluster', verifySsl: true, enabled: true }]
     });
+  }
+
+  setProductSource(source: 'live' | 'export'): void {
+    if (this.productSource === source) return;
+    this.productSource = source;
+    this.importError = '';
+    this.importResult = null;
+    this.selectedExportFile = null;
+    if (source === 'live') {
+      this.loadLiveProducts();
+    } else {
+      this.products = [];
+      this.productsLoading = false;
+    }
+  }
+
+  loadLiveProducts(): void {
+    this.productsLoading = true;
+    this.api.getProducts().subscribe({
+      next: (data) => {
+        this.products = data.map(p => ({ product: p, selected: false }));
+        this.productsLoading = false;
+      },
+      error: () => {
+        this.productsLoading = false;
+      }
+    });
+  }
+
+  onExportFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedExportFile = input.files?.[0] ?? null;
+    this.importError = '';
+  }
+
+  importExportArchive(): void {
+    if (!this.selectedExportFile) {
+      this.importError = 'Select a .zip export archive';
+      return;
+    }
+    if (!this.selectedExportFile.name.toLowerCase().endsWith('.zip')) {
+      this.importError = 'Only .zip export archives are supported';
+      return;
+    }
+    this.importing = true;
+    this.importError = '';
+    this.api.importExport(this.selectedExportFile).subscribe({
+      next: (result) => {
+        this.importResult = result;
+        this.reloadProductsAfterImport();
+      },
+      error: (err) => {
+        this.importing = false;
+        this.importError = this.extractErrorMessage(err);
+      }
+    });
+  }
+
+  isExportProduct(product: ThreeScaleProduct): boolean {
+    return (product.source || '').includes('export-v1');
+  }
+
+  private reloadProductsAfterImport(): void {
+    this.productsLoading = true;
+    this.api.getProducts().subscribe({
+      next: (data) => {
+        this.products = data.map(p => ({ product: p, selected: false }));
+        this.productsLoading = false;
+        this.importing = false;
+      },
+      error: () => {
+        this.productsLoading = false;
+        this.importing = false;
+        this.importError = 'Import succeeded but failed to reload products';
+      }
+    });
+  }
+
+  private extractErrorMessage(err: { error?: unknown; message?: string }): string {
+    const body = err?.error;
+    if (typeof body === 'string' && body.trim()) return body;
+    if (body && typeof body === 'object' && 'message' in body) {
+      const message = (body as { message?: string }).message;
+      if (message) return message;
+    }
+    return err?.message || 'Import failed';
   }
 
   refreshReadiness(): void {

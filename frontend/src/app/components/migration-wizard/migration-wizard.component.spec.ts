@@ -44,6 +44,7 @@ function createApiSpy(): jasmine.SpyObj<ApiService> {
     'getTargetClusters',
     'analyzeMigration',
     'getClusterReadiness',
+    'importExport',
   ]);
 }
 
@@ -138,6 +139,70 @@ describe('MigrationWizardComponent step 1', () => {
     expect(component.visibleProducts.every(p => p.selected)).toBe(true);
     component.selectAllFiltered();
     expect(component.visibleProducts.every(p => !p.selected)).toBe(true);
+  });
+});
+
+describe('MigrationWizardComponent export import', () => {
+  const exportProduct: ThreeScaleProduct = {
+    ...mockProduct,
+    name: 'Seed Alpha',
+    systemName: 'seed_alpha',
+    source: 'export-v1 (https://example.com)',
+  };
+
+  it('setProductSource_export_clearsLiveProducts', async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.getProducts.and.returnValue(of([mockProduct]));
+    const { fixture, component } = await configureWizard(apiSpy);
+    fixture.detectChanges();
+
+    component.setProductSource('export');
+
+    expect(component.productSource).toBe('export');
+    expect(component.products.length).toBe(0);
+    expect(component.productsLoading).toBe(false);
+  });
+
+  it('importExportArchive_successReloadsProducts', async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.importExport.and.returnValue(of({
+      importMode: 'export-v1',
+      productCount: 1,
+      products: [{ name: 'Seed Alpha', systemName: 'seed_alpha', serviceId: 1 }],
+      manifest: { schemaVersion: '1.0', adminUrl: 'https://example.com', exportedAt: '2024-01-01' },
+    }));
+    apiSpy.getProducts.and.returnValue(of([exportProduct]));
+    const { fixture, component } = await configureWizard(apiSpy);
+    fixture.detectChanges();
+
+    component.setProductSource('export');
+    component.selectedExportFile = new File(['zip'], 'export-minimal.zip', { type: 'application/zip' });
+    component.importExportArchive();
+    fixture.detectChanges();
+
+    expect(apiSpy.importExport).toHaveBeenCalled();
+    expect(apiSpy.getProducts).toHaveBeenCalled();
+    expect(component.products.length).toBe(1);
+    expect(component.importResult?.productCount).toBe(1);
+    expect(component.importing).toBe(false);
+    expect(component.isExportProduct(component.products[0].product)).toBe(true);
+  });
+
+  it('importExportArchive_errorShowsMessage', async () => {
+    const apiSpy = createApiSpy();
+    stubApiDefaults(apiSpy);
+    apiSpy.importExport.and.returnValue(throwError(() => ({ error: 'Only .zip export archives are supported' })));
+    const { fixture, component } = await configureWizard(apiSpy);
+    fixture.detectChanges();
+
+    component.setProductSource('export');
+    component.selectedExportFile = new File(['bad'], 'archive.tar.gz', { type: 'application/gzip' });
+    component.importExportArchive();
+
+    expect(component.importError).toContain('.zip');
+    expect(apiSpy.importExport).not.toHaveBeenCalled();
   });
 });
 
