@@ -5,6 +5,7 @@ import io.gateforge.service.export.ExportParseException;
 import io.gateforge.service.export.ExportParseResult;
 import io.gateforge.service.export.ThreeScaleExportParser;
 import io.gateforge.service.support.ReflectionTestSupport;
+import io.gateforge.service.support.ExportMinimalFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,7 +19,7 @@ class ThreeScaleExportParserTest {
     private final ThreeScaleExportParser parser = new ThreeScaleExportParser();
 
     private Path fixtureRoot() {
-        return Path.of("src/test/resources/export-minimal").toAbsolutePath().normalize();
+        return ExportMinimalFixture.root();
     }
 
     @Test

@@ -1,6 +1,0 @@
-{
-  "id": 101,
-  "system_name": "billing_api",
-  "name": "Billing API",
-  "private_endpoint": "http://billing.internal"
-}
