@@ -4,9 +4,7 @@ Thank you for your interest in contributing.
 
 ## Language
 
-**English only** for README, docs, issues, PR descriptions, code comments, and user-facing UI strings.
-
-Program policy: [rhcl-ai AGENTS.md — Language policy](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#language-policy).
+Follow the RHCL program **[Language policy](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#language-policy)** (English only for code, docs, commits, PRs, and issues).
 
 ## Reporting issues
 
@@ -16,10 +14,13 @@ Program policy: [rhcl-ai AGENTS.md — Language policy](https://github.com/Every
 
 ## How to contribute
 
-1. **Fork** the repository and create a **branch** from the default branch (e.g. `feature/my-change` or `fix/issue-123`).
-2. Make focused changes with clear commits; match existing code style and conventions.
-3. Open a **pull request (PR)** against the main repository. Describe the change, link related issues, and note any testing you performed.
-4. Respond to review feedback; maintainers will merge when the change is ready.
+Follow the RHCL program **[Git conventions and PR workflow](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#git-conventions)** (feature branches from `main`, PR required, English commit messages). GateForge specifics:
+
+1. Branch names: `feature/GF-<issue>-short-desc` or `fix/GF-<issue>-short-desc` (link the GitHub issue when one exists).
+2. Open a **pull request** using this repo’s [PR template](.github/pull_request_template.md); include a concrete test plan.
+3. Address review feedback. A maintainer merges when approved (see [CODEOWNERS](.github/CODEOWNERS)).
+
+For large changes (>400 lines), prefer **stacked PRs** (e.g. backend first, then frontend on the prior branch) so reviewers can focus.
 
 ## Development requirements
 
