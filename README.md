@@ -185,6 +185,87 @@ Use `GET /api/cluster/readiness?planId={id}` to probe CRD/install status on the 
 - **Refresh discovery** (`POST /api/threescale/refresh`) evicts cache and reloads live 3scale state.
 - Full-page loading overlay blocks navigation during refresh and analysis operations.
 
+### Offline integration (M2)
+
+**Status:** complete (issues [#14](https://github.com/Everything-is-Code/gateforge/issues/14), [#16](https://github.com/Everything-is-Code/gateforge/issues/16), [#18](https://github.com/Everything-is-Code/gateforge/issues/18), [#19](https://github.com/Everything-is-Code/gateforge/issues/19)).
+
+Analyze and plan migrations **without live 3scale Admin API access** by importing a `threescale-export` archive produced by [3scaleextract](https://github.com/Everything-is-Code/3scaleextract). The same analyze/apply pipeline runs after import; only product discovery changes.
+
+```mermaid
+flowchart LR
+    subgraph extract [3scaleextract]
+        Seed[threescale-seed lab fixtures]
+        Export[threescale-export]
+        Tar[export-minimal-1.0.tar.gz]
+        Seed --> Export --> Tar
+    end
+    subgraph gateforge [GateForge]
+        Zip[Zip export directory]
+        API[POST /api/migration/import-export]
+        Products[GET /api/threescale/products]
+        Analyze[POST /api/migration/analyze]
+        Apply[POST /api/migration/plans/id/apply]
+        Zip --> API --> Products --> Analyze --> Apply
+    end
+    Export -.->|manual zip| Zip
+    Tar -.->|tests only| gateforge
+```
+
+#### Cross-repo contract
+
+| Artifact | Owner | Purpose |
+|----------|-------|---------|
+| `threescale-export` directory (schema **1.0**) | 3scaleextract | Canonical offline export layout (`manifest.json`, `products/`, `backends/`, `applications/`) |
+| `export-minimal-1.0.tar.gz` | [3scaleextract `testdata/`](https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata) | Versioned fixture for visualize tests and GateForge import tests |
+| `POST /api/migration/import-export` | GateForge | Accepts `.zip` only (v1); loads products into memory for analyze |
+| Migration Wizard **Import offline export** | GateForge UI | Upload `.zip` in step 1, then continue wizard |
+
+Imported products are tagged with `source` containing `export-v1` and `sourceCluster: offline`. `POST /api/threescale/refresh` is skipped for export-backed products during analyze.
+
+#### Manual workflow (lab or air-gapped)
+
+1. **Export** from a 3scale tenant (lab or production read-only):
+
+   ```bash
+   threescale-export --admin-url https://3scale-admin.example.com \
+     --access-token "$TOKEN" --output ./export
+   ```
+
+   Or use the published minimal fixture: download and unzip [export-minimal-1.0.tar.gz](https://github.com/Everything-is-Code/3scaleextract/raw/main/testdata/export-minimal-1.0.tar.gz).
+
+2. **Package** as `.zip` (GateForge API expects zip, not tar.gz):
+
+   ```bash
+   cd export && zip -r ../threescale-export.zip .
+   ```
+
+3. **Import** via API or Migration Wizard:
+   - **UI:** Migration Wizard → **Import offline export** → choose `.zip` → **Import export** → select products → Analyze.
+   - **API:**
+
+   ```bash
+   curl -f -X POST http://localhost:8080/api/migration/import-export \
+     -F "file=@threescale-export.zip"
+   curl -s http://localhost:8080/api/threescale/products | jq '.[].name'
+   curl -X POST http://localhost:8080/api/migration/analyze \
+     -H 'Content-Type: application/json' \
+     -d '{"gatewayStrategy":"shared","products":["Seed Alpha Product"],"targetClusterId":"local"}'
+   ```
+
+4. **Apply** when the target cluster has RHCL prerequisites satisfied (`GET /api/cluster/readiness?planId={id}`).
+
+#### Test fixture maintenance
+
+GateForge tests consume the 3scaleextract tarball (not a vendored directory tree):
+
+```bash
+./scripts/sync-export-minimal-fixture.sh   # from ../3scaleextract checkout
+./scripts/verify-export-minimal-fixture.sh
+cd backend && mvn test
+```
+
+See [3scaleextract testdata/README.md](https://github.com/Everything-is-Code/3scaleextract/blob/main/testdata/README.md) for checksums and release assets.
+
 ---
 
 ## Key Features (v0.1.9)
@@ -225,6 +306,12 @@ Use `GET /api/cluster/readiness?planId={id}` to probe CRD/install status on the 
 - **4 test scenarios** in GitOps with Microcks-backed mocks (API Key, OIDC, Multi-Tenant, Custom Policies+TLS)
 - **3scale entity deregistration**: Post-migration unregistration of 3scale-discovered entities to prevent catalog conflicts
 - **Bug fixes**: ObservabilityTab null guard for metrics, ComponentEditorTab broadened GateForge detection
+
+### Phase 7: Offline integration (M2)
+- **Export parser** (`io.gateforge.service.export`) — `threescale-export` schema 1.0 → `ThreeScaleProduct` without Admin API
+- **Import API** — `POST /api/migration/import-export` (multipart `.zip`, max 50 MB default)
+- **Wizard upload** — **Import offline export** product source in Migration Wizard step 1
+- **Shared fixture** — `export-minimal-1.0.tar.gz` from [3scaleextract](https://github.com/Everything-is-Code/3scaleextract); GateForge tests verify SHA256 and extract via `ExportMinimalFixture`
 
 ### Phase 3: Hub-Spoke Architecture
 - **PostgreSQL persistence** for migration plans and audit entries (replaces in-memory storage)
@@ -314,7 +401,7 @@ cd backend
 mvn quarkus:dev
 ```
 
-**Offline export fixture (tests):** Import/parser tests extract the versioned tarball from [3scaleextract `testdata/export-minimal-1.0.tar.gz`](https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata) (`backend/src/test/resources/fixtures/`). Refresh from a local checkout:
+**Offline export fixture (tests):** See [Offline integration (M2)](#offline-integration-m2) for the full cross-repo flow. Quick refresh from a local 3scaleextract checkout:
 
 ```bash
 ./scripts/sync-export-minimal-fixture.sh

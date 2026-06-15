@@ -863,11 +863,29 @@ rules:
       <div class="policy-section">
         <h3>Migration Wizard workflow</h3>
         <ol style="margin:12px 0 0 20px; color:#4d4d4d; font-size:0.92rem; line-height:1.7;">
-          <li><strong>Select products</strong> — multi-select from CRD + Admin API discovery.</li>
+          <li><strong>Select products</strong> — live discovery (CRD + Admin API) <em>or</em> upload a 3scale export <code>.zip</code> for offline import; multi-select with filter and pagination.</li>
           <li><strong>Gateway strategy</strong> — shared / dual / dedicated + target cluster.</li>
           <li><strong>Analyze</strong> — full-page loading overlay; generates plan, AI review, prerequisites, editable YAML.</li>
           <li><strong>Review</strong> — collapsible prerequisites and AI analysis panels; per-resource YAML edit/toggle.</li>
           <li><strong>Apply / Revert</strong> — apply to cluster or bulk-revert to 3scale with audit trail.</li>
+        </ol>
+      </div>
+
+      <div class="policy-section">
+        <h3>Offline integration (M2)</h3>
+        <p style="color:#4d4d4d; font-size:0.92rem; line-height:1.6; margin:8px 0 12px;">
+          Analyze migrations without live Admin API access. Export a tenant with
+          <a href="https://github.com/Everything-is-Code/3scaleextract">3scaleextract</a>,
+          zip the <code>threescale-export</code> directory, import via the wizard or
+          <code>POST /api/migration/import-export</code>, then run the standard analyze/apply flow.
+          Test fixtures use the versioned
+          <a href="https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata">export-minimal-1.0.tar.gz</a>
+          published by 3scaleextract.
+        </p>
+        <ol style="margin:0 0 0 20px; color:#4d4d4d; font-size:0.92rem; line-height:1.7;">
+          <li><code>threescale-export</code> → zip → <code>POST /api/migration/import-export</code></li>
+          <li><code>GET /api/threescale/products</code> — imported products tagged <code>export-v1</code></li>
+          <li><code>POST /api/migration/analyze</code> → review → apply when cluster is ready</li>
         </ol>
       </div>
     </div>
@@ -888,6 +906,7 @@ rules:
           <tr><td><code>/api/threescale/refresh</code></td><td>POST</td><td>Evict discovery cache and reload products/backends from 3scale</td></tr>
           <tr><td><code>/api/migration/policy-mapping</code></td><td>GET</td><td>Consolidated 3scale → RHCL 1.3 mapping catalog (taxonomy, consolidated table, APIcast policies)</td></tr>
           <tr><td><code>/api/migration/analyze</code></td><td>POST</td><td>Analyze and plan migration; returns <code>prerequisites[]</code> for apply-time readiness</td></tr>
+          <tr><td><code>/api/migration/import-export</code></td><td>POST</td><td>Upload 3scale export <code>.zip</code> (<code>multipart/form-data</code>, field <code>file</code>); loads products for offline analyze</td></tr>
           <tr><td><code>/api/migration/plans/{id}/apply</code></td><td>POST</td><td>Apply plan to target cluster</td></tr>
           <tr><td><code>/api/migration/plans/{id}/revert</code></td><td>POST</td><td>Revert plan from target cluster</td></tr>
           <tr><td><code>/api/migration/revert-bulk</code></td><td>POST</td><td>Bulk revert to 3scale</td></tr>
