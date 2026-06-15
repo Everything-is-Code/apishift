@@ -266,6 +266,32 @@ cd backend && mvn test
 
 See [3scaleextract testdata/README.md](https://github.com/Everything-is-Code/3scaleextract/blob/main/testdata/README.md) for checksums and release assets.
 
+### E2E lab pipeline (M3)
+
+Automated **seed → export → visualize → GateForge analyze** for lab validation ([rhcl-ai #2](https://github.com/Everything-is-Code/rhcl-ai/issues/2)):
+
+```bash
+# Terminal 1 — GateForge stack
+cp .env.example .env   # same THREESCALE_* as 3scaleextract
+./scripts/local-up.sh
+
+# Terminal 2 — full lab E2E (requires 3scale Admin API)
+export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
+./scripts/e2e-seed-export-analyze.sh
+
+# Smoke without live 3scale (fixture tarball + offline import only)
+E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
+```
+
+| `E2E_MODE` | Behavior |
+|------------|----------|
+| `auto` (default) | Seed/export/visualize when 3scale creds set; **offline** import + analyze via GateForge API |
+| `live` | Same seed/export/visualize; `POST /api/threescale/refresh` instead of zip import |
+| `offline` | Explicit offline import path |
+| `fixture` | Skip seed; use vendored `export-minimal` tarball (2-product smoke) |
+
+The script asserts `product_count: 4`, `incomplete: false`, visualize report, and analyze output with AuthPolicy resources (API key + OIDC JWT when full lab fixtures are used).
+
 ---
 
 ## Key Features (v0.1.9)
