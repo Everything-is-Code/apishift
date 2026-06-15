@@ -7,6 +7,8 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.gateforge.model.ThreeScaleProduct;
+import io.gateforge.service.export.ExportParseResult;
+import io.gateforge.service.export.ThreeScaleExportParser;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -17,6 +19,7 @@ import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.commons.configuration.StringConfiguration;
 
 import java.time.Instant;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +62,11 @@ public class ThreeScaleService {
     @Inject
     ThreeScaleSourceRegistry sourceRegistry;
 
+    @Inject
+    ThreeScaleExportParser exportParser;
+
+    private volatile List<ThreeScaleProduct> exportOverride;
+
     @ConfigProperty(name = "gateforge.threescale.crd-discovery", defaultValue = "true")
     boolean crdDiscoveryEnabled;
 
@@ -96,6 +104,9 @@ public class ThreeScaleService {
             .build();
 
     public List<ThreeScaleProduct> listProducts() {
+        if (exportOverride != null) {
+            return List.copyOf(exportOverride);
+        }
         try {
             RemoteCache<String, String> cache = getOrCreateCache(PRODUCTS_CACHE);
             if (cache != null) {
@@ -328,6 +339,9 @@ public class ThreeScaleService {
     }
 
     public void evictDiscoveryCache() {
+        if (cacheManager == null) {
+            return;
+        }
         try {
             RemoteCache<String, String> productsCache = getOrCreateCache(PRODUCTS_CACHE);
             if (productsCache != null) {
@@ -342,6 +356,23 @@ public class ThreeScaleService {
             LOG.log(Level.WARNING, "Failed to evict 3scale discovery cache", e);
         }
     }
+
+    /**
+     * Loads products from an offline threescale-export directory (schema 1.0).
+     * Subsequent {@link #listProducts()} calls return parsed products until {@link #clearExportOverride()}.
+     */
+    public ExportParseResult loadFromExport(Path exportRoot) {
+        ExportParseResult result = exportParser.parse(exportRoot);
+        evictDiscoveryCache();
+        this.exportOverride = List.copyOf(result.products());
+        LOG.info("Loaded %d product(s) from export at %s".formatted(result.products().size(), exportRoot));
+        return result;
+    }
+
+    public void clearExportOverride() {
+        this.exportOverride = null;
+    }
+
 
     public Map<String, Object> getAdminApiStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
@@ -517,6 +548,9 @@ public class ThreeScaleService {
      * Re-loads applications, plans, and proxy/OIDC auth settings from the Admin API before migration.
      */
     public ThreeScaleProduct refreshProductForMigration(ThreeScaleProduct product) {
+        if (product.source() != null && product.source().contains("export-v1")) {
+            return product;
+        }
         if (product.serviceId() <= 0) {
             return product;
         }
