@@ -26,7 +26,7 @@ The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
 | `src/app/shared/` | Reusable UI pieces (empty until extracted from features) |
 | `src/environments/version.ts` | Build-time version stamp (synced from Helm chart on release) |
 
-Components are **standalone** (no NgModules). Styles use inline `styles` arrays per component.
+Components are **standalone** (no NgModules). Migration wizard styles live in `migration-wizard.shared.scss`.
 
 ## Build and test
 
