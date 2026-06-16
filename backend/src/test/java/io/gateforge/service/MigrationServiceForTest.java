@@ -12,6 +12,7 @@ import io.gateforge.service.generator.HttpRouteResourceGenerator;
 import io.gateforge.service.generator.MigrationGeneratorConfig;
 import io.gateforge.service.generator.PlanPolicyResourceGenerator;
 import io.gateforge.service.generator.RateLimitResourceGenerator;
+import io.gateforge.service.migration.BackendEndpointResolver;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.util.List;
@@ -38,8 +39,11 @@ class MigrationServiceForTest extends MigrationService {
         ReflectionTestSupport.inject(readinessService, "catalogService", catalogService);
 
         ReflectionTestSupport.inject(migrationService, "threeScaleService", TestDoubles.threeScaleService(products));
-        ReflectionTestSupport.inject(migrationService, "sourceRegistry", TestDoubles.emptySourceRegistry());
+        ThreeScaleSourceRegistry sourceRegistry = TestDoubles.emptySourceRegistry();
         ReflectionTestSupport.inject(migrationService, "clusterRegistry", ClusterRegistryStub.disconnected());
+        BackendEndpointResolver backendEndpointResolver = new BackendEndpointResolver();
+        ReflectionTestSupport.inject(backendEndpointResolver, "sourceRegistry", sourceRegistry);
+        ReflectionTestSupport.inject(migrationService, "backendEndpointResolver", backendEndpointResolver);
         ReflectionTestSupport.inject(migrationService, "objectMapper", new ObjectMapper());
         ReflectionTestSupport.inject(migrationService, "kuadrantCtlService", TestDoubles.failingKuadrantCtl());
         ReflectionTestSupport.inject(migrationService, "migrationAgent",
