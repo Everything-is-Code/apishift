@@ -15,15 +15,33 @@ env:
   QUAY_NAMESPACE: everythingascode
 
 jobs:
-  release:
+  build-images:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: apishift-backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile.jvm
+            needs-version: false
+          - image: apishift-frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile.ci
+            needs-version: true
+          - image: apishift-devhub-plugin
+            context: ./gateforge-devhub-plugin
+            dockerfile: ./gateforge-devhub-plugin/Dockerfile
+            needs-version: false
+          - image: apishift-devhub-frontend-plugin
+            context: ./gateforge-devhub-frontend
+            dockerfile: ./gateforge-devhub-frontend/Dockerfile
+            needs-version: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Validate release version
+      - name: Resolve release version
         run: |
           source scripts/lib/version.sh
           if [ "${{ github.event_name }}" = "push" ]; then
@@ -63,47 +81,35 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push apishift-backend
+      - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile.jvm
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
+          build-args: ${{ matrix.needs-version && format('APP_VERSION={0}', env.APP_VERSION) || '' }}
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:${{ env.RELEASE_TAG }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:latest
 
-      - name: Build and push apishift-frontend
-        uses: docker/build-push-action@v6
+  publish-release:
+    needs: build-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile.ci
-          push: true
-          build-args: |
-            APP_VERSION=${{ env.APP_VERSION }}
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:latest
+          fetch-depth: 0
 
-      - name: Build and push apishift-devhub-plugin
-        uses: docker/build-push-action@v6
-        with:
-          context: ./gateforge-devhub-plugin
-          file: ./gateforge-devhub-plugin/Dockerfile
-          push: true
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:latest
-
-      - name: Build and push apishift-devhub-frontend-plugin
-        uses: docker/build-push-action@v6
-        with:
-          context: ./gateforge-devhub-frontend
-          file: ./gateforge-devhub-frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:latest
+      - name: Resolve release version
+        run: |
+          source scripts/lib/version.sh
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${VERSION_V}" >> "$GITHUB_ENV"
+          fi
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install Helm
         uses: azure/setup-helm@v4

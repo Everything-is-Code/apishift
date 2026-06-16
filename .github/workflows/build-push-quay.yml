@@ -12,11 +12,32 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: apishift-backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile.jvm
+            needs-version: false
+          - image: apishift-frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile.ci
+            needs-version: true
+          - image: apishift-devhub-plugin
+            context: ./gateforge-devhub-plugin
+            dockerfile: ./gateforge-devhub-plugin/Dockerfile
+            needs-version: false
+          - image: apishift-devhub-frontend-plugin
+            context: ./gateforge-devhub-frontend
+            dockerfile: ./gateforge-devhub-frontend/Dockerfile
+            needs-version: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Resolve application version
+        if: matrix.needs-version
         run: |
           source scripts/lib/version.sh
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -45,44 +66,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push apishift-backend
+      - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile.jvm
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
+          build-args: ${{ matrix.needs-version && format('APP_VERSION={0}', env.APP_VERSION) || '' }}
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:latest
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:${{ github.sha }}
-
-      - name: Build and push apishift-frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile.ci
-          push: true
-          build-args: |
-            APP_VERSION=${{ env.APP_VERSION }}
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:latest
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:${{ github.sha }}
-
-      - name: Build and push apishift-devhub-plugin
-        uses: docker/build-push-action@v6
-        with:
-          context: ./gateforge-devhub-plugin
-          file: ./gateforge-devhub-plugin/Dockerfile
-          push: true
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:latest
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:${{ github.sha }}
-
-      - name: Build and push apishift-devhub-frontend-plugin
-        uses: docker/build-push-action@v6
-        with:
-          context: ./gateforge-devhub-frontend
-          file: ./gateforge-devhub-frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:latest
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:${{ github.sha }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:${{ github.sha }}
