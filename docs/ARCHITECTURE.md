@@ -206,7 +206,7 @@ Hand-written DTOs in `frontend/src/app/core/api/models/` are being migrated to g
 
 ## Architecture hardening (complete)
 
-Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged to `main`. Full PR/issue audit trail: [docs/archive/2026-06-16-architecture-hardening.md](archive/2026-06-16-architecture-hardening.md).
+Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged to `main`. Full audit trail: [docs/archive/2026-06-16-architecture-hardening.md](archive/2026-06-16-architecture-hardening.md).
 
 | Phase | Result |
 |-------|--------|
@@ -215,7 +215,17 @@ Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged t
 | 3 — frontend | `core/` / `shared/` / `features/*`, API facades, wizard step components |
 | 4 — contracts | `ThreeScaleAdminPort`, OpenAPI typegen, optional E2E workflow |
 
-**Optional follow-ups (post-hardening):** tighten OpenAPI schemas and adopt generated frontend types; further `MigrationService` / `ThreeScaleService` decomposition; expand `@QuarkusTest` coverage; wizard state extraction and `shared/` UI components.
+## Post-hardening (complete)
+
+Waves A–E of **gateforge-post-hardening** are merged to `main`. Full audit trail: [docs/archive/2026-06-16-post-hardening.md](archive/2026-06-16-post-hardening.md).
+
+| Wave | Result |
+|------|--------|
+| A — docs | Helm env mapping, CHANGELOG, proxy, CONTRIBUTING alignment |
+| B — contracts | Typed OpenAPI DTOs, CI drift check, facade → generated types |
+| C — backend | Apply service, endpoint resolver, OAS synthesis, warnings persistence |
+| D — tests | `@QuarkusTest` migration lifecycle, generator unit tests |
+| E — frontend | `MigrationWizardStateService`, `shared/ui/` components, 44 frontend tests |
 
 For future structural work, prefer stacked PRs under ~400 changed lines and avoid mixing large refactors with release-only changes.
 
