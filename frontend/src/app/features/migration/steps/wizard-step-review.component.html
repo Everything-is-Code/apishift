@@ -45,12 +45,11 @@
                   Triggered by {{  item.triggeredByCount  }} plan resource(s)
                 </span>
               </div>
-              <span class="prerequisite-badge"
-                    [class.badge-satisfied]="item.status === 'satisfied'"
-                    [class.badge-missing]="item.status === 'missing'"
-                    [class.badge-unknown]="item.status === 'unknown' || item.status === 'not_applicable'">
-                {{  item.status  }}
-              </span>
+              <gf-status-badge
+                [label]="item.status"
+                [variant]="item.status === 'satisfied' ? 'satisfied'
+                  : item.status === 'missing' ? 'missing'
+                  : 'unknown'" />
             </div>
           </div>
           <div class="prerequisites-actions">
