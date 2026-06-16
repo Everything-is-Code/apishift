@@ -12,11 +12,11 @@
 [![Quay.io Frontend](https://img.shields.io/badge/quay.io-frontend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-frontend)
 [![Quay.io DevHub Frontend](https://img.shields.io/badge/quay.io-devhub--frontend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-devhub-frontend-plugin)
 [![OpenShift](https://img.shields.io/badge/OpenShift-4.21-red)](https://docs.openshift.com/)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://maximilianopizarro.github.io/gateforge/)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://everything-is-code.github.io/gateforge/)
 
 AI-powered migration platform for transitioning from **Red Hat 3scale API Management** to **Red Hat Connectivity Link** (Kuadrant) on OpenShift. Built with **Quarkus** (backend), **Angular** (frontend), **PostgreSQL** (persistence), and **LangChain4j** (AI).
 
-> **v0.1.9** -- APICast self-managed/multi-tenant discovery, 3scale entity conflict resolution, ObservabilityTab/ComponentEditor fixes.
+> **v0.2.0** -- M2 offline import, M3 E2E lab pipeline, RHCL 1.3 policy mapping gaps, pipeline-driven release.
 
 ### About this project
 
@@ -306,7 +306,7 @@ The script asserts `product_count >= 4`, `incomplete: false`, visualize report, 
 
 ---
 
-## Key Features (v0.1.9)
+## Key Features (v0.2.0)
 
 ### Phase 1: Multiple 3scale Sources
 - Connect to **N 3scale Admin API endpoints** simultaneously
@@ -335,7 +335,7 @@ The script asserts `product_count >= 4`, `incomplete: false`, visualize report, 
 - **Pre-registration Editing**: Edit Component definition before catalog registration
 - **Catalog Enrichment**: `GateForgeKuadrantProcessor` enriches 3scale API entities with `kuadrant.io/*` annotations
 
-### Phase 6: APICast Discovery and Migration (v0.1.9)
+### Phase 6: APICast Discovery and Migration (v0.2.0)
 - **APIManager CRD scanning**: Discovers `APIManager` resources cluster-wide via Fabric8 client
 - **Self-managed detection**: Filters for APIManagers with `spec.apicast` (self-managed) and `Available` condition
 - **Configuration analysis**: Extracts staging/production specs, custom policies, TLS, OpenTracing settings
@@ -501,7 +501,7 @@ See [.env.example](.env.example) for all variables.
 ### Helm Chart (OpenShift)
 
 ```bash
-helm repo add gateforge https://maximilianopizarro.github.io/gateforge/
+helm repo add gateforge https://everything-is-code.github.io/gateforge/
 helm install gateforge gateforge/gateforge \
   --set ai.apiKey=YOUR_KEY \
   --set threescale.adminApi.url=https://3scale-admin.apps.example.com \
@@ -604,8 +604,8 @@ helm install gateforge gateforge/gateforge \
 
 | Value | Default | Description |
 |-------|---------|-------------|
-| `backend.image.tag` | v0.1.9 | Backend image tag |
-| `frontend.image.tag` | v0.1.9 | Frontend image tag |
+| `backend.image.tag` | v0.2.0 | Backend image tag |
+| `frontend.image.tag` | v0.2.0 | Frontend image tag |
 | `ai.enabled` | true | Enable AI features |
 | `ai.endpoint` | litellm-prod... | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | deepseek-r1-distill-qwen-14b | AI model name (use provider slug allowed by your key; no `openai/` prefix on RHDP MaaS) |

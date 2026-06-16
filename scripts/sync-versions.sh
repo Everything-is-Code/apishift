@@ -34,7 +34,7 @@ sed -i "s/gateforge-devhub-plugin:[0-9.]*!/gateforge-devhub-plugin:${VERSION}!/g
 sed -i "s/gateforge-devhub-frontend-plugin:[0-9.]*!/gateforge-devhub-frontend-plugin:${VERSION}!/g" "${ROOT}/docs/index.html"
 sed -i "s/targetRevision: \"[0-9.]*\"/targetRevision: \"${VERSION}\"/" "${ROOT}/docs/index.html"
 
-sed -i "s/>\\*\\*v[0-9.]*\\*\\*/>**${VERSION_V}**/" "${ROOT}/README.md"
+sed -i "s/> \\*\\*v[0-9.]*\\*\\* --> **${VERSION_V}** --/" "${ROOT}/README.md"
 sed -i "s/Key Features (v[0-9.]*)/Key Features (${VERSION_V})/" "${ROOT}/README.md"
 sed -i "s/Phase 6: APICast Discovery and Migration (v[0-9.]*)/Phase 6: APICast Discovery and Migration (${VERSION_V})/" "${ROOT}/README.md"
 sed -i "s/| \`backend.image.tag\` | v[0-9.]* |/| \`backend.image.tag\` | ${VERSION_V} |/" "${ROOT}/README.md"
