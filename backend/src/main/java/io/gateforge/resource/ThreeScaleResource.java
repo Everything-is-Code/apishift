@@ -1,7 +1,11 @@
 package io.gateforge.resource;
 
+import io.gateforge.model.ThreeScaleAdminStatus;
+import io.gateforge.model.ThreeScaleBackend;
 import io.gateforge.model.ThreeScaleProduct;
+import io.gateforge.model.ThreeScaleRefreshResult;
 import io.gateforge.model.ThreeScaleSource;
+import io.gateforge.model.ThreeScaleSourceStatus;
 import io.gateforge.service.ThreeScaleService;
 import io.gateforge.service.ThreeScaleSourceRegistry;
 import jakarta.inject.Inject;
@@ -41,20 +45,22 @@ public class ThreeScaleResource {
 
     @GET
     @Path("/backends")
-    public List<Map<String, Object>> listBackends() {
-        return threeScaleService.listBackendsCombined();
+    public List<ThreeScaleBackend> listBackends() {
+        return threeScaleService.listBackendsCombined().stream()
+                .map(ThreeScaleBackend::fromMap)
+                .toList();
     }
 
     @GET
     @Path("/status")
-    public Map<String, Object> getStatus() {
-        return threeScaleService.getAdminApiStatus();
+    public ThreeScaleAdminStatus getStatus() {
+        return ThreeScaleAdminStatus.fromMap(threeScaleService.getAdminApiStatus());
     }
 
     @POST
     @Path("/refresh")
-    public Map<String, Object> refreshDiscovery() {
-        return threeScaleService.refreshDiscovery();
+    public ThreeScaleRefreshResult refreshDiscovery() {
+        return ThreeScaleRefreshResult.fromMap(threeScaleService.refreshDiscovery());
     }
 
     @GET
@@ -81,7 +87,7 @@ public class ThreeScaleResource {
 
     @GET
     @Path("/sources/{id}/status")
-    public Map<String, Object> getSourceStatus(@PathParam("id") String id) {
-        return sourceRegistry.getSourceStatus(id);
+    public ThreeScaleSourceStatus getSourceStatus(@PathParam("id") String id) {
+        return ThreeScaleSourceStatus.fromMap(sourceRegistry.getSourceStatus(id));
     }
 }
