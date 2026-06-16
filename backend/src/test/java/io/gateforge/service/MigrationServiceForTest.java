@@ -13,6 +13,7 @@ import io.gateforge.service.generator.MigrationGeneratorConfig;
 import io.gateforge.service.generator.PlanPolicyResourceGenerator;
 import io.gateforge.service.generator.RateLimitResourceGenerator;
 import io.gateforge.service.migration.BackendEndpointResolver;
+import io.gateforge.service.migration.OpenApiSynthesisService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.util.List;
@@ -44,6 +45,9 @@ class MigrationServiceForTest extends MigrationService {
         BackendEndpointResolver backendEndpointResolver = new BackendEndpointResolver();
         ReflectionTestSupport.inject(backendEndpointResolver, "sourceRegistry", sourceRegistry);
         ReflectionTestSupport.inject(migrationService, "backendEndpointResolver", backendEndpointResolver);
+        OpenApiSynthesisService openApiSynthesisService = new OpenApiSynthesisService();
+        ReflectionTestSupport.inject(openApiSynthesisService, "objectMapper", new ObjectMapper());
+        ReflectionTestSupport.inject(migrationService, "openApiSynthesisService", openApiSynthesisService);
         ReflectionTestSupport.inject(migrationService, "objectMapper", new ObjectMapper());
         ReflectionTestSupport.inject(migrationService, "kuadrantCtlService", TestDoubles.failingKuadrantCtl());
         ReflectionTestSupport.inject(migrationService, "migrationAgent",
