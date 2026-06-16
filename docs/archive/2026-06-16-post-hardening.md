@@ -69,6 +69,10 @@ After architecture hardening Phases 1–4, close remaining maintainability debt:
 - Frontend: `npm test` — 44 tests.
 - CI: backend + frontend workflows green on all post-hardening PRs.
 
+## Release
+
+Shipped as **[v0.3.0](https://github.com/Everything-is-Code/gateforge/releases/tag/v0.3.0)** on 2026-06-16. Full release audit trail: [docs/archive/2026-06-16-release-v0.3.0.md](2026-06-16-release-v0.3.0.md).
+
 ## Follow-up (post-archive, optional)
 
 - Further `ThreeScaleService` decomposition (~763 LOC monolith remains).
