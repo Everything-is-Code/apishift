@@ -1,8 +1,6 @@
 package io.gateforge.resource;
 
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.gateforge.model.AuditEntry;
 import io.gateforge.model.DriftEntry;
 import io.gateforge.model.MigrationPlan;
@@ -11,6 +9,7 @@ import io.gateforge.model.TestCommand;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.GateForgeMetrics;
 import io.gateforge.service.MigrationService;
+import io.gateforge.service.cluster.ClusterResourceApplyService;
 import io.gateforge.service.developerhub.DeveloperHubClient;
 import io.gateforge.service.export.ExportImportService;
 import io.gateforge.service.export.ImportExportResponse;
@@ -46,6 +45,9 @@ public class MigrationResource {
 
     @Inject
     DeveloperHubClient developerHubClient;
+
+    @Inject
+    ClusterResourceApplyService clusterResourceApplyService;
 
     public record AnalyzeRequest(String gatewayStrategy, List<String> products, String targetClusterId) {}
     public record ApplyRequest(List<Integer> excludedIndexes, Map<String, String> yamlOverrides) {}
@@ -112,7 +114,7 @@ public class MigrationResource {
             }
             String effectiveYaml = overrides.getOrDefault(String.valueOf(idx), res.yaml());
             try {
-                applyYaml(client, effectiveYaml, res.namespace());
+                clusterResourceApplyService.applyYaml(client, effectiveYaml, res.namespace());
                 results.add(new ResourceResult(res.kind(), res.name(), res.namespace(), true, "Applied"));
                 applied++;
 
@@ -144,19 +146,6 @@ public class MigrationResource {
         return result;
     }
 
-    private void applyYaml(KubernetesClient client, String yaml, String namespace) {
-        GenericKubernetesResource generic = Serialization.unmarshal(yaml, GenericKubernetesResource.class);
-        if (namespace != null && !namespace.isBlank()) {
-            generic.getMetadata().setNamespace(namespace);
-        }
-        String apiVersion = generic.getApiVersion();
-        if (apiVersion != null && apiVersion.contains("route.openshift.io")) {
-            client.resource(generic).createOr(r -> r.update());
-        } else {
-            client.resource(generic).serverSideApply();
-        }
-    }
-
     @POST
     @Path("/plans/{id}/revert")
     public ApplyResult revertPlan(@PathParam("id") String id) {
@@ -178,7 +167,7 @@ public class MigrationResource {
         for (MigrationPlan.GeneratedResource res : reversed) {
             if ("Gateway".equals(res.kind())) continue;
             try {
-                deleteResource(client, res.yaml(), res.namespace());
+                clusterResourceApplyService.deleteResource(client, res.yaml(), res.namespace());
                 results.add(new ResourceResult(res.kind(), res.name(), res.namespace(), true, "Deleted"));
                 applied++;
 
@@ -240,7 +229,7 @@ public class MigrationResource {
                 for (MigrationPlan.GeneratedResource res : plan.resources()) {
                     if ("Gateway".equals(res.kind())) {
                         try {
-                            deleteResource(client, res.yaml(), res.namespace());
+                            clusterResourceApplyService.deleteResource(client, res.yaml(), res.namespace());
                             LOG.infof("Deleted shared Gateway %s on cluster %s", res.name(), clusterId);
                         } catch (Exception e) {
                             LOG.warnf("Failed to delete Gateway %s on cluster %s: %s", res.name(), clusterId, e.getMessage());
@@ -290,44 +279,13 @@ public class MigrationResource {
 
         String clusterId = plan.targetClusterId() != null ? plan.targetClusterId() : "local";
         KubernetesClient client = clusterRegistry.getClient(clusterId);
-
-        List<DriftEntry> driftReport = new ArrayList<>();
-        for (MigrationPlan.GeneratedResource res : plan.resources()) {
-            String status;
-            String message = null;
-            try {
-                GenericKubernetesResource generic = Serialization.unmarshal(res.yaml(), GenericKubernetesResource.class);
-                if (res.namespace() != null && !res.namespace().isBlank()) {
-                    generic.getMetadata().setNamespace(res.namespace());
-                }
-                var existing = client.resource(generic).get();
-                status = existing != null ? "in-sync" : "missing";
-            } catch (Exception e) {
-                String msg = e.getMessage();
-                if (msg != null && msg.contains("NotFound")) {
-                    status = "missing";
-                } else {
-                    status = "error";
-                    message = msg;
-                }
-            }
-            driftReport.add(new DriftEntry(res.kind(), res.name(), res.namespace(), status, message));
-        }
-        return driftReport;
+        return clusterResourceApplyService.checkDrift(client, plan.resources());
     }
 
     @GET
     @Path("/plans/{id}/test-commands")
     public List<TestCommand> getTestCommands(@PathParam("id") String id) {
         return migrationService.generateTestCommands(id);
-    }
-
-    private void deleteResource(KubernetesClient client, String yaml, String namespace) {
-        GenericKubernetesResource generic = Serialization.unmarshal(yaml, GenericKubernetesResource.class);
-        if (namespace != null && !namespace.isBlank()) {
-            generic.getMetadata().setNamespace(namespace);
-        }
-        client.resource(generic).delete();
     }
 
     @GET
