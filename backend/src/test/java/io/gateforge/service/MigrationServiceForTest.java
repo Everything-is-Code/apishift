@@ -6,6 +6,12 @@ import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.service.support.ClusterRegistryStub;
 import io.gateforge.service.support.ReflectionTestSupport;
 import io.gateforge.service.support.TestDoubles;
+import io.gateforge.service.generator.AuthPolicyResourceGenerator;
+import io.gateforge.service.generator.GatewayResourceGenerator;
+import io.gateforge.service.generator.HttpRouteResourceGenerator;
+import io.gateforge.service.generator.MigrationGeneratorConfig;
+import io.gateforge.service.generator.PlanPolicyResourceGenerator;
+import io.gateforge.service.generator.RateLimitResourceGenerator;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.util.List;
@@ -42,6 +48,7 @@ class MigrationServiceForTest extends MigrationService {
         ReflectionTestSupport.inject(migrationService, "prerequisiteCatalogService", catalogService);
         ReflectionTestSupport.inject(migrationService, "toolConfigPrerequisiteChecker", toolConfigChecker);
         ReflectionTestSupport.inject(migrationService, "clusterReadinessService", readinessService);
+        injectResourceGenerators(migrationService, "istio", "kuadrant-system", "apps.example.com");
         ReflectionTestSupport.inject(migrationService, "gatewayClassName", "istio");
         ReflectionTestSupport.inject(migrationService, "gatewayNamespace", "kuadrant-system");
         ReflectionTestSupport.inject(migrationService, "clusterDomain", "apps.example.com");
@@ -51,6 +58,30 @@ class MigrationServiceForTest extends MigrationService {
         ReflectionTestSupport.inject(migrationService, "observabilityEnabled", false);
 
         return migrationService;
+    }
+
+    private static void injectResourceGenerators(
+            MigrationService migrationService,
+            String gatewayClassName,
+            String gatewayNamespace,
+            String clusterDomain) {
+
+        MigrationGeneratorConfig config = new MigrationGeneratorConfig();
+        ReflectionTestSupport.inject(config, "gatewayClassName", gatewayClassName);
+        ReflectionTestSupport.inject(config, "gatewayNamespace", gatewayNamespace);
+        ReflectionTestSupport.inject(config, "clusterDomain", clusterDomain);
+
+        GatewayResourceGenerator gatewayGenerator = new GatewayResourceGenerator();
+        ReflectionTestSupport.inject(gatewayGenerator, "config", config);
+
+        HttpRouteResourceGenerator httpRouteGenerator = new HttpRouteResourceGenerator();
+        ReflectionTestSupport.inject(httpRouteGenerator, "config", config);
+
+        ReflectionTestSupport.inject(migrationService, "gatewayResourceGenerator", gatewayGenerator);
+        ReflectionTestSupport.inject(migrationService, "httpRouteResourceGenerator", httpRouteGenerator);
+        ReflectionTestSupport.inject(migrationService, "authPolicyResourceGenerator", new AuthPolicyResourceGenerator());
+        ReflectionTestSupport.inject(migrationService, "rateLimitResourceGenerator", new RateLimitResourceGenerator());
+        ReflectionTestSupport.inject(migrationService, "planPolicyResourceGenerator", new PlanPolicyResourceGenerator());
     }
 
     @Override

@@ -12,6 +12,12 @@ import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
 import io.gateforge.repository.AuditRepository;
 import io.gateforge.repository.MigrationPlanRepository;
+import io.gateforge.service.generator.AuthPolicyResourceGenerator;
+import io.gateforge.service.generator.GatewayResourceGenerator;
+import io.gateforge.service.generator.HttpRouteResourceGenerator;
+import io.gateforge.service.generator.PlanPolicyResourceGenerator;
+import io.gateforge.service.generator.RateLimitResourceGenerator;
+import io.gateforge.service.generator.ResolvedBackend;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -68,6 +74,21 @@ public class MigrationService {
     @Inject
     AuditRepository auditRepository;
 
+    @Inject
+    GatewayResourceGenerator gatewayResourceGenerator;
+
+    @Inject
+    HttpRouteResourceGenerator httpRouteResourceGenerator;
+
+    @Inject
+    AuthPolicyResourceGenerator authPolicyResourceGenerator;
+
+    @Inject
+    RateLimitResourceGenerator rateLimitResourceGenerator;
+
+    @Inject
+    PlanPolicyResourceGenerator planPolicyResourceGenerator;
+
     @ConfigProperty(name = "gateforge.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
 
@@ -91,8 +112,6 @@ public class MigrationService {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5)).build();
-
-    private record ResolvedBackend(String svcName, String svcNamespace, String path) {}
 
     private record ProductContext(
             String oasContent, String backendSvcName, String namespace,
@@ -120,13 +139,13 @@ public class MigrationService {
         String gatewayName;
 
         if ("dual".equals(gatewayStrategy)) {
-            resources.add(buildGatewayResource("gateforge-internal", "internal"));
-            resources.add(buildGatewayResource("gateforge-external", "external"));
+            resources.add(gatewayResourceGenerator.build("gateforge-internal", "internal"));
+            resources.add(gatewayResourceGenerator.build("gateforge-external", "external"));
             gatewayName = "gateforge-external";
         } else if ("dedicated".equals(gatewayStrategy)) {
             gatewayName = null;
         } else {
-            resources.add(buildGatewayResource("gateforge-shared", "shared"));
+            resources.add(gatewayResourceGenerator.build("gateforge-shared", "shared"));
             gatewayName = "gateforge-shared";
         }
 
@@ -136,7 +155,7 @@ public class MigrationService {
 
             if ("dedicated".equals(gatewayStrategy)) {
                 String gwName = sysName + "-gw";
-                resources.add(buildGatewayResource(gwName, sysName));
+                resources.add(gatewayResourceGenerator.build(gwName, sysName));
                 gatewayName = gwName;
             }
 
@@ -178,7 +197,7 @@ public class MigrationService {
             }
 
             if (!usedKuadrantctl) {
-                resources.add(buildHttpRoute(routeName, ns, gatewayName, product, ctx.effectiveRules,
+                resources.add(httpRouteResourceGenerator.build(routeName, ns, gatewayName, product, ctx.effectiveRules,
                         ctx.backendSvcName, ctx.resolvedBackends));
             }
 
@@ -193,7 +212,8 @@ public class MigrationService {
                                 .formatted(sysName));
             }
 
-            DerivedRateLimit derivedRateLimit = deriveGlobalRateLimit(productReady);
+            RateLimitResourceGenerator.DerivedRateLimit derivedRateLimit =
+                    RateLimitResourceGenerator.deriveGlobalRateLimit(productReady);
             if (derivedRateLimit.placeholder()) {
                 consolidationWarnings.add(
                         "Product '%s': RateLimitPolicy uses placeholder 100 req/60s — no application plan minute/hour limits found in 3scale."
@@ -201,7 +221,7 @@ public class MigrationService {
             }
 
             if (productReady.applicationPlans() != null && !productReady.applicationPlans().isEmpty()) {
-                resources.add(buildPlanPolicy(sysName + "-plans", ns, routeName, productReady, authMode));
+                resources.add(planPolicyResourceGenerator.build(sysName + "-plans", ns, routeName, productReady, authMode));
             }
 
             if (authMode == ThreeScaleAuthMode.API_KEY) {
@@ -229,8 +249,8 @@ public class MigrationService {
                                 .formatted(sysName));
             }
 
-            resources.add(buildAuthPolicy(sysName + "-auth", ns, routeName, productReady, authMode));
-            resources.add(buildRateLimitPolicy(sysName + "-ratelimit", ns, routeName, productReady, derivedRateLimit));
+            resources.add(authPolicyResourceGenerator.build(sysName + "-auth", ns, routeName, productReady, authMode));
+            resources.add(rateLimitResourceGenerator.build(sysName + "-ratelimit", ns, routeName, productReady, derivedRateLimit));
             addSuggestedPolicyWarnings(sysName, productReady, gatewayStrategy, consolidationWarnings);
 
             if (observabilityEnabled) {
@@ -364,7 +384,7 @@ public class MigrationService {
         Map<String, Map<String, Object>> paths = new LinkedHashMap<>();
 
         for (ThreeScaleProduct.MappingRule rule : rules) {
-            String path = sanitizePath(rule.pattern());
+            String path = HttpRouteResourceGenerator.sanitizePath(rule.pattern());
             if (path.contains("{")) path = path.replaceAll("/\\{[^}]+}", "/{id}");
 
             paths.computeIfAbsent(path, k -> new LinkedHashMap<>());
@@ -940,121 +960,6 @@ public class MigrationService {
         return name.toLowerCase().replaceAll("[^a-z0-9-]", "-");
     }
 
-    private MigrationPlan.GeneratedResource buildPlanPolicy(
-            String name, String namespace, String routeName, ThreeScaleProduct product,
-            ThreeScaleAuthMode authMode) {
-
-        return authMode == ThreeScaleAuthMode.OIDC
-                ? buildPlanPolicyOidc(name, namespace, routeName, product)
-                : buildPlanPolicyApiKey(name, namespace, routeName, product);
-    }
-
-    private MigrationPlan.GeneratedResource buildPlanPolicyApiKey(
-            String name, String namespace, String routeName, ThreeScaleProduct product) {
-
-        StringBuilder plans = new StringBuilder();
-        for (ThreeScaleProduct.ApplicationPlan plan : product.applicationPlans()) {
-            if (!"published".equalsIgnoreCase(plan.state()) && !"hidden".equalsIgnoreCase(plan.state())) continue;
-            plans.append("    - tier: \"").append(plan.systemName()).append("\"\n");
-            plans.append("      predicate: |\n");
-            plans.append("        has(auth.identity) && auth.identity.metadata.annotations[\"secret.kuadrant.io/plan-id\"] == \"")
-                    .append(escapePredicateLiteral(plan.systemName())).append("\"\n");
-            appendPlanLimits(plans, plan);
-        }
-
-        return wrapPlanPolicyYaml(name, namespace, routeName, product.systemName(), plans.toString());
-    }
-
-    private MigrationPlan.GeneratedResource buildPlanPolicyOidc(
-            String name, String namespace, String routeName, ThreeScaleProduct product) {
-
-        StringBuilder plans = new StringBuilder();
-        List<ThreeScaleProduct.Application> apps = product.applications() != null
-                ? product.applications() : List.of();
-
-        for (ThreeScaleProduct.ApplicationPlan plan : product.applicationPlans()) {
-            if (!"published".equalsIgnoreCase(plan.state()) && !"hidden".equalsIgnoreCase(plan.state())) continue;
-
-            List<String> clientClauses = new ArrayList<>();
-            for (ThreeScaleProduct.Application app : apps) {
-                String planTier = app.planSystemName().isBlank() ? "default" : app.planSystemName();
-                if (!plan.systemName().equals(planTier)) continue;
-                String clientId = app.applicationId();
-                if (clientId == null || clientId.isBlank()) continue;
-                clientClauses.add("auth.identity.metadata.annotations[\"clientID\"] == \""
-                        + escapePredicateLiteral(clientId) + "\"");
-            }
-
-            plans.append("    - tier: \"").append(plan.systemName()).append("\"\n");
-            plans.append("      predicate: |\n");
-            if (clientClauses.isEmpty()) {
-                plans.append("        false\n");
-            } else if (clientClauses.size() == 1) {
-                plans.append("        has(auth.identity) && ").append(clientClauses.get(0)).append("\n");
-            } else {
-                plans.append("        has(auth.identity) && (")
-                        .append(String.join(" || ", clientClauses))
-                        .append(")\n");
-            }
-            appendPlanLimits(plans, plan);
-        }
-
-        return wrapPlanPolicyYaml(name, namespace, routeName, product.systemName(), plans.toString());
-    }
-
-    private static MigrationPlan.GeneratedResource wrapPlanPolicyYaml(
-            String name, String namespace, String routeName, String systemName, String plansBody) {
-
-        String yaml = """
-                apiVersion: extensions.kuadrant.io/v1alpha1
-                kind: PlanPolicy
-                metadata:
-                  name: %s
-                  namespace: %s
-                  labels:
-                    app.kubernetes.io/managed-by: gateforge
-                    "gateforge.io/product": "%s"
-                spec:
-                  targetRef:
-                    group: gateway.networking.k8s.io
-                    kind: HTTPRoute
-                    name: %s
-                  plans:
-                %s""".formatted(name, namespace, systemName, routeName, plansBody);
-
-        return new MigrationPlan.GeneratedResource("PlanPolicy", name, namespace, yaml);
-    }
-
-    private static void appendPlanLimits(StringBuilder plans, ThreeScaleProduct.ApplicationPlan plan) {
-        plans.append("      limits:\n");
-        for (ThreeScaleProduct.PlanLimit limit : plan.limits()) {
-            switch (limit.period()) {
-                case "day" -> plans.append("        daily: ").append(limit.value()).append("\n");
-                case "month" -> plans.append("        monthly: ").append(limit.value()).append("\n");
-                case "week" -> plans.append("        weekly: ").append(limit.value()).append("\n");
-                case "year", "eternity" -> plans.append("        yearly: ").append(limit.value()).append("\n");
-                case "hour" -> {
-                    plans.append("        custom:\n");
-                    plans.append("          - limit: ").append(limit.value()).append("\n");
-                    plans.append("            window: \"1h\"\n");
-                }
-                case "minute" -> {
-                    plans.append("        custom:\n");
-                    plans.append("          - limit: ").append(limit.value()).append("\n");
-                    plans.append("            window: \"1m\"\n");
-                }
-            }
-        }
-        if (plan.limits().isEmpty()) {
-            plans.append("        daily: 1000\n");
-        }
-    }
-
-    private static String escapePredicateLiteral(String value) {
-        if (value == null) return "";
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
     private void addOidcMigrationWarnings(
             String sysName, ThreeScaleProduct product, List<String> warnings) {
 
@@ -1267,32 +1172,6 @@ public class MigrationService {
         return new MigrationPlan.GeneratedResource("TelemetryPolicy", name, namespace, yaml);
     }
 
-    private MigrationPlan.GeneratedResource buildGatewayResource(String name, String label) {
-        String yaml = """
-                apiVersion: gateway.networking.k8s.io/v1
-                kind: Gateway
-                metadata:
-                  name: %s
-                  namespace: %s
-                  annotations:
-                    networking.istio.io/service-type: ClusterIP
-                  labels:
-                    "gateforge.io/type": "%s"
-                    app.kubernetes.io/managed-by: gateforge
-                spec:
-                  gatewayClassName: %s
-                  listeners:
-                    - name: http
-                      port: 80
-                      protocol: HTTP
-                      hostname: "*.%s"
-                      allowedRoutes:
-                        namespaces:
-                          from: All
-                """.formatted(name, gatewayNamespace, label, gatewayClassName, clusterDomain);
-        return new MigrationPlan.GeneratedResource("Gateway", name, gatewayNamespace, yaml);
-    }
-
     private MigrationPlan.GeneratedResource buildOpenShiftRoute(String sysName, String gatewayName) {
         String hostname = sysName + "." + clusterDomain;
         String svcName = gatewayName + "-istio";
@@ -1319,111 +1198,6 @@ public class MigrationService {
         return new MigrationPlan.GeneratedResource("Route", sysName, gatewayNamespace, yaml);
     }
 
-    private MigrationPlan.GeneratedResource buildHttpRoute(
-            String name, String namespace, String gatewayName,
-            ThreeScaleProduct product, List<ThreeScaleProduct.MappingRule> effectiveRules,
-            String backendSvcName, List<ResolvedBackend> resolvedBackends) {
-
-        StringBuilder rules = new StringBuilder();
-
-        boolean multiBackend = resolvedBackends.size() > 1;
-
-        if (multiBackend) {
-            for (ResolvedBackend rb : resolvedBackends) {
-                String pathPrefix = rb.path().equals("/") ? "/" : rb.path();
-                rules.append("        - matches:\n");
-                rules.append("            - path:\n");
-                rules.append("                type: PathPrefix\n");
-                rules.append("                value: ").append(pathPrefix).append("\n");
-                rules.append("          backendRefs:\n");
-                rules.append("            - name: ").append(rb.svcName()).append("\n");
-                rules.append("              port: 8080\n");
-            }
-        } else if (effectiveRules.isEmpty()) {
-            rules.append("""
-                        - matches:
-                            - path:
-                                type: PathPrefix
-                                value: /
-                          backendRefs:
-                            - name: %s
-                              port: 8080
-                      """.formatted(backendSvcName));
-        } else {
-            Set<String> prefixes = new LinkedHashSet<>();
-            for (ThreeScaleProduct.MappingRule r : effectiveRules) {
-                String p = sanitizePath(r.pattern());
-                if (p.contains("{")) p = p.replaceAll("/\\{[^}]+}.*", "");
-                prefixes.add(p.equals("/") ? "/" : p);
-            }
-
-            if (prefixes.size() > 16) {
-                prefixes = Set.of("/");
-            }
-
-            for (String prefix : prefixes) {
-                rules.append("        - matches:\n");
-                rules.append("            - path:\n");
-                rules.append("                type: PathPrefix\n");
-                rules.append("                value: ").append(prefix).append("\n");
-                rules.append("          backendRefs:\n");
-                rules.append("            - name: ").append(backendSvcName).append("\n");
-                rules.append("              port: 8080\n");
-            }
-        }
-
-        String hostname = product.systemName() + "." + clusterDomain;
-
-        String yaml = """
-                apiVersion: gateway.networking.k8s.io/v1
-                kind: HTTPRoute
-                metadata:
-                  name: %s
-                  namespace: %s
-                  labels:
-                    app.kubernetes.io/managed-by: gateforge
-                    "gateforge.io/product": "%s"
-                spec:
-                  hostnames:
-                    - %s
-                  parentRefs:
-                    - name: %s
-                      namespace: %s
-                  rules:
-                %s""".formatted(name, namespace, product.systemName(),
-                hostname, gatewayName, gatewayNamespace, rules.toString());
-
-        return new MigrationPlan.GeneratedResource("HTTPRoute", name, namespace, yaml);
-    }
-
-    private record DerivedRateLimit(long limit, String window, boolean placeholder) {}
-
-    static DerivedRateLimit deriveGlobalRateLimit(ThreeScaleProduct product) {
-        long maxMinute = 0;
-        long maxHour = 0;
-        if (product != null && product.applicationPlans() != null) {
-            for (ThreeScaleProduct.ApplicationPlan plan : product.applicationPlans()) {
-                if (plan.limits() == null) {
-                    continue;
-                }
-                for (ThreeScaleProduct.PlanLimit limit : plan.limits()) {
-                    if ("minute".equals(limit.period()) && limit.value() > maxMinute) {
-                        maxMinute = limit.value();
-                    } else if ("hour".equals(limit.period()) && limit.value() > maxHour) {
-                        maxHour = limit.value();
-                    }
-                }
-            }
-        }
-        if (maxMinute > 0) {
-            return new DerivedRateLimit(maxMinute, "1m", false);
-        }
-        if (maxHour > 0) {
-            return new DerivedRateLimit(maxHour, "1h", false);
-        }
-        return new DerivedRateLimit(100, "60s", true);
-    }
-
     private void addSuggestedPolicyWarnings(
             String sysName, ThreeScaleProduct product, String gatewayStrategy, List<String> warnings) {
 
@@ -1443,97 +1217,6 @@ public class MigrationService {
                     "Product '%s': dual gateway strategy — consider DNSPolicy for multicluster DNS exposure."
                             .formatted(sysName));
         }
-    }
-
-    private MigrationPlan.GeneratedResource buildAuthPolicy(
-            String name, String namespace, String routeName, ThreeScaleProduct product,
-            ThreeScaleAuthMode authMode) {
-
-        String authSection;
-        if (ThreeScaleAuthMode.isTokenIntrospection(product.authentication())) {
-            String endpoint = ThreeScaleAuthMode.resolveIntrospectionUrl(product.authentication());
-            if (endpoint == null || endpoint.isBlank()) {
-                endpoint = "https://sso.example.com/realms/api/protocol/openid-connect/token/introspect";
-            }
-            String credentialsSecret = product.systemName() + "-introspection-credentials";
-            authSection = """
-                          authentication:
-                            "introspection-auth":
-                              oauth2Introspection:
-                                endpoint: %s
-                                credentialsRef:
-                                  name: %s
-                      """.formatted(endpoint, credentialsSecret);
-        } else if (authMode == ThreeScaleAuthMode.OIDC) {
-            String issuer = ThreeScaleAuthMode.resolveJwtIssuerUrl(product.authentication());
-            if (issuer == null || issuer.isBlank()) {
-                issuer = "https://sso.example.com/realms/api";
-            }
-            authSection = """
-                          authentication:
-                            "oidc-auth":
-                              jwt:
-                                issuerUrl: %s
-                      """.formatted(issuer);
-        } else {
-            authSection = """
-                          authentication:
-                            "apikey-auth":
-                              apiKey:
-                                selector:
-                                  matchLabels:
-                                    app: %s
-                                allNamespaces: false
-                      """.formatted(product.systemName());
-        }
-
-        String yaml = """
-                apiVersion: kuadrant.io/v1
-                kind: AuthPolicy
-                metadata:
-                  name: %s
-                  namespace: %s
-                  labels:
-                    app.kubernetes.io/managed-by: gateforge
-                    "gateforge.io/product": "%s"
-                spec:
-                  targetRef:
-                    group: gateway.networking.k8s.io
-                    kind: HTTPRoute
-                    name: %s
-                  rules:
-                %s""".formatted(name, namespace, product.systemName(), routeName, authSection);
-
-        return new MigrationPlan.GeneratedResource("AuthPolicy", name, namespace, yaml);
-    }
-
-    private MigrationPlan.GeneratedResource buildRateLimitPolicy(
-            String name, String namespace, String routeName, ThreeScaleProduct product,
-            DerivedRateLimit derivedRateLimit) {
-
-        String yaml = """
-                apiVersion: kuadrant.io/v1
-                kind: RateLimitPolicy
-                metadata:
-                  name: %s
-                  namespace: %s
-                  labels:
-                    app.kubernetes.io/managed-by: gateforge
-                    "gateforge.io/product": "%s"
-                spec:
-                  targetRef:
-                    group: gateway.networking.k8s.io
-                    kind: HTTPRoute
-                    name: %s
-                  limits:
-                    "global":
-                      rates:
-                        - limit: %d
-                          window: %s
-                """.formatted(name, namespace, product.systemName(), routeName,
-                derivedRateLimit.limit(), derivedRateLimit.window());
-
-        return new MigrationPlan.GeneratedResource("RateLimitPolicy", name, namespace, yaml);
     }
 
     private record BackendIndex(Map<Long, String> byId, Map<String, String> byName) {}
@@ -1666,13 +1349,5 @@ public class MigrationService {
             }
         }
         return 0L;
-    }
-
-    private String sanitizePath(String pattern) {
-        if (pattern == null || pattern.isBlank()) return "/";
-        String p = pattern.replaceAll("\\$$", "");
-        if (!p.startsWith("/")) p = "/" + p;
-        if (p.isEmpty()) p = "/";
-        return p;
     }
 }
