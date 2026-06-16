@@ -70,8 +70,9 @@ helm install gateforge gateforge/gateforge \
 | `frontend.image.repository` | `quay.io/maximilianopizarro/gateforge-frontend` | Frontend image |
 | `frontend.image.tag` | `v0.1.9` | Frontend image tag |
 | `ai.enabled` | `true` | Enable AI features |
-| `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL |
+| `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | `deepseek-r1-distill-qwen-14b` | AI model name |
+| `ai.timeout` | `600s` | LLM request timeout (`AI_TIMEOUT`) |
 | `ai.apiKey` | `""` | LLM API key |
 | `threescale.adminApi.enabled` | `true` | Enable 3scale Admin API |
 | `threescale.adminApi.url` | `""` | 3scale Admin Portal URL |
@@ -96,6 +97,8 @@ helm install gateforge gateforge/gateforge \
 | `/api/migration/plans` | GET | List migration plans |
 | `/api/audit/reports` | GET | View audit log |
 | `/api/chat` | POST | AI migration assistant |
+| `/api/chat/warm-faq` | POST | Trigger FAQ cache refresh |
+| `/api/chat/faq-status` | GET | FAQ cache status (`cached` / `total`) |
 | `/q/health/ready` | GET | Readiness probe |
 | `/q/health/live` | GET | Liveness probe |
 
