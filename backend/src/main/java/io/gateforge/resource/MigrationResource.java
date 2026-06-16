@@ -10,7 +10,6 @@ import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.GateForgeMetrics;
 import io.gateforge.service.MigrationService;
 import io.gateforge.service.developerhub.DeveloperHubClient;
-import io.gateforge.service.export.ExportImportException;
 import io.gateforge.service.export.ExportImportService;
 import io.gateforge.service.export.ImportExportResponse;
 import jakarta.inject.Inject;
@@ -74,11 +73,7 @@ public class MigrationResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public ImportExportResponse importExport(@RestForm("file") FileUpload file) {
-        try {
-            return exportImportService.importUpload(file);
-        } catch (ExportImportException e) {
-            throw new BadRequestException(e.getMessage());
-        }
+        return exportImportService.importUpload(file);
     }
 
     @POST
