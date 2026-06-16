@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.gateforge.entity.MigrationPlanEntity;
 import io.gateforge.model.ClusterReadiness;
 import io.gateforge.model.MigrationPrerequisite;
+import io.gateforge.repository.MigrationPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -21,6 +22,9 @@ public class ClusterReadinessService {
 
     @Inject
     PrerequisiteCatalogService catalogService;
+
+    @Inject
+    MigrationPlanRepository migrationPlanRepository;
 
     public List<MigrationPrerequisite> enrich(List<MigrationPrerequisite> prerequisites, String targetClusterId) {
         if (prerequisites == null || prerequisites.isEmpty()) {
@@ -55,10 +59,9 @@ public class ClusterReadinessService {
 
         List<MigrationPrerequisite> prerequisites;
         if (planId != null && !planId.isBlank()) {
-            MigrationPlanEntity entity = MigrationPlanEntity.findById(planId);
-            if (entity != null && entity.prerequisitesJson != null && !entity.prerequisitesJson.isBlank()) {
-                prerequisites = deserializePrerequisites(entity.prerequisitesJson);
-                prerequisites = enrich(prerequisites, effectiveId);
+            Optional<List<MigrationPrerequisite>> storedPrereqs = migrationPlanRepository.findPrerequisites(planId);
+            if (storedPrereqs.isPresent()) {
+                prerequisites = enrich(storedPrereqs.get(), effectiveId);
             } else {
                 prerequisites = baselinePrerequisites(clientFor(effectiveId), connected);
             }

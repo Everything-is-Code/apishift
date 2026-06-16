@@ -10,6 +10,8 @@ import io.gateforge.model.MigrationPlan;
 import io.gateforge.model.MigrationPrerequisite;
 import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
+import io.gateforge.repository.AuditRepository;
+import io.gateforge.repository.MigrationPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -59,6 +61,12 @@ public class MigrationService {
 
     @Inject
     ClusterReadinessService clusterReadinessService;
+
+    @Inject
+    MigrationPlanRepository migrationPlanRepository;
+
+    @Inject
+    AuditRepository auditRepository;
 
     @ConfigProperty(name = "gateforge.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
@@ -609,80 +617,30 @@ public class MigrationService {
     }
 
     public List<AuditEntry> getAuditLog() {
-        List<AuditEntryEntity> entities = AuditEntryEntity.listAll(io.quarkus.panache.common.Sort.by("timestamp").descending());
-        return entities.stream().map(this::toAuditEntry).collect(Collectors.toList());
+        return auditRepository.findAllDescending();
     }
 
     public MigrationPlan getPlan(String planId) {
-        MigrationPlanEntity entity = MigrationPlanEntity.findById(planId);
-        return entity != null ? toPlan(entity) : null;
+        return migrationPlanRepository.findPlanById(planId);
     }
 
     public List<MigrationPlan> listPlans() {
-        List<MigrationPlanEntity> entities = MigrationPlanEntity.listAll(io.quarkus.panache.common.Sort.by("createdAt").descending());
-        return entities.stream().map(this::toPlanSummary).collect(Collectors.toList());
+        return migrationPlanRepository.listPlanSummaries();
     }
 
     @Transactional
     public void addAuditEntry(AuditEntry entry) {
-        AuditEntryEntity e = new AuditEntryEntity();
-        e.id = entry.id();
-        e.timestamp = entry.timestamp();
-        e.action = entry.action();
-        e.resourceKind = entry.resourceKind();
-        e.resourceName = entry.resourceName();
-        e.namespace = entry.namespace();
-        e.yamlBefore = entry.yamlBefore();
-        e.yamlAfter = entry.yamlAfter();
-        e.performedBy = entry.performedBy();
-        e.targetClusterId = entry.targetClusterId();
-        e.persist();
+        auditRepository.save(entry);
     }
 
     @Transactional
     public void updatePlanStatus(String planId, String status) {
-        MigrationPlanEntity entity = MigrationPlanEntity.findById(planId);
-        if (entity != null) {
-            entity.status = status;
-            entity.persist();
-        }
+        migrationPlanRepository.updateStatus(planId, status);
     }
 
     @Transactional
     void persistPlan(MigrationPlan plan) {
-        MigrationPlanEntity entity = new MigrationPlanEntity();
-        entity.id = plan.id();
-        entity.gatewayStrategy = plan.gatewayStrategy();
-        try {
-            entity.sourceProductsJson = objectMapper.writeValueAsString(plan.sourceProducts());
-        } catch (Exception e) {
-            entity.sourceProductsJson = "[]";
-        }
-        entity.aiAnalysis = plan.aiAnalysis();
-        entity.createdAt = plan.createdAt();
-        entity.catalogInfoYaml = plan.catalogInfoYaml();
-        entity.status = plan.status();
-        entity.targetClusterId = plan.targetClusterId();
-        entity.targetClusterLabel = plan.targetClusterLabel();
-        try {
-            entity.prerequisitesJson = objectMapper.writeValueAsString(
-                    plan.prerequisites() != null ? plan.prerequisites() : List.of());
-        } catch (Exception e) {
-            entity.prerequisitesJson = "[]";
-        }
-
-        List<GeneratedResourceEntity> resourceEntities = new ArrayList<>();
-        for (MigrationPlan.GeneratedResource r : plan.resources()) {
-            GeneratedResourceEntity re = new GeneratedResourceEntity();
-            re.kind = r.kind();
-            re.name = r.name();
-            re.namespace = r.namespace();
-            re.yaml = r.yaml();
-            re.plan = entity;
-            resourceEntities.add(re);
-        }
-        entity.resources = resourceEntities;
-        entity.persist();
+        migrationPlanRepository.save(plan);
     }
 
     private MigrationPlan toPlan(MigrationPlanEntity e) {
