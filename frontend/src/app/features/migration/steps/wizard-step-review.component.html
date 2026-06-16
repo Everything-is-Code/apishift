@@ -55,7 +55,7 @@
           <div class="prerequisites-actions">
             <button type="button" class="btn-refresh-readiness"
                     (click)="a.refreshReadiness()"
-                    [disabled]="readinessLoading">
+                    [disabled]="s.readinessLoading">
               {{  s.readinessLoading ? 'Checking…' : 'Refresh cluster status'  }}
             </button>
           </div>
@@ -117,7 +117,7 @@
               <label class="resource-toggle" (click)="$event.stopPropagation()">
                 <input type="checkbox"
                        [checked]="s.resourceEnabled[idx] !== false"
-                       (change)="toggleResourceEnabled(idx)">
+                       (change)="a.toggleResourceEnabled(idx)">
                 <span class="toggle-slider"></span>
               </label>
               <button type="button" class="resource-head" (click)="a.toggleYaml(idx)" [attr.aria-expanded]="s.yamlOpen[idx]">
@@ -153,7 +153,7 @@
           </div>
         </div>
 
-        <div *ngIf="s.applyResult" class="apply-result" [class.success]="applyResult.failed === 0" [class.partial]="applyResult.failed > 0">
+        <div *ngIf="s.applyResult" class="apply-result" [class.success]="s.applyResult.failed === 0" [class.partial]="s.applyResult.failed > 0">
           <div class="apply-summary">
             <strong *ngIf="s.applyResult.failed === 0">Migration applied successfully!</strong>
             <strong *ngIf="s.applyResult.failed > 0">Migration completed with errors</strong>
@@ -162,7 +162,7 @@
             </span>
           </div>
           <div class="apply-details">
-            <div *ngFor="let r of applyResult.results" class="apply-row" [class.err]="!r.success">
+            <div *ngFor="let r of s.applyResult.results" class="apply-row" [class.err]="!r.success">
               <span class="badge badge-kind">{{  r.kind  }}</span>
               <span class="apply-name">{{  r.name  }}</span>
               <span class="apply-status" [class.ok]="r.success" [class.fail]="!r.success">
@@ -176,7 +176,7 @@
           <div class="catalog-info-header">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <h3>Developer Hub — Component Registration</h3>
-              <a *ngIf="s.developerHubUrl" [href]="developerHubUrl" target="_blank" class="btn-devhub-link">Open Developer Hub</a>
+              <a *ngIf="s.developerHubUrl" [href]="s.developerHubUrl" target="_blank" class="btn-devhub-link">Open Developer Hub</a>
             </div>
             <p>Review and optionally edit the Component definition below, then register it in Developer Hub.</p>
           </div>
@@ -203,7 +203,7 @@
           <div class="registration-actions">
             <button type="button" class="btn-register"
                     (click)="a.registerComponent()"
-                    [disabled]="registering || registrationDone">
+                    [disabled]="s.registering || s.registrationDone">
               {{  s.registering ? 'Registering…' : (s.registrationDone ? 'Registered' : 'Register in Developer Hub')  }}
             </button>
             <span *ngIf="s.registrationError" class="registration-error">{{  s.registrationError  }}</span>
@@ -211,7 +211,7 @@
           </div>
         </div>
 
-        <div *ngIf="s.revertResult" class="apply-result" [class.success]="revertResult.failed === 0" [class.partial]="revertResult.failed > 0">
+        <div *ngIf="s.revertResult" class="apply-result" [class.success]="s.revertResult.failed === 0" [class.partial]="s.revertResult.failed > 0">
           <div class="apply-summary">
             <strong *ngIf="s.revertResult.failed === 0">Migration reverted successfully!</strong>
             <strong *ngIf="s.revertResult.failed > 0">Revert completed with errors</strong>
@@ -220,7 +220,7 @@
             </span>
           </div>
           <div class="apply-details">
-            <div *ngFor="let r of revertResult.results" class="apply-row" [class.err]="!r.success">
+            <div *ngFor="let r of s.revertResult.results" class="apply-row" [class.err]="!r.success">
               <span class="badge badge-kind">{{  r.kind  }}</span>
               <span class="apply-name">{{  r.name  }}</span>
               <span class="apply-status" [class.ok]="r.success" [class.fail]="!r.success">
@@ -234,7 +234,7 @@
           <h3>Test your migration</h3>
           <p class="step-desc">Use these commands to verify your APIs work through Connectivity Link.</p>
           <div class="test-commands">
-            <div *ngFor="let cmd of testCommands" class="test-cmd-row">
+            <div *ngFor="let cmd of s.testCommands" class="test-cmd-row">
               <div class="test-cmd-label">
                 <span class="pill" [class.pill-green]="cmd.type === 'api-key'" [class.pill-url]="cmd.type === 'url'">{{  cmd.type  }}</span>
                 <span>{{  cmd.label  }}</span>
@@ -242,7 +242,7 @@
               <div class="test-cmd-code">
                 <code *ngIf="cmd.type !== 'url'">{{  cmd.command  }}</code>
                 <a *ngIf="cmd.type === 'url'" [href]="cmd.command" target="_blank">{{  cmd.command  }}</a>
-                <button type="button" class="btn-copy-sm" (click)="a.copyCommand(cmd.command)">Copy</button>
+                <button type="button" class="btn-copy-sm" (click)="a.copyCommand(cmd.command || '')">Copy</button>
               </div>
             </div>
           </div>
@@ -253,10 +253,10 @@
           <button type="button" class="btn-secondary" (click)="a.downloadAllYaml()">
             Download All YAML
           </button>
-          <button type="button" class="btn-apply" (click)="a.applyMigration()" [disabled]="applying || !!applyResult || !!revertResult">
+          <button type="button" class="btn-apply" (click)="a.applyMigration()" [disabled]="s.applying || !!s.applyResult || !!s.revertResult">
             {{  s.applying ? 'Applying…' : (s.applyResult ? 'Applied' : 'Apply to Cluster')  }}
           </button>
-          <button type="button" class="btn-revert" (click)="a.revertMigration()" [disabled]="reverting || !applyResult || !!revertResult"
+          <button type="button" class="btn-revert" (click)="a.revertMigration()" [disabled]="s.reverting || !s.applyResult || !!s.revertResult"
                   *ngIf="s.applyResult">
             {{  s.reverting ? 'Reverting…' : (s.revertResult ? 'Reverted' : 'Revert Migration')  }}
           </button>

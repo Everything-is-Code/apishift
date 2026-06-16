@@ -556,7 +556,7 @@ export class ThreeScaleExplorerComponent implements OnInit {
     else if (this.activeTab === 'admin-api') items = items.filter(b => this.isApi(b.source));
     if (this.searchQuery) {
       items = items.filter(b =>
-        this.matchesSearch(b.name) || this.matchesSearch(b.systemName || '') ||
+        this.matchesSearch(b.name || '') || this.matchesSearch(b.systemName || '') ||
         this.matchesSearch(b.namespace || '') || this.matchesSearch(b.privateEndpoint || '') ||
         this.matchesSearch(b.description || '')
       );
