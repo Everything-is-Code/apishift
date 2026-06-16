@@ -1,0 +1,265 @@
+<div class="step-panel">
+        <h2>Review plan</h2>
+        <p class="step-desc">Confirm generated resources before applying them to your cluster workflows.</p>
+
+        <div class="info-banner">
+          <div>
+            <span class="banner-label">Plan ID</span>
+            <strong class="banner-id">{{  s.plan.id  }}</strong>
+          </div>
+          <div class="banner-meta">
+            <span class="pill pill-strategy">Strategy: {{  s.plan.gatewayStrategy  }}</span>
+            <span class="pill pill-muted">Products: {{  s.plan.sourceProducts.join(', ') || '—'  }}</span>
+            <span class="pill pill-cluster" *ngIf="s.plan.targetClusterLabel">{{  s.plan.targetClusterLabel  }}</span>
+            <span class="pill pill-green" *ngIf="s.consumerApiKeySecretCount > 0">
+              {{  s.consumerApiKeySecretCount  }} API key Secret(s)
+            </span>
+            <span class="pill pill-blue" *ngIf="s.hasOidcJwtAuth">OIDC (JWT)</span>
+          </div>
+        </div>
+
+        <div *ngIf="s.plan.prerequisites && s.plan.prerequisites.length > 0" class="prerequisites-panel">
+          <div class="prerequisites-banner collapsible-header" (click)="a.togglePrerequisites()"
+               role="button" [attr.aria-expanded]="s.prerequisitesOpen" tabindex="0"
+               (keydown.enter)="a.togglePrerequisites()"
+               (keydown.space)="$event.preventDefault(); a.togglePrerequisites()">
+            <span class="info-icon" aria-hidden="true">&#8505;</span>
+            <div class="collapsible-header-text">
+              <strong>Required for apply, not for analysis</strong>
+              <p>
+                Install or configure these components on the target cluster before applying.
+                Analysis always generates the full resource set regardless of cluster readiness.
+              </p>
+            </div>
+            <span class="chevron" [class.open]="s.prerequisitesOpen">⌄</span>
+          </div>
+          <div *ngIf="s.prerequisitesOpen">
+          <div *ngFor="let section of s.prerequisiteSections" class="prerequisite-section">
+            <h3>{{  section.label  }}</h3>
+            <div *ngFor="let item of section.items" class="prerequisite-row">
+              <div class="prerequisite-main">
+                <span class="prerequisite-title">{{  item.title  }}</span>
+                <span *ngIf="item.optionalTier" class="prerequisite-optional">Optional catalog extension</span>
+                <p class="prerequisite-desc">{{  item.description  }}</p>
+                <span *ngIf="item.triggeredByCount > 0" class="prerequisite-count">
+                  Triggered by {{  item.triggeredByCount  }} plan resource(s)
+                </span>
+              </div>
+              <span class="prerequisite-badge"
+                    [class.badge-satisfied]="item.status === 'satisfied'"
+                    [class.badge-missing]="item.status === 'missing'"
+                    [class.badge-unknown]="item.status === 'unknown' || item.status === 'not_applicable'">
+                {{  item.status  }}
+              </span>
+            </div>
+          </div>
+          <div class="prerequisites-actions">
+            <button type="button" class="btn-refresh-readiness"
+                    (click)="a.refreshReadiness()"
+                    [disabled]="readinessLoading">
+              {{  s.readinessLoading ? 'Checking…' : 'Refresh cluster status'  }}
+            </button>
+          </div>
+          </div>
+        </div>
+
+        <div *ngIf="s.plan.aiAnalysis" class="ai-analysis-panel">
+          <div class="ai-analysis-header collapsible-header" (click)="a.toggleAiAnalysis()"
+               role="button" [attr.aria-expanded]="s.aiAnalysisOpen" tabindex="0"
+               (keydown.enter)="a.toggleAiAnalysis()"
+               (keydown.space)="$event.preventDefault(); a.toggleAiAnalysis()">
+            <h3>AI Pre-Migration Analysis</h3>
+            <span class="chevron" [class.open]="s.aiAnalysisOpen">⌄</span>
+          </div>
+          <div *ngIf="s.aiAnalysisOpen" class="ai-analysis-body">
+            <pre class="ai-analysis-content">{{  s.plan.aiAnalysis  }}</pre>
+          </div>
+        </div>
+
+        <div *ngIf="s.hasOidcJwtAuth" class="oidc-info-banner" role="status">
+          <span class="info-icon" aria-hidden="true">&#8505;</span>
+          <div>
+            <strong>OpenID Connect migration</strong>
+            <p>
+              This API uses OIDC only (no API key Secrets). Clients should keep the same identity provider,
+              <code>application_id</code> / <code>application_key</code>, token endpoint, and
+              <code>Authorization: Bearer</code> flow. PlanPolicy tiers match OAuth
+              <code>client_id</code> claims in validated JWTs. Cut over DNS to Connectivity Link when ready.
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="s.hasConsumerApiKeySecrets" class="keyvault-warning" role="alert">
+          <span class="warning-icon" aria-hidden="true">&#9888;</span>
+          <div>
+            <strong>Credential security recommendation</strong>
+            <p>
+              This plan may include Kubernetes Secrets with API keys migrated from 3scale
+              (<code>stringData.api_key</code>). For production, prefer storing credentials in a
+              key vault (for example OpenShift Secrets Store CSI, HashiCorp Vault, or Azure Key Vault)
+              and syncing them into the cluster instead of keeping long-lived keys only in etcd.
+              Rotate keys after migration if your security policy requires it.
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="s.plan.consolidationWarnings && s.plan.consolidationWarnings.length > 0" class="consolidation-warnings">
+          <div *ngFor="let warning of s.plan.consolidationWarnings" class="consolidation-warning">
+            <span class="warning-icon">&#9888;</span>
+            <span>{{  warning  }}</span>
+          </div>
+        </div>
+
+        <div class="resources-grid">
+          <div *ngFor="let res of s.plan.resources; let idx = index"
+               class="resource-card card"
+               [class.disabled-resource]="s.resourceEnabled[idx] === false">
+            <div class="resource-head-row">
+              <label class="resource-toggle" (click)="$event.stopPropagation()">
+                <input type="checkbox"
+                       [checked]="s.resourceEnabled[idx] !== false"
+                       (change)="toggleResourceEnabled(idx)">
+                <span class="toggle-slider"></span>
+              </label>
+              <button type="button" class="resource-head" (click)="a.toggleYaml(idx)" [attr.aria-expanded]="s.yamlOpen[idx]">
+                <span class="badge badge-kind">{{  res.kind  }}</span>
+                <div class="resource-ident">
+                  <span class="res-name">{{  res.name  }}</span>
+                  <span class="res-ns">{{  res.namespace  }}</span>
+                </div>
+                <span class="skip-label" *ngIf="s.resourceEnabled[idx] === false">SKIP</span>
+                <span class="chevron" [class.open]="s.yamlOpen[idx]">⌄</span>
+              </button>
+            </div>
+            <div *ngIf="s.yamlOpen[idx]" class="resource-yaml">
+              <div class="yaml-toolbar-res">
+                <button type="button" class="btn-edit-toggle"
+                        (click)="a.toggleEdit(idx)"
+                        [class.active]="s.editMode[idx]">
+                  {{  s.editMode[idx] ? 'Preview' : 'Edit'  }}
+                </button>
+                <button type="button" class="btn-copy-sm" (click)="a.copyYaml(idx)">Copy</button>
+                <button type="button" class="btn-reset-sm"
+                        *ngIf="s.editedYamls[idx]"
+                        (click)="a.resetYaml(idx)">Reset</button>
+              </div>
+              <textarea *ngIf="s.editMode[idx]"
+                        class="yaml-editor"
+                        [value]="s.editedYamls[idx] || res.yaml"
+                        (input)="a.onYamlEdit(idx, $event)"
+                        spellcheck="false"
+                        rows="16"></textarea>
+              <pre *ngIf="!s.editMode[idx]"><code>{{  s.editedYamls[idx] || res.yaml  }}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="s.applyResult" class="apply-result" [class.success]="applyResult.failed === 0" [class.partial]="applyResult.failed > 0">
+          <div class="apply-summary">
+            <strong *ngIf="s.applyResult.failed === 0">Migration applied successfully!</strong>
+            <strong *ngIf="s.applyResult.failed > 0">Migration completed with errors</strong>
+            <span class="apply-counts">
+              {{  s.applyResult.applied  }} applied, {{  s.applyResult.failed  }} failed
+            </span>
+          </div>
+          <div class="apply-details">
+            <div *ngFor="let r of applyResult.results" class="apply-row" [class.err]="!r.success">
+              <span class="badge badge-kind">{{  r.kind  }}</span>
+              <span class="apply-name">{{  r.name  }}</span>
+              <span class="apply-status" [class.ok]="r.success" [class.fail]="!r.success">
+                {{  r.success ? 'Applied' : r.message  }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="s.developerHubEnabled && s.applyResult && s.applyResult.failed === 0" class="catalog-info-section">
+          <div class="catalog-info-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3>Developer Hub — Component Registration</h3>
+              <a *ngIf="s.developerHubUrl" [href]="developerHubUrl" target="_blank" class="btn-devhub-link">Open Developer Hub</a>
+            </div>
+            <p>Review and optionally edit the Component definition below, then register it in Developer Hub.</p>
+          </div>
+          <div class="catalog-info-yaml">
+            <div class="yaml-toolbar">
+              <span class="badge badge-kind">catalog-info.yaml</span>
+              <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-edit-toggle" [class.active]="s.componentEditMode" (click)="a.toggleComponentEditMode()">
+                  {{  s.componentEditMode ? 'Preview' : 'Edit'  }}
+                </button>
+                <button type="button" class="btn-copy" (click)="a.copyCatalogInfo()">
+                  {{  s.catalogCopied ? 'Copied!' : 'Copy'  }}
+                </button>
+              </div>
+            </div>
+            <textarea *ngIf="s.componentEditMode"
+                      class="yaml-editor catalog-editor"
+                      [value]="s.editedComponentYaml || s.plan.catalogInfoYaml || ''"
+                      (input)="a.onComponentYamlEdit($event)"
+                      spellcheck="false"
+                      rows="20"></textarea>
+            <pre *ngIf="!s.componentEditMode"><code>{{  s.editedComponentYaml || s.plan.catalogInfoYaml  }}</code></pre>
+          </div>
+          <div class="registration-actions">
+            <button type="button" class="btn-register"
+                    (click)="a.registerComponent()"
+                    [disabled]="registering || registrationDone">
+              {{  s.registering ? 'Registering…' : (s.registrationDone ? 'Registered' : 'Register in Developer Hub')  }}
+            </button>
+            <span *ngIf="s.registrationError" class="registration-error">{{  s.registrationError  }}</span>
+            <span *ngIf="s.registrationDone" class="registration-success">Component registered successfully.</span>
+          </div>
+        </div>
+
+        <div *ngIf="s.revertResult" class="apply-result" [class.success]="revertResult.failed === 0" [class.partial]="revertResult.failed > 0">
+          <div class="apply-summary">
+            <strong *ngIf="s.revertResult.failed === 0">Migration reverted successfully!</strong>
+            <strong *ngIf="s.revertResult.failed > 0">Revert completed with errors</strong>
+            <span class="apply-counts">
+              {{  s.revertResult.applied  }} deleted, {{  s.revertResult.failed  }} failed
+            </span>
+          </div>
+          <div class="apply-details">
+            <div *ngFor="let r of revertResult.results" class="apply-row" [class.err]="!r.success">
+              <span class="badge badge-kind">{{  r.kind  }}</span>
+              <span class="apply-name">{{  r.name  }}</span>
+              <span class="apply-status" [class.ok]="r.success" [class.fail]="!r.success">
+                {{  r.success ? r.message : r.message  }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="s.testCommands.length > 0" class="test-section">
+          <h3>Test your migration</h3>
+          <p class="step-desc">Use these commands to verify your APIs work through Connectivity Link.</p>
+          <div class="test-commands">
+            <div *ngFor="let cmd of testCommands" class="test-cmd-row">
+              <div class="test-cmd-label">
+                <span class="pill" [class.pill-green]="cmd.type === 'api-key'" [class.pill-url]="cmd.type === 'url'">{{  cmd.type  }}</span>
+                <span>{{  cmd.label  }}</span>
+              </div>
+              <div class="test-cmd-code">
+                <code *ngIf="cmd.type !== 'url'">{{  cmd.command  }}</code>
+                <a *ngIf="cmd.type === 'url'" [href]="cmd.command" target="_blank">{{  cmd.command  }}</a>
+                <button type="button" class="btn-copy-sm" (click)="a.copyCommand(cmd.command)">Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-secondary" (click)="a.goBack()">Back</button>
+          <button type="button" class="btn-secondary" (click)="a.downloadAllYaml()">
+            Download All YAML
+          </button>
+          <button type="button" class="btn-apply" (click)="a.applyMigration()" [disabled]="applying || !!applyResult || !!revertResult">
+            {{  s.applying ? 'Applying…' : (s.applyResult ? 'Applied' : 'Apply to Cluster')  }}
+          </button>
+          <button type="button" class="btn-revert" (click)="a.revertMigration()" [disabled]="reverting || !applyResult || !!revertResult"
+                  *ngIf="s.applyResult">
+            {{  s.reverting ? 'Reverting…' : (s.revertResult ? 'Reverted' : 'Revert Migration')  }}
+          </button>
+        </div>
+      </div>

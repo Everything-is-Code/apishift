@@ -122,7 +122,7 @@ Angular 19 standalone components. Layout uses `core/`, `shared/`, and `features/
 |------|-------|------|
 | `features/dashboard/` | `/` | Hub overview |
 | `features/threescale-explorer/` | `/threescale` | Product/backend browser |
-| `features/migration/` | `/migrate` | Multi-step migration UI |
+| `features/migration/` | `/migrate` | Multi-step migration UI (`migration-wizard` container + `steps/*`) |
 | `features/chat/` | `/chat` | AI assistant |
 | `features/audit/` | `/audit` | Audit trail |
 | `features/settings/` | `/settings` | Cluster/sources configuration |
@@ -131,7 +131,7 @@ Angular 19 standalone components. Layout uses `core/`, `shared/`, and `features/
 
 `ng serve` proxies `/api` to `http://localhost:8080` (see `proxy.conf.json`). Production build is static assets behind Nginx.
 
-**Known concentration:** `migration-wizard.component.ts` (~2000 LOC). Phase 3.3 will split wizard steps into child components.
+**Known concentration:** `migration-wizard.component.ts` orchestrates wizard state; step UI lives under `features/migration/steps/`.
 
 ---
 
@@ -175,7 +175,7 @@ Documented for orientation; tracked in architecture-hardening phases 2–3:
 | Phase | Target |
 |-------|--------|
 | 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
-| 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); split wizard steps (3.3) |
+| 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); wizard step components (3.3 done) |
 | 4 — later | 3scale port abstractions, OpenAPI typegen, E2E in CI |
 
 Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.
