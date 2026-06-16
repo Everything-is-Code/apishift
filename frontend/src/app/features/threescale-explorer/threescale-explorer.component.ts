@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { ApiService, ThreeScaleProduct, ThreeScaleBackend, ThreeScaleStatus } from '../../services/api.service';
+import { ApiService, ThreeScaleProduct, ThreeScaleBackend, ThreeScaleStatus } from '../../core/api/api.service';
 
 type SourceTab = 'all' | 'crd' | 'admin-api';
 

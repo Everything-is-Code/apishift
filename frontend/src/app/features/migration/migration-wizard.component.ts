@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import JSZip from 'jszip';
-import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry, ImportExportResponse } from '../../services/api.service';
+import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry, ImportExportResponse } from '../../core/api/api.service';
 
 @Component({
   selector: 'app-migration-wizard',

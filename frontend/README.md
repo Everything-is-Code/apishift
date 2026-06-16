@@ -21,11 +21,12 @@ The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
 | Path | Purpose |
 |------|---------|
 | `src/app/app.routes.ts` | Route table (`/`, `/threescale`, `/migrate`, `/chat`, `/audit`, `/settings`) |
-| `src/app/components/` | Feature components (dashboard, explorer, wizard, chat, audit, settings) |
-| `src/app/services/api.service.ts` | HTTP client for all `/api/*` endpoints |
+| `src/app/core/api/` | HTTP client for all `/api/*` endpoints (`api.service.ts`) |
+| `src/app/features/` | Feature areas — one folder per route (dashboard, explorer, migration, chat, audit, settings) |
+| `src/app/shared/` | Reusable UI pieces (empty until extracted from features) |
 | `src/environments/version.ts` | Build-time version stamp (synced from Helm chart on release) |
 
-Components are **standalone** (no NgModules). Styles use SCSS per component.
+Components are **standalone** (no NgModules). Styles use inline `styles` arrays per component.
 
 ## Build and test
 

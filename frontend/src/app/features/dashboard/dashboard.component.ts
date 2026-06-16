@@ -2,7 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ApiService, ProjectInfo, ThreeScaleStatus } from '../../services/api.service';
+import { ApiService, ProjectInfo, ThreeScaleStatus } from '../../core/api/api.service';
 
 const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
 

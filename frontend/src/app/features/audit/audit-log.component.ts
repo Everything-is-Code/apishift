@@ -1,6 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService, AuditEntry } from '../../services/api.service';
+import { ApiService, AuditEntry } from '../../core/api/api.service';
 
 @Component({
   selector: 'app-audit-log',

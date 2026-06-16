@@ -7,7 +7,7 @@ import {
   MigrationPlan,
   MigrationPrerequisite,
   ThreeScaleProduct,
-} from '../../services/api.service';
+} from '../../core/api/api.service';
 
 const mockProduct: ThreeScaleProduct = {
   name: 'demo-api',
