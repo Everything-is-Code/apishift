@@ -2,6 +2,7 @@ package io.gateforge.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gateforge.model.ThreeScaleSource;
+import io.gateforge.port.threescale.ThreeScaleAdminPort;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -28,7 +29,7 @@ public class ThreeScaleSourceRegistry {
     @Inject
     ObjectMapper objectMapper;
 
-    private final Map<String, ThreeScaleAdminApiClient> clients = new ConcurrentHashMap<>();
+    private final Map<String, ThreeScaleAdminPort> clients = new ConcurrentHashMap<>();
     private final Map<String, ThreeScaleSource> sources = new ConcurrentHashMap<>();
 
     @PostConstruct
@@ -67,22 +68,22 @@ public class ThreeScaleSourceRegistry {
         clients.remove(id);
     }
 
-    public ThreeScaleAdminApiClient getClient(String id) {
+    public ThreeScaleAdminPort getClient(String id) {
         return clients.get(id);
     }
 
-    public Collection<ThreeScaleAdminApiClient> getAllClients() {
+    public Collection<ThreeScaleAdminPort> getAllClients() {
         return Collections.unmodifiableCollection(clients.values());
     }
 
-    public ThreeScaleAdminApiClient getDefaultClient() {
-        ThreeScaleAdminApiClient client = clients.get("default");
+    public ThreeScaleAdminPort getDefaultClient() {
+        ThreeScaleAdminPort client = clients.get("default");
         if (client != null) return client;
         return clients.values().stream().findFirst().orElse(null);
     }
 
     public boolean hasConfiguredClients() {
-        return clients.values().stream().anyMatch(ThreeScaleAdminApiClient::isConfigured);
+        return clients.values().stream().anyMatch(ThreeScaleAdminPort::isConfigured);
     }
 
     public List<ThreeScaleSource> listSources() {
@@ -95,7 +96,7 @@ public class ThreeScaleSourceRegistry {
 
     public Map<String, Object> getSourceStatus(String sourceId) {
         Map<String, Object> status = new LinkedHashMap<>();
-        ThreeScaleAdminApiClient client = clients.get(sourceId);
+        ThreeScaleAdminPort client = clients.get(sourceId);
         ThreeScaleSource source = sources.get(sourceId);
 
         if (client == null || source == null) {

@@ -2,7 +2,7 @@ package io.gateforge.service.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gateforge.model.ThreeScaleSource;
-import io.gateforge.service.ThreeScaleAdminApiClient;
+import io.gateforge.port.threescale.ThreeScaleAdminPort;
 import io.gateforge.service.ThreeScaleSourceRegistry;
 
 import java.util.Map;
@@ -13,7 +13,7 @@ public final class ThreeScaleTestRegistry {
     private ThreeScaleTestRegistry() {}
 
     public static ThreeScaleSourceRegistry withClients(
-            Map<String, ThreeScaleAdminApiClient> clients,
+            Map<String, ThreeScaleAdminPort> clients,
             Map<String, ThreeScaleSource> sources) {
         ThreeScaleSourceRegistry registry = new ThreeScaleSourceRegistry();
         ReflectionTestSupport.inject(registry, "objectMapper", new ObjectMapper());

@@ -2,6 +2,7 @@ package io.gateforge.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gateforge.port.threescale.ThreeScaleAdminPort;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,10 +14,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Non-CDI client for a single 3scale Admin API instance.
+ * HTTP adapter for a single 3scale Admin API instance.
  * Instances are created by ThreeScaleSourceRegistry.
  */
-public class ThreeScaleAdminApiClient {
+public class ThreeScaleAdminApiClient implements ThreeScaleAdminPort {
 
     private static final Logger LOG = Logger.getLogger(ThreeScaleAdminApiClient.class.getName());
 
@@ -36,8 +37,10 @@ public class ThreeScaleAdminApiClient {
                 .build();
     }
 
+    @Override
     public String getSourceId() { return sourceId; }
 
+    @Override
     public boolean isConfigured() {
         return adminUrl != null
                 && !adminUrl.isBlank()
@@ -47,54 +50,64 @@ public class ThreeScaleAdminApiClient {
                 && !"none".equals(accessToken);
     }
 
+    @Override
     public void ping() throws Exception {
         String url = buildUrl("/admin/api/services.json", 1, 1);
         JsonNode root = doGet(url);
         if (root == null) throw new RuntimeException("3scale Admin API unreachable");
     }
 
+    @Override
     public List<Map<String, Object>> listServices() {
         return fetchPaginatedList("/admin/api/services.json", "services", "service");
     }
 
+    @Override
     public List<Map<String, Object>> listBackendApis() {
         return fetchPaginatedList("/admin/api/backend_apis.json", "backend_apis", "backend_api");
     }
 
+    @Override
     public List<Map<String, Object>> listActiveDocs() {
         return fetchPaginatedList("/admin/api/active_docs.json", "api_docs", "api_doc");
     }
 
+    @Override
     public List<Map<String, Object>> listMappingRules(long serviceId) {
         return fetchPaginatedList(
                 "/admin/api/services/" + serviceId + "/proxy/mapping_rules.json",
                 "mapping_rules", "mapping_rule");
     }
 
+    @Override
     public List<Map<String, Object>> listBackendUsages(long serviceId) {
         return fetchPaginatedList(
                 "/admin/api/services/" + serviceId + "/backend_usages.json",
                 "backend_usages", "backend_usage");
     }
 
+    @Override
     public List<Map<String, Object>> listApplicationPlans(long serviceId) {
         return fetchPaginatedList(
                 "/admin/api/services/" + serviceId + "/application_plans.json",
                 "plans", "application_plan");
     }
 
+    @Override
     public List<Map<String, Object>> listPlanLimits(long planId) {
         return fetchPaginatedList(
                 "/admin/api/application_plans/" + planId + "/limits.json",
                 "limits", "limit");
     }
 
+    @Override
     public List<Map<String, Object>> listApplications(long serviceId) {
         return fetchPaginatedList(
                 "/admin/api/applications.json?service_id=" + serviceId,
                 "applications", "application");
     }
 
+    @Override
     public Map<String, Object> getServiceProxy(long serviceId) {
         try {
             String url = buildUrl("/admin/api/services/" + serviceId + "/proxy.json", 1, 1);
