@@ -29,6 +29,7 @@ jobs:
       - name: Start stack and seed fixture data
         run: |
           cp .env.example .env
+          podman-compose --env-file .env build backend frontend
           ./scripts/local-up.sh
           E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
 
