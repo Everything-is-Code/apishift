@@ -88,8 +88,8 @@ jobs:
       - name: Build and push apishift-devhub-plugin
         uses: docker/build-push-action@v6
         with:
-          context: ./apishift-devhub-plugin
-          file: ./apishift-devhub-plugin/Dockerfile
+          context: ./gateforge-devhub-plugin
+          file: ./gateforge-devhub-plugin/Dockerfile
           push: true
           tags: |
             ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:${{ env.RELEASE_TAG }}
