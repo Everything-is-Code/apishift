@@ -222,6 +222,12 @@ flowchart LR
 
 Imported products are tagged with `source` containing `export-v1` and `sourceCluster: offline`. `POST /api/threescale/refresh` is skipped for export-backed products during analyze.
 
+The import parser accepts **schema 1.0** exports from live `threescale-export` runs, including:
+
+- `backend_usages.json` as either a JSON object (`backend_usages` array) or a top-level array (3scaleextract default)
+- Product metadata in `products/{systemName}.yaml` as a direct `spec` block or a `kind: List` of `Product` items
+- Incidental `oidc_configuration.json` sidecars on API-key products (auth mode is inferred from proxy flags, not sidecar presence alone)
+
 #### Manual workflow (lab or air-gapped)
 
 1. **Export** from a 3scale tenant (lab or production read-only):
@@ -259,7 +265,7 @@ Imported products are tagged with `source` containing `export-v1` and `sourceClu
 GateForge tests consume the 3scaleextract tarball (not a vendored directory tree):
 
 ```bash
-./scripts/sync-export-minimal-fixture.sh   # from ../3scaleextract checkout
+./scripts/sync-export-minimal-fixture.sh   # THREESCALEEXTRACT_ROOT or ../3scaleextract
 ./scripts/verify-export-minimal-fixture.sh
 cd backend && mvn test
 ```
@@ -272,11 +278,12 @@ Automated **seed → export → visualize → GateForge analyze** for lab valida
 
 ```bash
 # Terminal 1 — GateForge stack
-cp .env.example .env   # same THREESCALE_* as 3scaleextract
+cp .env.example .env   # THREESCALE_*, AI_*, optional THREESCALEEXTRACT_ROOT
 ./scripts/local-up.sh
 
-# Terminal 2 — full lab E2E (requires 3scale Admin API)
+# Terminal 2 — full lab E2E (requires 3scale Admin API + 3scaleextract checkout)
 export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
+export THREESCALEEXTRACT_ROOT=../3scaleextract   # optional if repo is beside gateforge
 ./scripts/e2e-seed-export-analyze.sh
 
 # Smoke without live 3scale (fixture tarball + offline import only)
@@ -290,7 +297,12 @@ E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
 | `offline` | Explicit offline import path |
 | `fixture` | Skip seed; use vendored `export-minimal` tarball (2-product smoke) |
 
-The script asserts `product_count: 4`, `incomplete: false`, visualize report, and analyze output with AuthPolicy resources (API key + OIDC JWT when full lab fixtures are used).
+| Variable | Purpose |
+|----------|---------|
+| `THREESCALEEXTRACT_ROOT` | Path to [3scaleextract](https://github.com/Everything-is-Code/3scaleextract) checkout (default: `../3scaleextract`) |
+| `E2E_SKIP_SEED=1` | Reuse existing `export/` directory (skip `threescale-seed`) |
+
+The script asserts `product_count >= 4`, `incomplete: false`, visualize report, and analyze output with AuthPolicy resources (API key + OIDC JWT when full lab fixtures are used). Tenants with pre-existing products may report `product_count > 4`.
 
 ---
 
@@ -311,7 +323,7 @@ The script asserts `product_count: 4`, `incomplete: false`, visualize report, an
 
 ### Phase 4: AI-Powered Analysis
 - **Context injection** (not RAG) — live cluster state is injected into each LLM prompt
-- **FAQ cache** with Data Grid (24h TTL) — 10 pre-defined prompts warmed at startup
+- **FAQ cache** with Data Grid (24h TTL) — 10 pre-defined prompts warmed at startup (lighter cluster context, up to 3 retries); check `GET /api/chat/faq-status` or trigger `POST /api/chat/warm-faq`
 - **kuadrantctl integration** — 5 CLI commands for resource generation and topology
 - **Verification** — AI reviews generated resources post-generation for correctness
 
@@ -454,7 +466,7 @@ Local stack uses **public** images (PostgreSQL, Infinispan) — no Red Hat regis
 
 ```bash
 cp .env.example .env
-# Edit .env: set THREESCALE_ACCESS_TOKEN, AI_API_KEY, and optional KUBE_* for cluster discovery
+# Edit .env: THREESCALE_ACCESS_TOKEN, AI_API_KEY, AI_ENDPOINT, AI_MODEL, AI_TIMEOUT (default 600s), optional KUBE_*
 ./scripts/local-up.sh
 ```
 
@@ -538,7 +550,9 @@ helm install gateforge gateforge/gateforge \
 | /api/migration/plans/{id}/revert | POST | Revert plan from target cluster |
 | /api/migration/revert-bulk | POST | Bulk revert to 3scale |
 | /api/audit/reports | GET | View audit log |
-| /api/chat | POST | AI migration assistant |
+| /api/chat | POST | AI migration assistant (FAQ cache when prompt matches) |
+| /api/chat/warm-faq | POST | Trigger FAQ cache refresh (background) |
+| /api/chat/faq-status | GET | FAQ cache status (`cached` / `total`) |
 
 ### Multi-Source APIs (Phase 1)
 
@@ -593,9 +607,10 @@ helm install gateforge gateforge/gateforge \
 | `backend.image.tag` | v0.1.9 | Backend image tag |
 | `frontend.image.tag` | v0.1.9 | Frontend image tag |
 | `ai.enabled` | true | Enable AI features |
-| `ai.endpoint` | litellm-prod... | LLM endpoint URL |
-| `ai.model` | deepseek-r1-distill-qwen-14b | AI model name |
+| `ai.endpoint` | litellm-prod... | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
+| `ai.model` | deepseek-r1-distill-qwen-14b | AI model name (use provider slug allowed by your key; no `openai/` prefix on RHDP MaaS) |
 | `ai.apiKey` | "" | LLM API key |
+| `ai.timeout` | 600s | LLM request timeout (`AI_TIMEOUT` in compose) |
 | `threescale.adminApi.url` | "" | 3scale Admin Portal URL |
 | `threescale.adminApi.accessToken` | "" | 3scale access token |
 | `threescale.sources` | "" | JSON array of additional 3scale sources |

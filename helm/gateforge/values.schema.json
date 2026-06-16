@@ -144,6 +144,10 @@
         "maxTokens": {
           "type": "string",
           "description": "Maximum tokens for LLM responses"
+        },
+        "timeout": {
+          "type": "string",
+          "description": "LLM request timeout (e.g. 600s), mapped to AI_TIMEOUT"
         }
       }
     },

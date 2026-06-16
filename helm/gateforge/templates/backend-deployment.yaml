@@ -35,6 +35,8 @@ spec:
               value: {{ .Values.ai.endpoint | quote }}
             - name: AI_MODEL
               value: {{ .Values.ai.model | quote }}
+            - name: AI_TIMEOUT
+              value: {{ .Values.ai.timeout | quote }}
             - name: AI_API_KEY
               valueFrom:
                 secretKeyRef:

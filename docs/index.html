@@ -1108,8 +1108,9 @@ graph LR
         <tbody>
           <tr><td><code>backend.image.tag</code></td><td>v0.1.9</td><td>Backend image tag</td></tr>
           <tr><td><code>frontend.image.tag</code></td><td>v0.1.9</td><td>Frontend image tag</td></tr>
-          <tr><td><code>ai.endpoint</code></td><td>litellm-prod...</td><td>LLM endpoint URL</td></tr>
+          <tr><td><code>ai.endpoint</code></td><td>litellm-prod...</td><td>LLM endpoint URL (RHDP MaaS: maas-rhdp...)</td></tr>
           <tr><td><code>ai.model</code></td><td>deepseek-r1-distill-qwen-14b</td><td>AI model name</td></tr>
+          <tr><td><code>ai.timeout</code></td><td>600s</td><td>LLM request timeout (<code>AI_TIMEOUT</code> in compose)</td></tr>
           <tr><td><code>ai.apiKey</code></td><td>""</td><td>LLM API key</td></tr>
           <tr><td><code>threescale.adminApi.url</code></td><td>""</td><td>3scale Admin Portal URL</td></tr>
           <tr><td><code>threescale.adminApi.accessToken</code></td><td>""</td><td>3scale access token</td></tr>
@@ -1636,7 +1637,7 @@ flowchart LR
       <h3>Design decisions</h3>
       <ul style="color:#6a6e73; margin:12px 0 0 20px; line-height:1.7;">
         <li><strong>No vector store or embeddings</strong> for this chat path—context is assembled from live services and cached key-value data.</li>
-        <li><strong>FAQ warmup:</strong> <strong>10</strong> pre-defined prompts are sent at startup; answers are stored in Data Grid with a <strong>24-hour TTL</strong> for fast repeated questions.</li>
+        <li><strong>FAQ warmup:</strong> <strong>10</strong> pre-defined prompts are sent at startup (summary cluster context, up to <strong>3 retries</strong>); answers are stored in Data Grid with a <strong>24-hour TTL</strong>. Use <code>GET /api/chat/faq-status</code> or <code>POST /api/chat/warm-faq</code> to inspect or refresh. Configure <code>AI_TIMEOUT</code> (default <strong>600s</strong>) for long answers.</li>
         <li><strong>MigrationAgent system prompt</strong> includes concrete mapping examples from 3scale to Connectivity Link.</li>
         <li><strong>AI verification</strong> runs after YAML / resource generation to review the plan.</li>
         <li>Reasoning models may emit <code>&lt;redacted_thinking&gt;...&lt;/redacted_thinking&gt;</code> blocks; these are <strong>stripped</strong> before the user sees the answer.</li>
