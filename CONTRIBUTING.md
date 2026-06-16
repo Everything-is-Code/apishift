@@ -31,6 +31,8 @@ For large changes (>400 lines), prefer **stacked PRs** (e.g. backend first, then
 
 See the main [README](README.md) for how to run the backend, frontend, and local stack.
 
+For module layout, REST surface, and migration data flows, read **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+
 ## Continuous integration
 
 - **Backend unit tests** run on every pull request and push to `main` via the [Backend tests](.github/workflows/backend-tests.yml) workflow (`mvn test` in `backend/`).

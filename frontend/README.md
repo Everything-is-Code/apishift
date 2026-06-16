@@ -1,27 +1,43 @@
-# Frontend
+# GateForge frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Angular 19 SPA for the GateForge migration console. Served by Nginx in production; `ng serve` during local development.
+
+## Prerequisites
+
+- Node.js 20+
+- Backend API running at `http://localhost:8080` (see root [README](../README.md) or `./scripts/dev/local-up.sh`)
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm install
+npm start          # ng serve — http://localhost:4200
+```
 
-## Code scaffolding
+The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Project layout
 
-## Build
+| Path | Purpose |
+|------|---------|
+| `src/app/app.routes.ts` | Route table (`/`, `/threescale`, `/migrate`, `/chat`, `/audit`, `/settings`) |
+| `src/app/components/` | Feature components (dashboard, explorer, wizard, chat, audit, settings) |
+| `src/app/services/api.service.ts` | HTTP client for all `/api/*` endpoints |
+| `src/environments/version.ts` | Build-time version stamp (synced from Helm chart on release) |
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Components are **standalone** (no NgModules). Styles use SCSS per component.
 
-## Running unit tests
+## Build and test
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+npm run build      # production bundle → dist/frontend
+npm test           # Karma + Jasmine (ChromeHeadless in CI)
+```
 
-## Running end-to-end tests
+## Docker
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+The root `frontend/Dockerfile` builds the static bundle and copies it into a UBI9 Nginx image. Used by `podman-compose.yml` and the Helm chart.
 
-## Further help
+## Architecture
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+See [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) for how the frontend fits the monorepo and planned feature-module refactors.
