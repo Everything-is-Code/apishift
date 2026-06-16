@@ -1,9 +1,9 @@
 {
-  "name": "gateforge-scripts",
+  "name": "gateforge-scripts-docs",
   "private": true,
   "type": "module",
   "scripts": {
-    "capture-screenshots": "node docs/capture-screenshots.mjs"
+    "capture-screenshots": "node capture-screenshots.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.0"
