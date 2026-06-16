@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** Analyze */
-        get: operations["analyze"];
+        get: operations["analyzeApicast"];
         put?: never;
         post?: never;
         delete?: never;
@@ -372,7 +372,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Analyze */
-        post: operations["analyze"];
+        post: operations["analyzeMigration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1017,7 +1017,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    analyze: {
+    analyzeApicast: {
         parameters: {
             query?: never;
             header?: never;
@@ -1480,7 +1480,7 @@ export interface operations {
             };
         };
     };
-    analyze: {
+    analyzeMigration: {
         parameters: {
             query?: never;
             header?: never;
