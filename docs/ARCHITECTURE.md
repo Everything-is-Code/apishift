@@ -78,6 +78,7 @@ Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 | Package | Responsibility |
 |---------|----------------|
 | `resource/` | JAX-RS REST endpoints (`/api/*`) |
+| `port/threescale/` | Outbound port for 3scale Admin API (`ThreeScaleAdminPort`; HTTP adapter in `ThreeScaleAdminApiClient`) |
 | `service/` | Business logic, K8s integration, 3scale clients |
 | `service/export/` | Offline export parse/validate/import — **reference sub-domain** (focused classes, good test coverage) |
 | `service/developerhub/` | Developer Hub catalog and scaffolder HTTP client |
@@ -176,7 +177,7 @@ Documented for orientation; tracked in architecture-hardening phases 2–3:
 |-------|--------|
 | 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
 | 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); wizard step components (3.3 done) |
-| 4 — later | 3scale port abstractions ([#67](https://github.com/Everything-is-Code/gateforge/issues/67)), OpenAPI typegen ([#69](https://github.com/Everything-is-Code/gateforge/issues/69)), optional E2E ([#71](https://github.com/Everything-is-Code/gateforge/issues/71)) |
+| 4 — later | 3scale port ([#67](https://github.com/Everything-is-Code/gateforge/issues/67) done), OpenAPI typegen ([#69](https://github.com/Everything-is-Code/gateforge/issues/69) done), optional E2E ([#71](https://github.com/Everything-is-Code/gateforge/issues/71)) |
 
 Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.
 

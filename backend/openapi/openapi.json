@@ -1,0 +1,1770 @@
+{
+  "openapi" : "3.1.0",
+  "paths" : {
+    "/api/apicast/analyze/{namespace}/{name}" : {
+      "get" : {
+        "operationId" : "analyze",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "namespace",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Analyze",
+        "tags" : [ "API Cast Resource" ]
+      }
+    },
+    "/api/apicast/discover" : {
+      "get" : {
+        "operationId" : "discoverAll",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Discover All",
+        "tags" : [ "API Cast Resource" ]
+      }
+    },
+    "/api/apicast/discover/{namespace}" : {
+      "get" : {
+        "operationId" : "discoverByNamespace",
+        "parameters" : [ {
+          "name" : "namespace",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Discover By Namespace",
+        "tags" : [ "API Cast Resource" ]
+      }
+    },
+    "/api/apicast/map" : {
+      "post" : {
+        "operationId" : "mapAPICastToIstio",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "additionalProperties" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Map API Cast To Istio",
+        "tags" : [ "API Cast Resource" ]
+      }
+    },
+    "/api/apicast/map-all" : {
+      "post" : {
+        "operationId" : "mapAll",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Map All",
+        "tags" : [ "API Cast Resource" ]
+      }
+    },
+    "/api/audit/reports" : {
+      "get" : {
+        "operationId" : "listReports",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AuditEntry"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Reports",
+        "tags" : [ "Audit Resource" ]
+      }
+    },
+    "/api/chat" : {
+      "post" : {
+        "operationId" : "chat",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChatMessage"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Chat",
+        "tags" : [ "Chat Resource" ]
+      }
+    },
+    "/api/chat/faq-status" : {
+      "get" : {
+        "operationId" : "faqStatus",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Faq Status",
+        "tags" : [ "Chat Resource" ]
+      }
+    },
+    "/api/chat/status" : {
+      "get" : {
+        "operationId" : "status",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChatMessage"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Status",
+        "tags" : [ "Chat Resource" ]
+      }
+    },
+    "/api/chat/warm-faq" : {
+      "post" : {
+        "operationId" : "warmFaqCache",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "summary" : "Warm Faq Cache",
+        "tags" : [ "Chat Resource" ]
+      }
+    },
+    "/api/cluster/features" : {
+      "get" : {
+        "operationId" : "getFeatures",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Features",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/projects" : {
+      "get" : {
+        "operationId" : "listProjects",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProjectInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Projects",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/projects/{name}" : {
+      "get" : {
+        "operationId" : "getProject",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProjectInfo"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Project",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/readiness" : {
+      "get" : {
+        "operationId" : "getReadiness",
+        "parameters" : [ {
+          "name" : "planId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "targetClusterId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClusterReadiness"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Readiness",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/targets" : {
+      "get" : {
+        "operationId" : "listTargetClusters",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TargetCluster"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Target Clusters",
+        "tags" : [ "Cluster Resource" ]
+      },
+      "post" : {
+        "operationId" : "addTargetCluster",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TargetCluster"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TargetCluster"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Add Target Cluster",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/targets/{id}" : {
+      "delete" : {
+        "operationId" : "removeTargetCluster",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Remove Target Cluster",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/cluster/targets/{id}/validate" : {
+      "get" : {
+        "operationId" : "validateTargetCluster",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Validate Target Cluster",
+        "tags" : [ "Cluster Resource" ]
+      }
+    },
+    "/api/hub/audit" : {
+      "get" : {
+        "operationId" : "getFederatedAudit",
+        "parameters" : [ {
+          "name" : "action",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "cluster",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 100
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AuditEntry"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Federated Audit",
+        "tags" : [ "Hub Resource" ]
+      }
+    },
+    "/api/hub/overview" : {
+      "get" : {
+        "operationId" : "getHubOverview",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Hub Overview",
+        "tags" : [ "Hub Resource" ]
+      }
+    },
+    "/api/hub/plans" : {
+      "get" : {
+        "operationId" : "getFederatedPlans",
+        "parameters" : [ {
+          "name" : "cluster",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MigrationPlan"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Federated Plans",
+        "tags" : [ "Hub Resource" ]
+      }
+    },
+    "/api/hub/topology" : {
+      "get" : {
+        "operationId" : "getTopology",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Topology",
+        "tags" : [ "Hub Resource" ]
+      }
+    },
+    "/api/migration/analyze" : {
+      "post" : {
+        "operationId" : "analyze",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MigrationPlan"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Analyze",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/import-export" : {
+      "post" : {
+        "operationId" : "importExport",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ImportExportResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Import Export",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans" : {
+      "get" : {
+        "operationId" : "listPlans",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MigrationPlan"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Plans",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}" : {
+      "get" : {
+        "operationId" : "getPlan",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MigrationPlan"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Plan",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/apply" : {
+      "post" : {
+        "operationId" : "applyPlan",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApplyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplyResult"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Apply Plan",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/catalog-info/{productName}" : {
+      "get" : {
+        "operationId" : "getCatalogInfo",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productName",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/yaml" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Catalog Info",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/confirm-registration" : {
+      "post" : {
+        "operationId" : "confirmRegistration",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConfirmRegistrationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Confirm Registration",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/drift" : {
+      "get" : {
+        "operationId" : "checkDrift",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "additionalProperties" : { }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Check Drift",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/revert" : {
+      "post" : {
+        "operationId" : "revertPlan",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplyResult"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Revert Plan",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/plans/{id}/test-commands" : {
+      "get" : {
+        "operationId" : "getTestCommands",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "additionalProperties" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Test Commands",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/policy-mapping" : {
+      "get" : {
+        "operationId" : "policyMapping",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PolicyMappingReference"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Policy Mapping",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/migration/revert-bulk" : {
+      "post" : {
+        "operationId" : "revertBulk",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BulkRevertRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BulkRevertResult"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Revert Bulk",
+        "tags" : [ "Migration Resource" ]
+      }
+    },
+    "/api/threescale/backends" : {
+      "get" : {
+        "operationId" : "listBackends",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "object",
+                    "additionalProperties" : { }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Backends",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/products" : {
+      "get" : {
+        "operationId" : "listProducts",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ThreeScaleProduct"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Products",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/products/{namespace}/{name}" : {
+      "get" : {
+        "operationId" : "getProduct",
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "namespace",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ThreeScaleProduct"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Product",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/refresh" : {
+      "post" : {
+        "operationId" : "refreshDiscovery",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Refresh Discovery",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/sources" : {
+      "get" : {
+        "operationId" : "listSources",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ThreeScaleSource"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "List Sources",
+        "tags" : [ "Three Scale Resource" ]
+      },
+      "post" : {
+        "operationId" : "addSource",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ThreeScaleSource"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ThreeScaleSource"
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Add Source",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/sources/{id}" : {
+      "delete" : {
+        "operationId" : "removeSource",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "summary" : "Remove Source",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/sources/{id}/status" : {
+      "get" : {
+        "operationId" : "getSourceStatus",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Source Status",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    },
+    "/api/threescale/status" : {
+      "get" : {
+        "operationId" : "getStatus",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            }
+          }
+        },
+        "summary" : "Get Status",
+        "tags" : [ "Three Scale Resource" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "AnalyzeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "gatewayStrategy" : {
+            "type" : "string"
+          },
+          "products" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "targetClusterId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApicastPolicyMapping" : {
+        "type" : "object",
+        "properties" : {
+          "apicastPolicy" : {
+            "type" : "string"
+          },
+          "rhclTarget" : {
+            "type" : "string"
+          },
+          "gateforgeStatus" : {
+            "$ref" : "#/components/schemas/ImplementationStatus"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Application" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "userKey" : {
+            "type" : "string"
+          },
+          "planName" : {
+            "type" : "string"
+          },
+          "planSystemName" : {
+            "type" : "string"
+          },
+          "accountEmail" : {
+            "type" : "string"
+          },
+          "applicationId" : {
+            "type" : "string"
+          },
+          "applicationKey" : {
+            "type" : "string"
+          },
+          "redirectUrl" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApplicationPlan" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "systemName" : {
+            "type" : "string"
+          },
+          "state" : {
+            "type" : "string"
+          },
+          "limits" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PlanLimit"
+            }
+          }
+        }
+      },
+      "ApplyRequest" : {
+        "type" : "object",
+        "properties" : {
+          "excludedIndexes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "yamlOverrides" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "ApplyResult" : {
+        "type" : "object",
+        "properties" : {
+          "planId" : {
+            "type" : "string"
+          },
+          "applied" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "failed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ResourceResult"
+            }
+          },
+          "targetClusterId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AuditEntry" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "timestamp" : {
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "action" : {
+            "type" : "string"
+          },
+          "resourceKind" : {
+            "type" : "string"
+          },
+          "resourceName" : {
+            "type" : "string"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "yamlBefore" : {
+            "type" : "string"
+          },
+          "yamlAfter" : {
+            "type" : "string"
+          },
+          "performedBy" : {
+            "type" : "string"
+          },
+          "targetClusterId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "BackendUsage" : {
+        "type" : "object",
+        "properties" : {
+          "backendName" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          }
+        }
+      },
+      "BulkRevertRequest" : {
+        "type" : "object",
+        "properties" : {
+          "planIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "deleteGateway" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "BulkRevertResult" : {
+        "type" : "object",
+        "properties" : {
+          "totalPlans" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalReverted" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalFailed" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "planResults" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApplyResult"
+            }
+          }
+        }
+      },
+      "ChatMessage" : {
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "cached" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "ClusterReadiness" : {
+        "type" : "object",
+        "properties" : {
+          "clusterConnected" : {
+            "type" : "boolean"
+          },
+          "targetClusterId" : {
+            "type" : "string"
+          },
+          "connectionStatus" : {
+            "type" : "string"
+          },
+          "prerequisites" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MigrationPrerequisite"
+            }
+          }
+        }
+      },
+      "ConfirmRegistrationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "componentYaml" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ConsolidatedMapping" : {
+        "type" : "object",
+        "properties" : {
+          "threescaleConcept" : {
+            "type" : "string"
+          },
+          "rhclTarget" : {
+            "type" : "string"
+          },
+          "apiGroup" : {
+            "type" : "string"
+          },
+          "layer" : {
+            "$ref" : "#/components/schemas/Layer"
+          },
+          "gateforgeStatus" : {
+            "$ref" : "#/components/schemas/ImplementationStatus"
+          },
+          "notes" : {
+            "type" : "string"
+          }
+        }
+      },
+      "GeneratedResource" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "yaml" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ImplementationStatus" : {
+        "type" : "string",
+        "enum" : [ "GENERATED", "PARTIAL", "SUGGESTED", "MANUAL", "NOT_APPLICABLE" ]
+      },
+      "ImportExportResponse" : {
+        "type" : "object",
+        "properties" : {
+          "importMode" : {
+            "type" : "string"
+          },
+          "productCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "products" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProductSummary"
+            }
+          },
+          "manifest" : {
+            "$ref" : "#/components/schemas/ManifestSummary"
+          }
+        }
+      },
+      "Instant" : {
+        "type" : "string",
+        "format" : "date-time",
+        "examples" : [ "2022-03-10T16:15:50Z" ]
+      },
+      "Layer" : {
+        "type" : "string",
+        "enum" : [ "CONNECTIVITY", "CORE_POLICY", "EXTENSION", "PORTAL", "PLATFORM", "MANUAL" ]
+      },
+      "ManifestSummary" : {
+        "type" : "object",
+        "properties" : {
+          "schemaVersion" : {
+            "type" : "string"
+          },
+          "adminUrl" : {
+            "type" : "string"
+          },
+          "exportedAt" : {
+            "type" : "string"
+          }
+        }
+      },
+      "MappingRule" : {
+        "type" : "object",
+        "properties" : {
+          "httpMethod" : {
+            "type" : "string"
+          },
+          "pattern" : {
+            "type" : "string"
+          },
+          "metricRef" : {
+            "type" : "string"
+          },
+          "delta" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "MigrationPlan" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "gatewayStrategy" : {
+            "type" : "string"
+          },
+          "sourceProducts" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "resources" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeneratedResource"
+            }
+          },
+          "aiAnalysis" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "catalogInfoYaml" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "targetClusterId" : {
+            "type" : "string"
+          },
+          "targetClusterLabel" : {
+            "type" : "string"
+          },
+          "consolidationWarnings" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "prerequisites" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MigrationPrerequisite"
+            }
+          }
+        }
+      },
+      "MigrationPrerequisite" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "requiredByPlan" : {
+            "type" : "boolean"
+          },
+          "optionalTier" : {
+            "type" : "boolean"
+          },
+          "docUrl" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "triggeredByCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PlanLimit" : {
+        "type" : "object",
+        "properties" : {
+          "metricName" : {
+            "type" : "string"
+          },
+          "period" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "PolicyMappingReference" : {
+        "type" : "object",
+        "properties" : {
+          "taxonomy" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RhclTaxonomyLayer"
+            }
+          },
+          "consolidated" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConsolidatedMapping"
+            }
+          },
+          "apicastPolicies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApicastPolicyMapping"
+            }
+          }
+        }
+      },
+      "ProductSummary" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "systemName" : {
+            "type" : "string"
+          },
+          "serviceId" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "ProjectInfo" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "creationTimestamp" : {
+            "type" : "string"
+          },
+          "hasThreeScale" : {
+            "type" : "boolean"
+          },
+          "hasKuadrant" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "ResourceResult" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "success" : {
+            "type" : "boolean"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RhclTaxonomyLayer" : {
+        "type" : "object",
+        "properties" : {
+          "layer" : {
+            "type" : "string"
+          },
+          "apiGroup" : {
+            "type" : "string"
+          },
+          "resources" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "TargetCluster" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "apiServerUrl" : {
+            "type" : "string"
+          },
+          "token" : {
+            "type" : "string"
+          },
+          "authType" : {
+            "type" : "string"
+          },
+          "verifySsl" : {
+            "type" : "boolean"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "ThreeScaleProduct" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "systemName" : {
+            "type" : "string"
+          },
+          "serviceId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "deploymentOption" : {
+            "type" : "string"
+          },
+          "mappingRules" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MappingRule"
+            }
+          },
+          "backendUsages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BackendUsage"
+            }
+          },
+          "authentication" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          },
+          "source" : {
+            "type" : "string"
+          },
+          "backendNamespace" : {
+            "type" : "string"
+          },
+          "backendServiceName" : {
+            "type" : "string"
+          },
+          "sourceCluster" : {
+            "type" : "string"
+          },
+          "applicationPlans" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApplicationPlan"
+            }
+          },
+          "applications" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Application"
+            }
+          }
+        }
+      },
+      "ThreeScaleSource" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "adminUrl" : {
+            "type" : "string"
+          },
+          "accessToken" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        }
+      }
+    }
+  },
+  "info" : {
+    "title" : "GateForge API",
+    "version" : "0.2.0",
+    "description" : "3scale to Connectivity Link migration console REST API"
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080",
+    "description" : "Auto generated value"
+  }, {
+    "url" : "http://0.0.0.0:8080",
+    "description" : "Auto generated value"
+  } ]
+}

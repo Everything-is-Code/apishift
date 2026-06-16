@@ -35,7 +35,7 @@ For module layout, REST surface, and migration data flows, read **[docs/ARCHITEC
 
 ## Continuous integration
 
-- **Backend unit tests** run on every pull request and push to `main` via the [Backend tests](.github/workflows/backend-tests.yml) workflow (`mvn test` in `backend/`).
+- **Backend unit tests** run on every pull request and push to `main` via the [Backend tests](.github/workflows/backend-tests.yml) workflow (`mvn test` in `backend/`, plus OpenAPI schema export via `OpenApiBuildTest`).
 - Reproduce locally: `cd backend && mvn test` (Java 17).
 - `backend/Dockerfile.jvm` uses `-DskipTests` during image builds for speed; CI is the validation path for tests.
 - Maintainers: consider marking **Backend tests / backend-test** as a required status check on `main` after this workflow is merged.

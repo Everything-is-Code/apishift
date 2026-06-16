@@ -31,5 +31,8 @@ jobs:
       - name: Verify export-minimal fixture
         run: ../scripts/ci/verify-export-minimal-fixture.sh
 
+      - name: Export OpenAPI schema
+        run: mvn -q -Dtest=OpenApiBuildTest test
+
       - name: Run backend unit tests
         run: mvn test
