@@ -3,10 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout, retry } from 'rxjs/operators';
 import { API_BASE_URL } from './api-base';
-import {
-  ThreeScaleBackend,
+import type {
+  ThreeScaleAdminStatusDto,
+  ThreeScaleBackendDto,
+  ThreeScaleProductDto,
+  ThreeScaleRefreshResultDto,
+  ThreeScaleSourceDto,
+  ThreeScaleSourceStatusDto,
+} from './generated';
+import type {
   ThreeScaleProduct,
-  ThreeScaleRefreshResult,
   ThreeScaleSource,
   ThreeScaleStatus,
 } from './models';
@@ -18,42 +24,42 @@ export class ThreeScaleApiService {
   constructor(private http: HttpClient) {}
 
   getProducts(): Observable<ThreeScaleProduct[]> {
-    return this.http.get<ThreeScaleProduct[]>(`${this.baseUrl}/products`).pipe(
+    return this.http.get<ThreeScaleProductDto[]>(`${this.baseUrl}/products`).pipe(
       timeout(120000),
       retry({ count: 1, delay: 3000 })
-    );
+    ) as unknown as Observable<ThreeScaleProduct[]>;
   }
 
-  getBackends(): Observable<ThreeScaleBackend[]> {
-    return this.http.get<ThreeScaleBackend[]>(`${this.baseUrl}/backends`).pipe(
+  getBackends(): Observable<ThreeScaleBackendDto[]> {
+    return this.http.get<ThreeScaleBackendDto[]>(`${this.baseUrl}/backends`).pipe(
       timeout(120000),
       retry({ count: 1, delay: 3000 })
     );
   }
 
   getStatus(): Observable<ThreeScaleStatus> {
-    return this.http.get<ThreeScaleStatus>(`${this.baseUrl}/status`);
+    return this.http.get<ThreeScaleAdminStatusDto>(`${this.baseUrl}/status`) as unknown as Observable<ThreeScaleStatus>;
   }
 
-  refreshDiscovery(): Observable<ThreeScaleRefreshResult> {
-    return this.http.post<ThreeScaleRefreshResult>(`${this.baseUrl}/refresh`, {}).pipe(
+  refreshDiscovery(): Observable<ThreeScaleRefreshResultDto> {
+    return this.http.post<ThreeScaleRefreshResultDto>(`${this.baseUrl}/refresh`, {}).pipe(
       timeout(120000)
     );
   }
 
   getSources(): Observable<ThreeScaleSource[]> {
-    return this.http.get<ThreeScaleSource[]>(`${this.baseUrl}/sources`);
+    return this.http.get<ThreeScaleSourceDto[]>(`${this.baseUrl}/sources`) as unknown as Observable<ThreeScaleSource[]>;
   }
 
   addSource(source: ThreeScaleSource): Observable<ThreeScaleSource> {
-    return this.http.post<ThreeScaleSource>(`${this.baseUrl}/sources`, source);
+    return this.http.post<ThreeScaleSourceDto>(`${this.baseUrl}/sources`, source) as unknown as Observable<ThreeScaleSource>;
   }
 
   removeSource(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/sources/${id}`);
   }
 
-  getSourceStatus(id: string): Observable<Record<string, unknown>> {
-    return this.http.get<Record<string, unknown>>(`${this.baseUrl}/sources/${id}/status`);
+  getSourceStatus(id: string): Observable<ThreeScaleSourceStatusDto> {
+    return this.http.get<ThreeScaleSourceStatusDto>(`${this.baseUrl}/sources/${id}/status`);
   }
 }

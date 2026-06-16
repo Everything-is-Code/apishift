@@ -1,3 +1,5 @@
+export type { DriftEntryDto as DriftEntry, TestCommandDto as TestCommand } from '../generated';
+
 export interface GeneratedResource {
   kind: string;
   name: string;
@@ -32,14 +34,6 @@ export interface MigrationPlan {
   prerequisites?: MigrationPrerequisite[];
 }
 
-export interface DriftEntry {
-  kind: string;
-  name: string;
-  namespace: string;
-  status: 'in-sync' | 'missing' | 'error';
-  message?: string;
-}
-
 export interface ResourceResult {
   kind: string;
   name: string;
@@ -60,12 +54,6 @@ export interface BulkRevertResult {
   totalReverted: number;
   totalFailed: number;
   planResults: ApplyResult[];
-}
-
-export interface TestCommand {
-  label: string;
-  command: string;
-  type: string;
 }
 
 export interface ImportExportResponse {

@@ -1,5 +1,7 @@
 import { MigrationPrerequisite } from './migration.models';
 
+export type { ClusterFeaturesDto as FeatureFlags } from '../generated';
+
 export interface ProjectInfo {
   name: string;
   status: string;
@@ -16,13 +18,6 @@ export interface TargetCluster {
   authType: string;
   verifySsl: boolean;
   enabled: boolean;
-}
-
-export interface FeatureFlags {
-  developerHub: {
-    enabled: boolean;
-    url: string;
-  };
 }
 
 export interface ClusterReadiness {

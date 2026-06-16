@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class APICastResource {
 
     @GET
     @Path("/analyze/{namespace}/{name}")
+    @Operation(operationId = "analyzeApicast")
     public Response analyze(@PathParam("namespace") String namespace, @PathParam("name") String name) {
         APICastConfig config = discoveryService.discoverByName(name, namespace);
         if (config == null) {

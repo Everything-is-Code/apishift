@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-base';
-import {
+import type {
+  ClusterFeaturesDto,
+  ClusterReadinessDto,
+  ProjectInfoDto,
+  TargetClusterDto,
+} from './generated';
+import type {
   ClusterReadiness,
   FeatureFlags,
   ProjectInfo,
@@ -16,19 +22,19 @@ export class ClusterApiService {
   constructor(private http: HttpClient) {}
 
   getProjects(): Observable<ProjectInfo[]> {
-    return this.http.get<ProjectInfo[]>(`${this.baseUrl}/projects`);
+    return this.http.get<ProjectInfoDto[]>(`${this.baseUrl}/projects`) as unknown as Observable<ProjectInfo[]>;
   }
 
   getFeatures(): Observable<FeatureFlags> {
-    return this.http.get<FeatureFlags>(`${this.baseUrl}/features`);
+    return this.http.get<ClusterFeaturesDto>(`${this.baseUrl}/features`) as unknown as Observable<FeatureFlags>;
   }
 
   getTargetClusters(): Observable<TargetCluster[]> {
-    return this.http.get<TargetCluster[]>(`${this.baseUrl}/targets`);
+    return this.http.get<TargetClusterDto[]>(`${this.baseUrl}/targets`) as unknown as Observable<TargetCluster[]>;
   }
 
   addTargetCluster(cluster: TargetCluster): Observable<TargetCluster> {
-    return this.http.post<TargetCluster>(`${this.baseUrl}/targets`, cluster);
+    return this.http.post<TargetClusterDto>(`${this.baseUrl}/targets`, cluster) as unknown as Observable<TargetCluster>;
   }
 
   removeTargetCluster(id: string): Observable<void> {
@@ -44,6 +50,6 @@ export class ClusterApiService {
     if (targetClusterId) params.push(`targetClusterId=${encodeURIComponent(targetClusterId)}`);
     if (planId) params.push(`planId=${encodeURIComponent(planId)}`);
     const query = params.length ? `?${params.join('&')}` : '';
-    return this.http.get<ClusterReadiness>(`${this.baseUrl}/readiness${query}`);
+    return this.http.get<ClusterReadinessDto>(`${this.baseUrl}/readiness${query}`) as unknown as Observable<ClusterReadiness>;
   }
 }

@@ -18,6 +18,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.jboss.logging.Logger;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
@@ -61,6 +62,7 @@ public class MigrationResource {
 
     @POST
     @Path("/analyze")
+    @Operation(operationId = "analyzeMigration")
     public MigrationPlan analyze(AnalyzeRequest request) {
         String clusterId = request.targetClusterId() != null ? request.targetClusterId() : "local";
         return migrationService.analyze(

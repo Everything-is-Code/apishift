@@ -3,7 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ClusterApiService } from './cluster-api.service';
 import { MigrationApiService } from './migration-api.service';
 import { ThreeScaleApiService } from './threescale-api.service';
-import { MigrationPlan } from './models';
+import type { MigrationPlan } from './models';
 
 describe('ClusterApiService', () => {
   let service: ClusterApiService;
@@ -40,7 +40,7 @@ describe('ClusterApiService', () => {
 
   it('getFeatures_requestsCorrectUrl', () => {
     service.getFeatures().subscribe(features => {
-      expect(features.developerHub.enabled).toBe(false);
+      expect(features.developerHub?.enabled).toBe(false);
     });
 
     const req = httpMock.expectOne('/api/cluster/features');
@@ -106,6 +106,23 @@ describe('ThreeScaleApiService', () => {
       authentication: {},
       source: 'local',
     }]);
+  });
+
+  it('getSourceStatus_requestsCorrectUrl', () => {
+    service.getSourceStatus('lab').subscribe(status => {
+      expect(status.reachable).toBe(true);
+    });
+
+    const req = httpMock.expectOne('/api/threescale/sources/lab/status');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      id: 'lab',
+      label: 'Lab',
+      adminUrl: 'https://3scale.example.com',
+      configured: true,
+      enabled: true,
+      reachable: true,
+    });
   });
 });
 

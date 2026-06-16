@@ -852,7 +852,7 @@
   "paths" : {
     "/api/apicast/analyze/{namespace}/{name}" : {
       "get" : {
-        "operationId" : "analyze",
+        "operationId" : "analyzeApicast",
         "parameters" : [ {
           "name" : "name",
           "in" : "path",
@@ -1350,7 +1350,7 @@
     },
     "/api/migration/analyze" : {
       "post" : {
-        "operationId" : "analyze",
+        "operationId" : "analyzeMigration",
         "requestBody" : {
           "content" : {
             "application/json" : {
