@@ -1,7 +1,7 @@
 # GateForge Helm Chart
 
 <p align="center">
-  <img src="https://maximilianopizarro.github.io/gateforge/assets/logo.svg" alt="GateForge Logo" width="100">
+  <img src="https://everything-is-code.github.io/gateforge/assets/logo.svg" alt="GateForge Logo" width="100">
 </p>
 
 AI-powered migration platform for transitioning from **Red Hat 3scale API Management** to **Red Hat Connectivity Link** (Kuadrant) on OpenShift 4.21.
@@ -16,7 +16,7 @@ AI-powered migration platform for transitioning from **Red Hat 3scale API Manage
 ## Installation
 
 ```bash
-helm repo add gateforge https://maximilianopizarro.github.io/gateforge/
+helm repo add gateforge https://everything-is-code.github.io/gateforge/
 helm repo update
 helm install gateforge gateforge/gateforge
 ```
@@ -66,9 +66,9 @@ helm install gateforge gateforge/gateforge \
 | Value | Default | Description |
 |-------|---------|-------------|
 | `backend.image.repository` | `quay.io/maximilianopizarro/gateforge-backend` | Backend image |
-| `backend.image.tag` | `v0.1.9` | Backend image tag |
+| `backend.image.tag` | `v0.2.0` | Backend image tag |
 | `frontend.image.repository` | `quay.io/maximilianopizarro/gateforge-frontend` | Frontend image |
-| `frontend.image.tag` | `v0.1.9` | Frontend image tag |
+| `frontend.image.tag` | `v0.2.0` | Frontend image tag |
 | `ai.enabled` | `true` | Enable AI features |
 | `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | `deepseek-r1-distill-qwen-14b` | AI model name |

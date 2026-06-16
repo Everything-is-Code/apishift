@@ -181,7 +181,7 @@ const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
             <strong>Gateway API</strong>
             <p>HTTPRoute, Gateway, GatewayClass specification</p>
           </a>
-          <a href="https://maximilianopizarro.github.io/gateforge/" target="_blank" class="link-card">
+          <a href="https://everything-is-code.github.io/gateforge/" target="_blank" class="link-card">
             <strong>GateForge Docs</strong>
             <p>Installation, usage examples, architecture</p>
           </a>

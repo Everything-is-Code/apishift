@@ -2,10 +2,10 @@ apiVersion: v2
 name: gateforge
 description: AI-powered 3scale to Red Hat Connectivity Link migration platform
 type: application
-version: 0.1.9
-appVersion: "0.1.9"
-icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
-home: https://maximilianopizarro.github.io/gateforge/
+version: 0.2.0
+appVersion: "0.2.0"
+icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+home: https://everything-is-code.github.io/gateforge/
 sources:
   - https://github.com/Everything-is-Code/gateforge
 maintainers:
@@ -16,7 +16,7 @@ annotations:
   artifacthub.io/operator: "false"
   artifacthub.io/links: |
     - name: Documentation
-      url: https://maximilianopizarro.github.io/gateforge/
+      url: https://everything-is-code.github.io/gateforge/
     - name: Red Hat Connectivity Link
       url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
     - name: Kuadrant
