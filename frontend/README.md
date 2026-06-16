@@ -22,7 +22,7 @@ The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
 |------|---------|
 | `src/app/app.routes.ts` | Route table (`/`, `/threescale`, `/migrate`, `/chat`, `/audit`, `/settings`) |
 | `src/app/core/api/` | Domain HTTP facades (`ClusterApiService`, `ThreeScaleApiService`, `MigrationApiService`, …) and DTOs in `models/` |
-| `src/app/features/` | Feature areas — one folder per route (dashboard, explorer, migration, chat, audit, settings) |
+| `src/app/features/migration/` | Migration wizard container and `steps/` child components |
 | `src/app/shared/` | Reusable UI pieces (empty until extracted from features) |
 | `src/environments/version.ts` | Build-time version stamp (synced from Helm chart on release) |
 

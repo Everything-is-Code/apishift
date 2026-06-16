@@ -1,0 +1,65 @@
+<div class="history-section">
+        <div class="history-header" (click)="a.toggleHistory()">
+          <h2>Migration History / Revert to 3scale</h2>
+          <span class="chevron" [class.open]="s.historyOpen">⌄</span>
+        </div>
+        <div *ngIf="s.historyOpen" class="history-body">
+          <div *ngIf="s.historyLoading" class="loading-text">Loading migration plans…</div>
+          <div *ngIf="!s.historyLoading && s.allPlans.length === 0" class="empty-inline card">
+            <p>No migration plans found. Create one using the wizard above.</p>
+          </div>
+          <div *ngIf="!s.historyLoading && s.allPlans.length > 0">
+            <div class="history-toolbar">
+              <label class="select-all-label">
+                <input type="checkbox" [checked]="s.allSelected" (change)="a.toggleSelectAll()">
+                Select All
+              </label>
+              <label class="delete-gw-label">
+                <input type="checkbox" [ngModel]="s.deleteGateway" (ngModelChange)="a.setDeleteGateway($event)">
+                Also delete shared Gateway
+              </label>
+              <button type="button" class="btn-bulk-revert"
+                      (click)="a.confirmBulkRevert()"
+                      [disabled]="s.selectedPlanIds.length === 0 || s.bulkReverting">
+                {{ s.bulkReverting ? 'Reverting…' : 'Revert to 3scale (' + s.selectedPlanIds.length + ')' }}
+              </button>
+            </div>
+            <div class="history-list">
+              <div *ngFor="let p of s.allPlans" class="history-row-wrap">
+                <div class="history-row card" [class.reverted]="p.status === 'REVERTED'">
+                  <input type="checkbox" [checked]="s.planSelection[p.id]" (change)="a.togglePlanSelection(p.id)"
+                         [disabled]="p.status === 'REVERTED'">
+                  <div class="history-info">
+                    <span class="history-id">{{ p.id }}</span>
+                    <span class="pill pill-strategy">{{ p.gatewayStrategy }}</span>
+                    <span class="pill pill-muted">{{ p.sourceProducts.join(', ') }}</span>
+                  </div>
+                  <span class="badge" [class.badge-active]="p.status === 'ACTIVE'" [class.badge-reverted]="p.status === 'REVERTED'">
+                    {{ p.status || 'ACTIVE' }}
+                  </span>
+                  <button type="button" class="btn-drift"
+                          (click)="a.checkDrift(p.id); $event.stopPropagation()"
+                          [disabled]="s.driftLoading[p.id] || p.status === 'REVERTED'"
+                          *ngIf="p.status !== 'REVERTED'">
+                    {{ s.driftLoading[p.id] ? 'Checking…' : 'Check Status' }}
+                  </button>
+                </div>
+                <div *ngIf="s.driftResults[p.id]" class="drift-results">
+                  <div *ngFor="let d of s.driftResults[p.id]" class="drift-row" [class.drift-ok]="d.status === 'in-sync'" [class.drift-miss]="d.status === 'missing'" [class.drift-err]="d.status === 'error'">
+                    <span class="badge badge-kind">{{ d.kind }}</span>
+                    <span class="drift-name">{{ d.name }}</span>
+                    <span class="drift-badge" [class.drift-badge-ok]="d.status === 'in-sync'" [class.drift-badge-miss]="d.status === 'missing'" [class.drift-badge-err]="d.status === 'error'">
+                      {{ d.status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="s.bulkResult" class="apply-result" [class.success]="s.bulkResult.totalFailed === 0" [class.partial]="s.bulkResult.totalFailed > 0">
+              <div class="apply-summary">
+                <strong>Bulk revert: {{ s.bulkResult.totalReverted }} reverted, {{ s.bulkResult.totalFailed }} failed</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>

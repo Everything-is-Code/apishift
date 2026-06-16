@@ -1,0 +1,39 @@
+<div class="step-panel">
+  <h2>Gateway strategy</h2>
+  <p class="step-desc">Pick how Gateways should be shaped after migration. You can re-run analysis if plans change.</p>
+
+  <div class="strategy-grid">
+    <label *ngFor="let s of strategies" class="strategy-card card" [class.selected]="gatewayStrategy === s.value">
+      <input type="radio" class="visually-hidden" name="gatewayStrategy" [value]="s.value"
+             [checked]="gatewayStrategy === s.value" (change)="strategyChange.emit(s.value)">
+      <div class="strategy-icon" aria-hidden="true">{{ s.icon }}</div>
+      <div class="strategy-text">
+        <span class="strategy-title">{{ s.label }}</span>
+        <p>{{ s.description }}</p>
+      </div>
+    </label>
+  </div>
+
+  <div *ngIf="targetClusters.length > 1" class="cluster-selector">
+    <h3>Target cluster</h3>
+    <p class="step-desc">Choose which cluster receives the migrated resources.</p>
+    <div class="cluster-grid">
+      <label *ngFor="let c of targetClusters" class="cluster-card card" [class.selected]="selectedClusterId === c.id">
+        <input type="radio" class="visually-hidden" name="targetCluster" [value]="c.id"
+               [checked]="selectedClusterId === c.id" (change)="clusterChange.emit(c.id)">
+        <div class="cluster-icon" aria-hidden="true">{{ c.id === 'local' ? '⎈' : '☁' }}</div>
+        <div class="cluster-text">
+          <span class="cluster-name">{{ c.label }}</span>
+          <span class="cluster-url" *ngIf="c.apiServerUrl">{{ c.apiServerUrl }}</span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn-secondary" (click)="back.emit()">Back</button>
+    <button type="button" class="btn-primary" (click)="analyze.emit()" [disabled]="analyzing">
+      {{ analyzing ? 'Analyzing…' : 'Analyze' }}
+    </button>
+  </div>
+</div>
