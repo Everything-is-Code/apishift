@@ -88,17 +88,8 @@ public class ChatResource {
                         loaded++;
                         continue;
                     }
-                    try {
-                        String contextEnriched = buildContextMessage(prompt);
-                        String response = migrationAgent.chat(contextEnriched);
-                        response = cleanThinkingBlocks(response);
-                        if (response != null && !response.isBlank()) {
-                            cache.put(key, response, 24, TimeUnit.HOURS);
-                            loaded++;
-                            LOG.infof("FAQ cached [%d/%d]: %s", loaded, FAQ_PROMPTS.length, prompt);
-                        }
-                    } catch (Exception e) {
-                        LOG.warnf("FAQ cache warm-up failed for: %s — %s", prompt, e.getMessage());
+                    if (cacheFaqPrompt(cache, prompt, loaded + 1)) {
+                        loaded++;
                     }
                 }
                 LOG.infof("FAQ cache warm-up complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
@@ -150,20 +141,21 @@ public class ChatResource {
         executor.submit(() -> {
             try {
                 RemoteCache<String, String> cache = getOrCreateFaqCache();
-                if (cache == null) return;
+                if (cache == null) {
+                    return;
+                }
+                int loaded = 0;
                 for (String prompt : FAQ_PROMPTS) {
-                    try {
-                        String contextEnriched = buildContextMessage(prompt);
-                        String response = migrationAgent.chat(contextEnriched);
-                        response = cleanThinkingBlocks(response);
-                        if (response != null && !response.isBlank()) {
-                            cache.put(prompt.trim().toLowerCase(), response, 24, TimeUnit.HOURS);
-                        }
-                    } catch (Exception e) {
-                        LOG.warnf("FAQ refresh failed for: %s", prompt);
+                    String key = prompt.trim().toLowerCase();
+                    if (cache.get(key) != null) {
+                        loaded++;
+                        continue;
+                    }
+                    if (cacheFaqPrompt(cache, prompt, loaded + 1)) {
+                        loaded++;
                     }
                 }
-                LOG.info("FAQ cache refresh complete");
+                LOG.infof("FAQ cache refresh complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
             } catch (Exception e) {
                 LOG.warn("FAQ cache refresh failed", e);
             }
@@ -226,6 +218,58 @@ public class ChatResource {
     }
 
     private static final int MAX_CONTEXT_PRODUCTS = 20;
+
+    private boolean cacheFaqPrompt(RemoteCache<String, String> cache, String prompt, int displayIndex) {
+        String key = prompt.trim().toLowerCase();
+        final int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                String response = migrationAgent.chat(buildFaqWarmupContext(prompt));
+                response = cleanThinkingBlocks(response);
+                if (response != null && !response.isBlank()) {
+                    cache.put(key, response, 24, TimeUnit.HOURS);
+                    LOG.infof("FAQ cached [%d/%d]: %s", displayIndex, FAQ_PROMPTS.length, prompt);
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                if (attempt >= maxAttempts) {
+                    LOG.warnf("FAQ cache warm-up failed for: %s — %s", prompt, e.getMessage());
+                } else {
+                    LOG.infof("FAQ warm-up retry %d/%d for: %s — %s",
+                            attempt, maxAttempts, prompt, e.getMessage());
+                    try {
+                        Thread.sleep(10_000L);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Smaller context for FAQ warm-up: skips full OpenShift namespace inventory to reduce
+     * token load and upstream proxy timeouts on long answers.
+     */
+    private String buildFaqWarmupContext(String userQuestion) {
+        StringBuilder ctx = new StringBuilder();
+        ctx.append("## Current Cluster State (summary)\n\n");
+        try {
+            ctx.append("### 3scale Status\n").append(tools.getThreeScaleStatus()).append("\n\n");
+        } catch (Exception e) {
+            LOG.debug("Failed to fetch 3scale status for FAQ warm-up context", e);
+        }
+        try {
+            ctx.append("### 3scale Products (summary)\n").append(buildProductSummary(userQuestion)).append("\n\n");
+        } catch (Exception e) {
+            LOG.debug("Failed to fetch products for FAQ warm-up context", e);
+        }
+        ctx.append("---\n\n## User Question\n").append(userQuestion);
+        return ctx.toString();
+    }
 
     private String buildContextMessage(String userQuestion) {
         StringBuilder ctx = new StringBuilder();

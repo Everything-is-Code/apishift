@@ -52,6 +52,7 @@ services:
       # LiteLLM / AI (set AI_API_KEY in .env)
       AI_ENDPOINT: ${AI_ENDPOINT:-https://litellm-prod.apps.maas.redhatworkshops.io/v1}
       AI_MODEL: ${AI_MODEL:-openai/deepseek-r1-distill-qwen-14b}
+      AI_TIMEOUT: ${AI_TIMEOUT:-600s}
       AI_API_KEY: ${AI_API_KEY:-}
       # 3scale Admin API (required for discovery / effort estimation)
       THREESCALE_ADMIN_URL: ${THREESCALE_ADMIN_URL:-}

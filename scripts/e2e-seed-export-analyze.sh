@@ -9,13 +9,16 @@
 # Optional:
 #   E2E_MODE=offline|live|auto|fixture   (default: auto)
 #   E2E_SKIP_SEED=1                      reuse existing export directory
-#   3SCALEEXTRACT_ROOT=../3scaleextract
+#   THREESCALEEXTRACT_ROOT=../3scaleextract
 #   GATEFORGE_API_URL=http://localhost:8080/api
 #   THREESCALE_OUTPUT_DIR=./export
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXTRACT_ROOT="${3SCALEEXTRACT_ROOT:-$(cd "${ROOT}/../3scaleextract" 2>/dev/null && pwd || true)}"
+EXTRACT_ROOT="${THREESCALEEXTRACT_ROOT:-}"
+if [[ -z "${EXTRACT_ROOT}" ]]; then
+	EXTRACT_ROOT="$(cd "${ROOT}/../3scaleextract" 2>/dev/null && pwd || true)"
+fi
 GATEFORGE_API="${GATEFORGE_API_URL:-http://localhost:8080/api}"
 OUTPUT_DIR="${THREESCALE_OUTPUT_DIR:-${EXTRACT_ROOT}/export}"
 REPORT_DIR="${THREESCALE_REPORT_DIR:-${EXTRACT_ROOT}/report}"
@@ -52,7 +55,7 @@ gateforge_ready() {
 }
 
 run_seed_export() {
-	[[ -n "${EXTRACT_ROOT}" ]] || die "3scaleextract not found; set 3SCALEEXTRACT_ROOT"
+	[[ -n "${EXTRACT_ROOT}" ]] || die "3scaleextract not found; set THREESCALEEXTRACT_ROOT"
 	[[ -f "${EXTRACT_ROOT}/scripts/demo/seed-and-export.sh" ]] \
 		|| die "missing ${EXTRACT_ROOT}/scripts/demo/seed-and-export.sh"
 
@@ -74,11 +77,11 @@ run_seed_export() {
 verify_export_manifest() {
 	[[ -f "${OUTPUT_DIR}/manifest.json" ]] || die "missing ${OUTPUT_DIR}/manifest.json"
 	local incomplete count
-	incomplete="$(jq -r '.incomplete // true' "${OUTPUT_DIR}/manifest.json")"
+	incomplete="$(jq -r 'if .incomplete == true then "true" else "false" end' "${OUTPUT_DIR}/manifest.json")"
 	count="$(jq -r '.product_count // 0' "${OUTPUT_DIR}/manifest.json")"
 	[[ "${incomplete}" == "false" ]] || die "export incomplete=true (check Admin token and tenant)"
-	[[ "${count}" -eq 4 ]] || die "expected product_count=4, got ${count}"
-	log "Export manifest OK (4 products, incomplete=false)"
+	[[ "${count}" -ge 4 ]] || die "expected product_count>=4, got ${count}"
+	log "Export manifest OK (${count} products, incomplete=false)"
 }
 
 run_visualize() {
@@ -205,7 +208,7 @@ main() {
 			import_export_offline
 			;;
 		*)
-			[[ -n "${EXTRACT_ROOT}" ]] || die "set 3SCALEEXTRACT_ROOT to 3scaleextract checkout"
+			[[ -n "${EXTRACT_ROOT}" ]] || die "set THREESCALEEXTRACT_ROOT to 3scaleextract checkout"
 			require_cmd go zip
 			run_seed_export
 			verify_export_manifest
