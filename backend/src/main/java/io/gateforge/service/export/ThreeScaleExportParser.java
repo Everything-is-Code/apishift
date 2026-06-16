@@ -195,13 +195,43 @@ public class ThreeScaleExportParser {
         try {
             Map<String, Object> root = yamlMapper.readValue(
                     Files.readString(yamlPath), new TypeReference<Map<String, Object>>() {});
-            Map<String, Object> spec = unwrap(root.get("spec"));
+            Map<String, Object> spec = extractProductSpec(root);
             return new ProductYamlMetadata(
                     stringValue(spec.get("name")),
-                    stringValue(spec.get("systemName")));
+                    firstNonBlank(
+                            stringValue(spec.get("systemName")),
+                            stringValue(spec.get("system_name"))));
         } catch (IOException e) {
             return new ProductYamlMetadata(null, null);
         }
+    }
+
+    private Map<String, Object> extractProductSpec(Map<String, Object> root) {
+        if (root.containsKey("spec")) {
+            return unwrap(root.get("spec"));
+        }
+        if ("List".equals(stringValue(root.get("kind"))) && root.get("items") instanceof List<?> items) {
+            for (Object item : items) {
+                if (!(item instanceof Map<?, ?> doc)) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) doc;
+                if ("Product".equals(stringValue(map.get("kind")))) {
+                    return unwrap(map.get("spec"));
+                }
+            }
+        }
+        return Map.of();
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
     }
 
     private List<ThreeScaleProduct.MappingRule> parseMappingRules(Map<String, Object> proxy) {
@@ -234,12 +264,7 @@ public class ThreeScaleExportParser {
         if (!Files.isRegularFile(usagesFile)) {
             return List.of();
         }
-        Map<String, Object> doc = jsonMapper.readValue(
-                Files.readString(usagesFile), new TypeReference<Map<String, Object>>() {});
-        Object usagesObj = doc.get("backend_usages");
-        if (!(usagesObj instanceof List<?> usages)) {
-            return List.of();
-        }
+        List<?> usages = readBackendUsageItems(usagesFile);
         List<ThreeScaleProduct.BackendUsage> parsed = new ArrayList<>();
         for (Object item : usages) {
             if (!(item instanceof Map<?, ?> wrapper)) {
@@ -254,6 +279,22 @@ public class ThreeScaleExportParser {
         return parsed;
     }
 
+    private List<?> readBackendUsageItems(Path usagesFile) throws IOException {
+        Object root = jsonMapper.readValue(
+                Files.readString(usagesFile), new TypeReference<Object>() {});
+        if (root instanceof List<?> list) {
+            return list;
+        }
+        if (root instanceof Map<?, ?> doc) {
+            @SuppressWarnings("unchecked")
+            Object usagesObj = ((Map<String, Object>) doc).get("backend_usages");
+            if (usagesObj instanceof List<?> list) {
+                return list;
+            }
+        }
+        return List.of();
+    }
+
     private Map<String, Object> parseAuthentication(Path productDir, Map<String, Object> proxy)
             throws IOException {
         Map<String, Object> auth = new LinkedHashMap<>();
@@ -261,6 +302,10 @@ public class ThreeScaleExportParser {
         if (!authType.isBlank()) {
             auth.put("auth_type", authType);
             auth.put("type", authType);
+        } else if ("true".equalsIgnoreCase(stringValue(proxy.get("auth_user_key")))) {
+            auth.put("type", "api_key");
+        } else if ("true".equalsIgnoreCase(stringValue(proxy.get("auth_app_id")))) {
+            auth.put("type", "app_id");
         }
         ThreeScaleAuthMode.enrichAuthFromProxy(auth, proxy);
 
@@ -275,7 +320,9 @@ public class ThreeScaleExportParser {
             for (Map.Entry<String, Object> entry : oidc.entrySet()) {
                 auth.putIfAbsent(entry.getKey(), entry.getValue());
             }
-            auth.put("type", "oidc");
+            if (ThreeScaleAuthMode.fromAuthMap(auth) == ThreeScaleAuthMode.OIDC) {
+                auth.put("type", "oidc");
+            }
         }
         return auth;
     }
