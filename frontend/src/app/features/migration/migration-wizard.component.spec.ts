@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { MigrationWizardComponent } from './migration-wizard.component';
+import { MigrationWizardStateService } from './migration-wizard.state.service';
 import { ClusterApiService } from '../../core/api/cluster-api.service';
 import { MigrationApiService } from '../../core/api/migration-api.service';
 import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
@@ -65,7 +66,7 @@ function stubApiDefaults(spies: WizardApiSpies): void {
 
 async function configureWizard(spies: WizardApiSpies): Promise<{
   fixture: ComponentFixture<MigrationWizardComponent>;
-  component: MigrationWizardComponent;
+  wizard: MigrationWizardStateService;
 }> {
   await TestBed.configureTestingModule({
     imports: [MigrationWizardComponent],
@@ -78,7 +79,7 @@ async function configureWizard(spies: WizardApiSpies): Promise<{
   }).compileComponents();
 
   const fixture = TestBed.createComponent(MigrationWizardComponent);
-  return { fixture, component: fixture.componentInstance };
+  return { fixture, wizard: fixture.componentInstance.wizard };
 }
 
 describe('MigrationWizardComponent init', () => {
@@ -91,38 +92,38 @@ describe('MigrationWizardComponent init', () => {
 
   it('ngOnInit_loadsProducts', async () => {
     spies.threescale.getProducts.and.returnValue(of([mockProduct, otherProduct]));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
 
     fixture.detectChanges();
 
-    expect(component.products.length).toBe(2);
-    expect(component.products.every(p => !p.selected)).toBe(true);
-    expect(component.productsLoading).toBe(false);
+    expect(wizard.products.length).toBe(2);
+    expect(wizard.products.every(p => !p.selected)).toBe(true);
+    expect(wizard.productsLoading).toBe(false);
   });
 
   it('ngOnInit_productError_clearsLoading', async () => {
     spies.threescale.getProducts.and.returnValue(throwError(() => new Error('load failed')));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
 
     fixture.detectChanges();
 
-    expect(component.productsLoading).toBe(false);
-    expect(component.products.length).toBe(0);
+    expect(wizard.productsLoading).toBe(false);
+    expect(wizard.products.length).toBe(0);
   });
 
   it('ngOnInit_clusterError_fallsBackToLocal', async () => {
     spies.cluster.getTargetClusters.and.returnValue(throwError(() => new Error('cluster failed')));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
 
     fixture.detectChanges();
 
-    expect(component.targetClusters.length).toBe(1);
-    expect(component.targetClusters[0].id).toBe('local');
+    expect(wizard.targetClusters.length).toBe(1);
+    expect(wizard.targetClusters[0].id).toBe('local');
   });
 });
 
 describe('MigrationWizardComponent step 1', () => {
-  let component: MigrationWizardComponent;
+  let wizard: MigrationWizardStateService;
 
   beforeEach(async () => {
     const spies = createApiSpies();
@@ -130,26 +131,26 @@ describe('MigrationWizardComponent step 1', () => {
     spies.threescale.getProducts.and.returnValue(of([mockProduct, otherProduct]));
     const configured = await configureWizard(spies);
     configured.fixture.detectChanges();
-    component = configured.component;
+    wizard = configured.wizard;
   });
 
   it('selectedCount_reflectsSelection', () => {
-    component.products[0].selected = true;
-    expect(component.selectedCount).toBe(1);
+    wizard.products[0].selected = true;
+    expect(wizard.selectedCount).toBe(1);
   });
 
   it('visibleProducts_filtersByQuery', () => {
-    component.productSearchQuery = 'other';
-    expect(component.visibleProducts.length).toBe(1);
-    expect(component.visibleProducts[0].product.name).toBe('other-api');
+    wizard.productSearchQuery = 'other';
+    expect(wizard.visibleProducts.length).toBe(1);
+    expect(wizard.visibleProducts[0].product.name).toBe('other-api');
   });
 
   it('selectAllFiltered_togglesVisible', () => {
-    component.productSearchQuery = 'demo';
-    component.selectAllFiltered();
-    expect(component.visibleProducts.every(p => p.selected)).toBe(true);
-    component.selectAllFiltered();
-    expect(component.visibleProducts.every(p => !p.selected)).toBe(true);
+    wizard.productSearchQuery = 'demo';
+    wizard.selectAllFiltered();
+    expect(wizard.visibleProducts.every(p => p.selected)).toBe(true);
+    wizard.selectAllFiltered();
+    expect(wizard.visibleProducts.every(p => !p.selected)).toBe(true);
   });
 });
 
@@ -165,14 +166,14 @@ describe('MigrationWizardComponent export import', () => {
     const spies = createApiSpies();
     stubApiDefaults(spies);
     spies.threescale.getProducts.and.returnValue(of([mockProduct]));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
     fixture.detectChanges();
 
-    component.setProductSource('export');
+    wizard.setProductSource('export');
 
-    expect(component.productSource).toBe('export');
-    expect(component.products.length).toBe(0);
-    expect(component.productsLoading).toBe(false);
+    expect(wizard.productSource).toBe('export');
+    expect(wizard.products.length).toBe(0);
+    expect(wizard.productsLoading).toBe(false);
   });
 
   it('importExportArchive_successReloadsProducts', async () => {
@@ -185,34 +186,34 @@ describe('MigrationWizardComponent export import', () => {
       manifest: { schemaVersion: '1.0', adminUrl: 'https://example.com', exportedAt: '2024-01-01' },
     }));
     spies.threescale.getProducts.and.returnValue(of([exportProduct]));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
     fixture.detectChanges();
 
-    component.setProductSource('export');
-    component.selectedExportFile = new File(['zip'], 'export-minimal.zip', { type: 'application/zip' });
-    component.importExportArchive();
+    wizard.setProductSource('export');
+    wizard.selectedExportFile = new File(['zip'], 'export-minimal.zip', { type: 'application/zip' });
+    wizard.importExportArchive();
     fixture.detectChanges();
 
     expect(spies.migration.importExport).toHaveBeenCalled();
     expect(spies.threescale.getProducts).toHaveBeenCalled();
-    expect(component.products.length).toBe(1);
-    expect(component.importResult?.productCount).toBe(1);
-    expect(component.importing).toBe(false);
-    expect(component.isExportProduct(component.products[0].product)).toBe(true);
+    expect(wizard.products.length).toBe(1);
+    expect(wizard.importResult?.productCount).toBe(1);
+    expect(wizard.importing).toBe(false);
+    expect(wizard.isExportProductFn(wizard.products[0].product)).toBe(true);
   });
 
   it('importExportArchive_errorShowsMessage', async () => {
     const spies = createApiSpies();
     stubApiDefaults(spies);
     spies.migration.importExport.and.returnValue(throwError(() => ({ error: 'Only .zip export archives are supported' })));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
     fixture.detectChanges();
 
-    component.setProductSource('export');
-    component.selectedExportFile = new File(['bad'], 'archive.tar.gz', { type: 'application/gzip' });
-    component.importExportArchive();
+    wizard.setProductSource('export');
+    wizard.selectedExportFile = new File(['bad'], 'archive.tar.gz', { type: 'application/gzip' });
+    wizard.importExportArchive();
 
-    expect(component.importError).toContain('.zip');
+    expect(wizard.importError).toContain('.zip');
     expect(spies.migration.importExport).not.toHaveBeenCalled();
   });
 });
@@ -234,45 +235,45 @@ describe('MigrationWizardComponent analyze', () => {
     stubApiDefaults(spies);
     spies.threescale.getProducts.and.returnValue(of([mockProduct]));
     spies.migration.analyze.and.returnValue(of(mockPlan));
-    const { fixture, component } = await configureWizard(spies);
+    const { fixture, wizard } = await configureWizard(spies);
     fixture.detectChanges();
 
-    component.products[0].selected = true;
-    component.step = 2;
-    component.gatewayStrategy = 'dual';
-    component.analyze();
+    wizard.products[0].selected = true;
+    wizard.step = 2;
+    wizard.gatewayStrategy = 'dual';
+    wizard.analyze();
 
     expect(spies.migration.analyze).toHaveBeenCalledWith('dual', ['demo-api'], 'local');
-    expect(component.step).toBe(3);
-    expect(component.plan).toEqual(mockPlan);
-    expect(component.analyzing).toBe(false);
+    expect(wizard.step).toBe(3);
+    expect(wizard.plan).toEqual(mockPlan);
+    expect(wizard.analyzing).toBe(false);
   });
 
   it('analyze_skipsWhenAlreadyAnalyzing', async () => {
     const spies = createApiSpies();
     stubApiDefaults(spies);
     spies.migration.analyze.and.returnValue(of(mockPlan));
-    const { component } = await configureWizard(spies);
+    const { wizard } = await configureWizard(spies);
 
-    component.analyzing = true;
-    component.analyze();
+    wizard.analyzing = true;
+    wizard.analyze();
 
     expect(spies.migration.analyze).not.toHaveBeenCalled();
   });
 });
 
 describe('MigrationWizardComponent review helpers', () => {
-  let component: MigrationWizardComponent;
+  let wizard: MigrationWizardStateService;
 
   beforeEach(async () => {
     const spies = createApiSpies();
     stubApiDefaults(spies);
     const configured = await configureWizard(spies);
-    component = configured.component;
+    wizard = configured.wizard;
   });
 
   it('hasConsumerApiKeySecrets_trueWhenSecretPresent', () => {
-    component.plan = {
+    wizard.plan = {
       id: 'p',
       gatewayStrategy: 'shared',
       sourceProducts: [],
@@ -280,12 +281,12 @@ describe('MigrationWizardComponent review helpers', () => {
       aiAnalysis: '',
       createdAt: '',
     };
-    expect(component.hasConsumerApiKeySecrets).toBe(true);
-    expect(component.consumerApiKeySecretCount).toBe(1);
+    expect(wizard.hasConsumerApiKeySecrets).toBe(true);
+    expect(wizard.consumerApiKeySecretCount).toBe(1);
   });
 
   it('hasOidcJwtAuth_trueWhenIssuerInYaml', () => {
-    component.plan = {
+    wizard.plan = {
       id: 'p',
       gatewayStrategy: 'shared',
       sourceProducts: [],
@@ -298,13 +299,13 @@ describe('MigrationWizardComponent review helpers', () => {
       aiAnalysis: '',
       createdAt: '',
     };
-    expect(component.hasOidcJwtAuth).toBe(true);
+    expect(wizard.hasOidcJwtAuth).toBe(true);
   });
 });
 
 describe('MigrationWizardComponent prerequisites', () => {
   let fixture: ComponentFixture<MigrationWizardComponent>;
-  let component: MigrationWizardComponent;
+  let wizard: MigrationWizardStateService;
 
   const prerequisites: MigrationPrerequisite[] = [
     {
@@ -366,9 +367,9 @@ describe('MigrationWizardComponent prerequisites', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(MigrationWizardComponent);
-    component = fixture.componentInstance;
-    component.step = 3;
-    component.plan = mockPlan;
+    wizard = fixture.componentInstance.wizard;
+    wizard.step = 3;
+    wizard.plan = mockPlan;
     fixture.detectChanges();
   });
 
@@ -380,7 +381,7 @@ describe('MigrationWizardComponent prerequisites', () => {
   });
 
   it('groups prerequisites by category in defined order', () => {
-    const sections = component.prerequisiteSections;
+    const sections = wizard.prerequisiteSections;
     expect(sections.length).toBe(3);
     expect(sections[0].category).toBe('connectivity');
     expect(sections[0].label).toBe('Connectivity');
@@ -396,20 +397,20 @@ describe('MigrationWizardComponent prerequisites', () => {
   });
 
   it('hides panel when prerequisites are empty', () => {
-    component.plan = { ...mockPlan, prerequisites: [] };
+    wizard.plan = { ...mockPlan, prerequisites: [] };
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.prerequisites-panel')).toBeFalsy();
   });
 
   it('toggles collapsible panel and aria-expanded', () => {
-    component.prerequisitesOpen = true;
+    wizard.prerequisitesOpen = true;
     fixture.detectChanges();
     const header = fixture.nativeElement.querySelector('.prerequisites-banner');
     expect(header.getAttribute('aria-expanded')).toBe('true');
 
-    component.togglePrerequisites();
+    wizard.togglePrerequisites();
     fixture.detectChanges();
-    expect(component.prerequisitesOpen).toBe(false);
+    expect(wizard.prerequisitesOpen).toBe(false);
     expect(header.getAttribute('aria-expanded')).toBe('false');
   });
 });

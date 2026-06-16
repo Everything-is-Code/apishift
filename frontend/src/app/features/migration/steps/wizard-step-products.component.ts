@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ImportExportResponse, ThreeScaleProduct } from '../../../core/api/models';
+import { ProductRow } from '../migration-wizard.helpers';
 
-export type ProductRow = { product: ThreeScaleProduct; selected: boolean };
+export type { ProductRow };
 
 @Component({
   selector: 'app-wizard-step-products',
