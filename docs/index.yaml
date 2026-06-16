@@ -14,10 +14,10 @@ entries:
           url: https://github.com/Kuadrant/kuadrantctl
       artifacthub.io/operator: "false"
     apiVersion: v2
-    appVersion: 0.1.9
-    created: "2026-05-28T12:20:23.814545137Z"
+    appVersion: 0.2.0
+    created: "2026-06-16T03:45:02.87419287Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
-    digest: 3c795ee511d25895a283977e7e3251ac6586bd1ab0afdc59d0f7019ab43bab28
+    digest: 7ec169c360e07f7679ff8687264e84c51363431df6e8b25413dc45cd2832d277
     home: https://everything-is-code.github.io/gateforge/
     icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
     maintainers:
@@ -28,13 +28,42 @@ entries:
     - https://github.com/Everything-is-Code/gateforge
     type: application
     urls:
+    - https://everything-is-code.github.io/gateforge/gateforge-0.2.0.tgz
+    version: 0.2.0
+  - annotations:
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://maximilianopizarro.github.io/gateforge/
+        - name: Red Hat Connectivity Link
+          url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
+        - name: Kuadrant
+          url: https://docs.kuadrant.io/
+        - name: kuadrantctl
+          url: https://github.com/Kuadrant/kuadrantctl
+      artifacthub.io/operator: "false"
+    apiVersion: v2
+    appVersion: 0.1.9
+    created: "2026-06-16T03:45:02.873729962Z"
+    description: AI-powered 3scale to Red Hat Connectivity Link migration platform
+    digest: 3c795ee511d25895a283977e7e3251ac6586bd1ab0afdc59d0f7019ab43bab28
+    home: https://maximilianopizarro.github.io/gateforge/
+    icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
+    maintainers:
+    - email: maximiliano.pizarro.5@gmail.com
+      name: Maximiliano Pizarro
+    name: gateforge
+    sources:
+    - https://github.com/maximilianoPizarro/gateforge
+    type: application
+    urls:
     - https://everything-is-code.github.io/gateforge/gateforge-0.1.9.tgz
     version: 0.1.9
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://maximilianopizarro.github.io/gateforge/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -44,17 +73,17 @@ entries:
       artifacthub.io/operator: "false"
     apiVersion: v2
     appVersion: 0.1.8
-    created: "2026-05-28T12:20:23.813900498Z"
+    created: "2026-06-16T03:45:02.873249441Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: bed00890095db1deb66d1fa9504c1708a467117ca8b5da24b3103fe3509ff6cb
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://maximilianopizarro.github.io/gateforge/
+    icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
     name: gateforge
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/maximilianoPizarro/gateforge
     type: application
     urls:
     - https://everything-is-code.github.io/gateforge/gateforge-0.1.8.tgz
@@ -63,7 +92,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://maximilianopizarro.github.io/gateforge/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -73,17 +102,17 @@ entries:
       artifacthub.io/operator: "false"
     apiVersion: v2
     appVersion: 0.1.7
-    created: "2026-05-28T12:20:23.813198092Z"
+    created: "2026-06-16T03:45:02.87270554Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 5978d6f94b13846222258e153de380ddc678979d3df70801433e0e52039d3f45
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://maximilianopizarro.github.io/gateforge/
+    icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
     name: gateforge
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/maximilianoPizarro/gateforge
     type: application
     urls:
     - https://everything-is-code.github.io/gateforge/gateforge-0.1.7.tgz
@@ -92,7 +121,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://maximilianopizarro.github.io/gateforge/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -102,17 +131,17 @@ entries:
       artifacthub.io/operator: "false"
     apiVersion: v2
     appVersion: 0.1.6
-    created: "2026-05-28T12:20:23.812484034Z"
+    created: "2026-06-16T03:45:02.871374775Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 808480655aa6ee5e0cbd64bc743f5a39e596798bdbb7d469639f93d5fd57784b
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://maximilianopizarro.github.io/gateforge/
+    icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
     name: gateforge
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/maximilianoPizarro/gateforge
     type: application
     urls:
     - https://everything-is-code.github.io/gateforge/gateforge-0.1.6.tgz
@@ -121,7 +150,7 @@ entries:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://maximilianopizarro.github.io/gateforge/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -131,19 +160,19 @@ entries:
       artifacthub.io/operator: "false"
     apiVersion: v2
     appVersion: 0.1.4
-    created: "2026-05-28T12:20:23.812085613Z"
+    created: "2026-06-16T03:45:02.871045788Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 3e27c76150b88accaa0418444454733ff457f632084f7b3fded6ef98c4b598a1
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://maximilianopizarro.github.io/gateforge/
+    icon: https://maximilianopizarro.github.io/gateforge/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
     name: gateforge
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/maximilianoPizarro/gateforge
     type: application
     urls:
     - https://everything-is-code.github.io/gateforge/gateforge-0.1.4.tgz
     version: 0.1.4
-generated: "2026-05-28T12:20:23.811514992Z"
+generated: "2026-06-16T03:45:02.870514721Z"
