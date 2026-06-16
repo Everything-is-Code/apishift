@@ -2,7 +2,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ApiService, ThreeScaleSource, TargetCluster } from '../../services/api.service';
+import { ApiService, ThreeScaleSource, TargetCluster } from '../../core/api/api.service';
 
 @Component({
   selector: 'app-settings',

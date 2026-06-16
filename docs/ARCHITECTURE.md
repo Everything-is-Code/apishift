@@ -116,17 +116,18 @@ These classes carry most migration logic today. They work but are hard to review
 
 ## Frontend (`frontend/src/app`)
 
-Angular 19 standalone components. Flat layout today (no feature modules yet):
+Angular 19 standalone components. Layout uses `core/`, `shared/`, and `features/` folders:
 
 | Path | Route | Role |
 |------|-------|------|
-| `components/dashboard/` | `/` | Hub overview |
-| `components/threescale-explorer/` | `/threescale` | Product/backend browser |
-| `components/migration-wizard/` | `/migrate` | Multi-step migration UI |
-| `components/chat/` | `/chat` | AI assistant |
-| `components/audit-log/` | `/audit` | Audit trail |
-| `components/settings/` | `/settings` | Cluster/sources configuration |
-| `services/api.service.ts` | — | Single HTTP facade to `/api/*` |
+| `features/dashboard/` | `/` | Hub overview |
+| `features/threescale-explorer/` | `/threescale` | Product/backend browser |
+| `features/migration/` | `/migrate` | Multi-step migration UI |
+| `features/chat/` | `/chat` | AI assistant |
+| `features/audit/` | `/audit` | Audit trail |
+| `features/settings/` | `/settings` | Cluster/sources configuration |
+| `core/api/api.service.ts` | — | Single HTTP facade to `/api/*` (domain facades planned) |
+| `shared/` | — | Reusable UI (scaffolded; empty) |
 
 `ng serve` proxies `/api` to `http://localhost:8080` (see `proxy.conf.json`). Production build is static assets behind Nginx.
 
@@ -174,7 +175,7 @@ Documented for orientation; tracked in architecture-hardening phases 2–3:
 | Phase | Target |
 |-------|--------|
 | 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
-| 3 — frontend | `core/`, `shared/`, `features/*` folders; split wizard steps; domain API facades |
+| 3 — frontend | `core/`, `shared/`, `features/*` folders (3.1 done); domain API facades; split wizard steps |
 | 4 — later | 3scale port abstractions, OpenAPI typegen, E2E in CI |
 
 Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.

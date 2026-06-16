@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { take, retry, timeout } from 'rxjs';
-import { ApiService, ChatMessage } from '../../services/api.service';
+import { ApiService, ChatMessage } from '../../core/api/api.service';
 
 @Component({
   selector: 'app-chat',
