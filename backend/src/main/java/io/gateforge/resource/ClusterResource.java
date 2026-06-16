@@ -1,5 +1,6 @@
 package io.gateforge.resource;
 
+import io.gateforge.model.ClusterFeatures;
 import io.gateforge.model.ClusterReadiness;
 import io.gateforge.model.ProjectInfo;
 import io.gateforge.model.TargetCluster;
@@ -11,7 +12,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,13 +53,9 @@ public class ClusterResource {
 
     @GET
     @Path("/features")
-    public Map<String, Object> getFeatures() {
-        Map<String, Object> features = new LinkedHashMap<>();
-        Map<String, Object> devHub = new LinkedHashMap<>();
-        devHub.put("enabled", developerHubEnabled);
-        devHub.put("url", "none".equals(developerHubUrl) ? "" : developerHubUrl);
-        features.put("developerHub", devHub);
-        return features;
+    public ClusterFeatures getFeatures() {
+        String url = "none".equals(developerHubUrl) ? "" : developerHubUrl;
+        return new ClusterFeatures(new ClusterFeatures.DeveloperHubFeature(developerHubEnabled, url));
     }
 
     @GET

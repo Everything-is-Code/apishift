@@ -4,8 +4,10 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.gateforge.model.AuditEntry;
+import io.gateforge.model.DriftEntry;
 import io.gateforge.model.MigrationPlan;
 import io.gateforge.model.PolicyMappingCatalog;
+import io.gateforge.model.TestCommand;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.GateForgeMetrics;
 import io.gateforge.service.MigrationService;
@@ -278,7 +280,7 @@ public class MigrationResource {
 
     @GET
     @Path("/plans/{id}/drift")
-    public List<Map<String, Object>> checkDrift(@PathParam("id") String id) {
+    public List<DriftEntry> checkDrift(@PathParam("id") String id) {
         MigrationPlan plan = migrationService.getPlan(id);
         if (plan == null) {
             throw new NotFoundException("Plan not found: " + id);
@@ -287,40 +289,34 @@ public class MigrationResource {
         String clusterId = plan.targetClusterId() != null ? plan.targetClusterId() : "local";
         KubernetesClient client = clusterRegistry.getClient(clusterId);
 
-        List<Map<String, Object>> driftReport = new ArrayList<>();
+        List<DriftEntry> driftReport = new ArrayList<>();
         for (MigrationPlan.GeneratedResource res : plan.resources()) {
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("kind", res.kind());
-            entry.put("name", res.name());
-            entry.put("namespace", res.namespace());
+            String status;
+            String message = null;
             try {
                 GenericKubernetesResource generic = Serialization.unmarshal(res.yaml(), GenericKubernetesResource.class);
                 if (res.namespace() != null && !res.namespace().isBlank()) {
                     generic.getMetadata().setNamespace(res.namespace());
                 }
                 var existing = client.resource(generic).get();
-                if (existing != null) {
-                    entry.put("status", "in-sync");
-                } else {
-                    entry.put("status", "missing");
-                }
+                status = existing != null ? "in-sync" : "missing";
             } catch (Exception e) {
                 String msg = e.getMessage();
                 if (msg != null && msg.contains("NotFound")) {
-                    entry.put("status", "missing");
+                    status = "missing";
                 } else {
-                    entry.put("status", "error");
-                    entry.put("message", msg);
+                    status = "error";
+                    message = msg;
                 }
             }
-            driftReport.add(entry);
+            driftReport.add(new DriftEntry(res.kind(), res.name(), res.namespace(), status, message));
         }
         return driftReport;
     }
 
     @GET
     @Path("/plans/{id}/test-commands")
-    public List<Map<String, String>> getTestCommands(@PathParam("id") String id) {
+    public List<TestCommand> getTestCommands(@PathParam("id") String id) {
         return migrationService.generateTestCommands(id);
     }
 

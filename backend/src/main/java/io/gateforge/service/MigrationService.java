@@ -8,6 +8,7 @@ import io.gateforge.entity.GeneratedResourceEntity;
 import io.gateforge.entity.MigrationPlanEntity;
 import io.gateforge.model.MigrationPlan;
 import io.gateforge.model.MigrationPrerequisite;
+import io.gateforge.model.TestCommand;
 import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
 import io.gateforge.port.threescale.ThreeScaleAdminPort;
@@ -820,11 +821,11 @@ public class MigrationService {
         return fallback.toString();
     }
 
-    public List<Map<String, String>> generateTestCommands(String planId) {
+    public List<TestCommand> generateTestCommands(String planId) {
         MigrationPlan plan = getPlan(planId);
         if (plan == null) return List.of();
 
-        List<Map<String, String>> commands = new ArrayList<>();
+        List<TestCommand> commands = new ArrayList<>();
         Set<String> httpRoutePaths = new LinkedHashSet<>();
         String authType = "api-key";
 
@@ -848,24 +849,21 @@ public class MigrationService {
             String rest = yaml.substring(idx + 5).trim();
             String host = rest.split("\\s")[0].trim();
 
-            commands.add(Map.of(
-                    "label", "Test " + res.name() + " (no auth — expect 401/403)",
-                    "command", "curl -sk https://" + host + "/",
-                    "type", "no-auth"
-            ));
+            commands.add(new TestCommand(
+                    "Test " + res.name() + " (no auth — expect 401/403)",
+                    "curl -sk https://" + host + "/",
+                    "no-auth"));
 
             if ("oidc".equals(authType)) {
-                commands.add(Map.of(
-                        "label", "Test " + res.name() + " with Bearer Token",
-                        "command", "curl -sk -H \"Authorization: Bearer $TOKEN\" https://" + host + "/",
-                        "type", "bearer"
-                ));
+                commands.add(new TestCommand(
+                        "Test " + res.name() + " with Bearer Token",
+                        "curl -sk -H \"Authorization: Bearer $TOKEN\" https://" + host + "/",
+                        "bearer"));
             } else {
-                commands.add(Map.of(
-                        "label", "Test " + res.name() + " with API Key (header)",
-                        "command", "curl -sk -H \"api_key: YOUR_API_KEY\" https://" + host + "/",
-                        "type", "api-key"
-                ));
+                commands.add(new TestCommand(
+                        "Test " + res.name() + " with API Key (header)",
+                        "curl -sk -H \"api_key: YOUR_API_KEY\" https://" + host + "/",
+                        "api-key"));
             }
 
             for (String path : httpRoutePaths) {
@@ -873,11 +871,10 @@ public class MigrationService {
                 String curlAuth = "oidc".equals(authType)
                         ? "-H \"Authorization: Bearer $TOKEN\""
                         : "-H \"api_key: YOUR_API_KEY\"";
-                commands.add(Map.of(
-                        "label", "Test path " + path,
-                        "command", "curl -sk " + curlAuth + " https://" + host + path,
-                        "type", "path-test"
-                ));
+                commands.add(new TestCommand(
+                        "Test path " + path,
+                        "curl -sk " + curlAuth + " https://" + host + path,
+                        "path-test"));
             }
         }
         return commands;
