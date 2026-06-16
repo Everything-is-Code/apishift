@@ -11,7 +11,6 @@ import io.gateforge.model.MigrationPrerequisite;
 import io.gateforge.model.TestCommand;
 import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
-import io.gateforge.port.threescale.ThreeScaleAdminPort;
 import io.gateforge.repository.AuditRepository;
 import io.gateforge.repository.MigrationPlanRepository;
 import io.gateforge.service.generator.AuthPolicyResourceGenerator;
@@ -20,6 +19,7 @@ import io.gateforge.service.generator.HttpRouteResourceGenerator;
 import io.gateforge.service.generator.PlanPolicyResourceGenerator;
 import io.gateforge.service.generator.RateLimitResourceGenerator;
 import io.gateforge.service.generator.ResolvedBackend;
+import io.gateforge.service.migration.BackendEndpointResolver;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -42,9 +42,6 @@ public class MigrationService {
 
     @Inject
     ThreeScaleService threeScaleService;
-
-    @Inject
-    ThreeScaleSourceRegistry sourceRegistry;
 
     @Inject
     ClusterRegistry clusterRegistry;
@@ -91,6 +88,9 @@ public class MigrationService {
     @Inject
     PlanPolicyResourceGenerator planPolicyResourceGenerator;
 
+    @Inject
+    BackendEndpointResolver backendEndpointResolver;
+
     @ConfigProperty(name = "gateforge.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
 
@@ -134,7 +134,7 @@ public class MigrationService {
                 .toList();
         metrics.setProductsDiscovered(products.size());
 
-        BackendIndex backendEndpoints = resolveBackendEndpoints();
+        BackendEndpointResolver.BackendIndex backendEndpoints = backendEndpointResolver.resolveIndex();
 
         List<MigrationPlan.GeneratedResource> resources = new ArrayList<>();
         Map<String, String> oasCache = new LinkedHashMap<>();
@@ -291,7 +291,7 @@ public class MigrationService {
         return plan;
     }
 
-    private ProductContext resolveProductContext(ThreeScaleProduct product, BackendIndex backends) {
+    private ProductContext resolveProductContext(ThreeScaleProduct product, BackendEndpointResolver.BackendIndex backends) {
         List<ResolvedBackend> resolvedBackends = new ArrayList<>();
         String primarySvcName = null;
         String primarySvcNs = null;
@@ -300,14 +300,11 @@ public class MigrationService {
         boolean hasRealOas = false;
 
         for (ThreeScaleProduct.BackendUsage usage : product.backendUsages()) {
-            String endpoint = null;
-            long backendId = extractBackendId(usage.backendName());
-            if (backendId > 0) endpoint = backends.byId.get(backendId);
-            if (endpoint == null) endpoint = backends.byName.get(usage.backendName());
+            String endpoint = backends.lookup(usage.backendName());
             if (endpoint == null || endpoint.isBlank()) continue;
 
-            String svcName = extractServiceName(endpoint);
-            String svcNs = extractServiceNamespace(endpoint);
+            String svcName = BackendEndpointResolver.parseServiceName(endpoint);
+            String svcNs = BackendEndpointResolver.parseServiceNamespace(endpoint);
             String path = usage.path() != null && !usage.path().isBlank() ? usage.path() : "/";
             resolvedBackends.add(new ResolvedBackend(svcName, svcNs, path));
 
@@ -1217,38 +1214,6 @@ public class MigrationService {
         }
     }
 
-    private record BackendIndex(Map<Long, String> byId, Map<String, String> byName) {}
-
-    private BackendIndex resolveBackendEndpoints() {
-        Map<Long, String> byId = new HashMap<>();
-        Map<String, String> byName = new HashMap<>();
-        if (!sourceRegistry.hasConfiguredClients()) return new BackendIndex(byId, byName);
-
-        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
-            if (!client.isConfigured()) continue;
-            try {
-                List<Map<String, Object>> backends = client.listBackendApis();
-                for (Map<String, Object> b : backends) {
-                    String ep = String.valueOf(b.getOrDefault("private_endpoint", ""));
-                    if (ep.isBlank()) continue;
-
-                    Object idObj = b.get("id");
-                    long id = idObj instanceof Number n ? n.longValue() : 0L;
-                    if (id > 0) byId.put(id, ep);
-
-                    String sysName = String.valueOf(b.getOrDefault("system_name", ""));
-                    if (!sysName.isBlank()) byName.put(sysName, ep);
-
-                    String bName = String.valueOf(b.getOrDefault("name", ""));
-                    if (!bName.isBlank()) byName.put(bName, ep);
-                }
-            } catch (Exception e) {
-                LOG.warnf("Failed to resolve backend endpoints for source %s", client.getSourceId());
-            }
-        }
-        return new BackendIndex(byId, byName);
-    }
-
     @SuppressWarnings("unchecked")
     private List<ThreeScaleProduct.MappingRule> fetchOpenApiPaths(String baseUrl) {
         for (String suffix : List.of("/q/openapi", "/openapi.json", "/openapi", "/swagger.json")) {
@@ -1307,45 +1272,5 @@ public class MigrationService {
             }
         }
         return List.of();
-    }
-
-    private String extractServiceName(String endpoint) {
-        try {
-            URI uri = URI.create(endpoint);
-            String host = uri.getHost();
-            if (host != null && host.contains(".")) {
-                return host.substring(0, host.indexOf('.'));
-            }
-            return host != null ? host : "";
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
-    private String extractServiceNamespace(String endpoint) {
-        try {
-            URI uri = URI.create(endpoint);
-            String host = uri.getHost();
-            if (host != null) {
-                String[] parts = host.split("\\.");
-                if (parts.length >= 2) {
-                    return parts[1];
-                }
-            }
-        } catch (Exception e) {
-            LOG.debugf("Failed to extract namespace from %s", endpoint);
-        }
-        return null;
-    }
-
-    private long extractBackendId(String backendName) {
-        if (backendName != null && backendName.startsWith("backend-")) {
-            try {
-                return Long.parseLong(backendName.substring("backend-".length()));
-            } catch (NumberFormatException e) {
-                return 0L;
-            }
-        }
-        return 0L;
     }
 }
