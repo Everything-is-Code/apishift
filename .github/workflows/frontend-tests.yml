@@ -33,5 +33,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Verify OpenAPI types are in sync
+        run: |
+          npm run generate:api
+          cd ..
+          git diff --exit-code -- \
+            backend/openapi/ \
+            frontend/openapi/ \
+            frontend/src/app/core/api/generated/
+
       - name: Run frontend unit tests
         run: npm test -- --no-watch --browsers=ChromeHeadlessCI

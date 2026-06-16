@@ -1,5 +1,582 @@
 ---
 openapi: 3.1.0
+components:
+  schemas:
+    AnalyzeRequest:
+      type: object
+      properties:
+        gatewayStrategy:
+          type: string
+        products:
+          type: array
+          items:
+            type: string
+        targetClusterId:
+          type: string
+    ApicastPolicyMapping:
+      type: object
+      properties:
+        apicastPolicy:
+          type: string
+        rhclTarget:
+          type: string
+        gateforgeStatus:
+          $ref: "#/components/schemas/ImplementationStatus"
+        notes:
+          type: string
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        userKey:
+          type: string
+        planName:
+          type: string
+        planSystemName:
+          type: string
+        accountEmail:
+          type: string
+        applicationId:
+          type: string
+        applicationKey:
+          type: string
+        redirectUrl:
+          type: string
+    ApplicationPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        systemName:
+          type: string
+        state:
+          type: string
+        limits:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanLimit"
+    ApplyRequest:
+      type: object
+      properties:
+        excludedIndexes:
+          type: array
+          items:
+            type: integer
+            format: int32
+        yamlOverrides:
+          type: object
+          additionalProperties:
+            type: string
+    ApplyResult:
+      type: object
+      properties:
+        planId:
+          type: string
+        applied:
+          type: integer
+          format: int32
+        failed:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResourceResult"
+        targetClusterId:
+          type: string
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          $ref: "#/components/schemas/Instant"
+        action:
+          type: string
+        resourceKind:
+          type: string
+        resourceName:
+          type: string
+        namespace:
+          type: string
+        yamlBefore:
+          type: string
+        yamlAfter:
+          type: string
+        performedBy:
+          type: string
+        targetClusterId:
+          type: string
+    BackendUsage:
+      type: object
+      properties:
+        backendName:
+          type: string
+        path:
+          type: string
+    BulkRevertRequest:
+      type: object
+      properties:
+        planIds:
+          type: array
+          items:
+            type: string
+        deleteGateway:
+          type: boolean
+    BulkRevertResult:
+      type: object
+      properties:
+        totalPlans:
+          type: integer
+          format: int32
+        totalReverted:
+          type: integer
+          format: int32
+        totalFailed:
+          type: integer
+          format: int32
+        planResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplyResult"
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+        content:
+          type: string
+        cached:
+          type: boolean
+    ClusterFeatures:
+      description: Feature flags exposed to the UI
+      type: object
+      properties:
+        developerHub:
+          $ref: "#/components/schemas/DeveloperHubFeature"
+    ClusterReadiness:
+      type: object
+      properties:
+        clusterConnected:
+          type: boolean
+        targetClusterId:
+          type: string
+        connectionStatus:
+          type: string
+        prerequisites:
+          type: array
+          items:
+            $ref: "#/components/schemas/MigrationPrerequisite"
+    ConfirmRegistrationRequest:
+      type: object
+      properties:
+        componentYaml:
+          type: string
+    ConsolidatedMapping:
+      type: object
+      properties:
+        threescaleConcept:
+          type: string
+        rhclTarget:
+          type: string
+        apiGroup:
+          type: string
+        layer:
+          $ref: "#/components/schemas/Layer"
+        gateforgeStatus:
+          $ref: "#/components/schemas/ImplementationStatus"
+        notes:
+          type: string
+    DeveloperHubFeature:
+      type: object
+      description: Red Hat Developer Hub integration
+      properties:
+        enabled:
+          type: boolean
+        url:
+          type: string
+    DriftEntry:
+      description: Drift status for a generated resource on the target cluster
+      type: object
+      properties:
+        kind:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        status:
+          type: string
+          description: "in-sync, missing, or error"
+        message:
+          type: string
+    GeneratedResource:
+      type: object
+      properties:
+        kind:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        yaml:
+          type: string
+    ImplementationStatus:
+      type: string
+      enum:
+      - GENERATED
+      - PARTIAL
+      - SUGGESTED
+      - MANUAL
+      - NOT_APPLICABLE
+    ImportExportResponse:
+      type: object
+      properties:
+        importMode:
+          type: string
+        productCount:
+          type: integer
+          format: int32
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSummary"
+        manifest:
+          $ref: "#/components/schemas/ManifestSummary"
+    Instant:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T16:15:50Z
+    Layer:
+      type: string
+      enum:
+      - CONNECTIVITY
+      - CORE_POLICY
+      - EXTENSION
+      - PORTAL
+      - PLATFORM
+      - MANUAL
+    ManifestSummary:
+      type: object
+      properties:
+        schemaVersion:
+          type: string
+        adminUrl:
+          type: string
+        exportedAt:
+          type: string
+    MappingRule:
+      type: object
+      properties:
+        httpMethod:
+          type: string
+        pattern:
+          type: string
+        metricRef:
+          type: string
+        delta:
+          type: integer
+          format: int32
+    MigrationPlan:
+      type: object
+      properties:
+        id:
+          type: string
+        gatewayStrategy:
+          type: string
+        sourceProducts:
+          type: array
+          items:
+            type: string
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeneratedResource"
+        aiAnalysis:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        catalogInfoYaml:
+          type: string
+        status:
+          type: string
+        targetClusterId:
+          type: string
+        targetClusterLabel:
+          type: string
+        consolidationWarnings:
+          type: array
+          items:
+            type: string
+        prerequisites:
+          type: array
+          items:
+            $ref: "#/components/schemas/MigrationPrerequisite"
+    MigrationPrerequisite:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        requiredByPlan:
+          type: boolean
+        optionalTier:
+          type: boolean
+        docUrl:
+          type: string
+        status:
+          type: string
+        triggeredByCount:
+          type: integer
+          format: int32
+    PlanLimit:
+      type: object
+      properties:
+        metricName:
+          type: string
+        period:
+          type: string
+        value:
+          type: integer
+          format: int64
+    PolicyMappingReference:
+      type: object
+      properties:
+        taxonomy:
+          type: array
+          items:
+            $ref: "#/components/schemas/RhclTaxonomyLayer"
+        consolidated:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsolidatedMapping"
+        apicastPolicies:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApicastPolicyMapping"
+    ProductSummary:
+      type: object
+      properties:
+        name:
+          type: string
+        systemName:
+          type: string
+        serviceId:
+          type: integer
+          format: int64
+    ProjectInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+        creationTimestamp:
+          type: string
+        hasThreeScale:
+          type: boolean
+        hasKuadrant:
+          type: boolean
+    ResourceResult:
+      type: object
+      properties:
+        kind:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        success:
+          type: boolean
+        message:
+          type: string
+    RhclTaxonomyLayer:
+      type: object
+      properties:
+        layer:
+          type: string
+        apiGroup:
+          type: string
+        resources:
+          type: array
+          items:
+            type: string
+    TargetCluster:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        apiServerUrl:
+          type: string
+        token:
+          type: string
+        authType:
+          type: string
+        verifySsl:
+          type: boolean
+        enabled:
+          type: boolean
+    TestCommand:
+      description: Suggested curl command to validate a migrated route
+      type: object
+      properties:
+        label:
+          type: string
+        command:
+          type: string
+        type:
+          type: string
+          description: "no-auth, bearer, api-key, or path-test"
+    ThreeScaleAdminStatus:
+      description: Aggregate 3scale Admin API and discovery status
+      type: object
+      properties:
+        crdDiscoveryEnabled:
+          type: boolean
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreeScaleSourceStatus"
+        configured:
+          type: boolean
+        reachable:
+          type: boolean
+        productCount:
+          type: integer
+          format: int32
+        backendApiCount:
+          type: integer
+          format: int32
+        activeDocsCount:
+          type: integer
+          format: int32
+    ThreeScaleBackend:
+      description: 3scale backend from CRD discovery or Admin API
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        id: {}
+        systemName:
+          type: string
+        privateEndpoint:
+          type: string
+        description:
+          type: string
+        source:
+          type: string
+        sourceCluster:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        spec:
+          type: object
+          additionalProperties: {}
+    ThreeScaleProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        systemName:
+          type: string
+        serviceId:
+          type: integer
+          format: int64
+        description:
+          type: string
+        deploymentOption:
+          type: string
+        mappingRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/MappingRule"
+        backendUsages:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackendUsage"
+        authentication:
+          type: object
+          additionalProperties: {}
+        source:
+          type: string
+        backendNamespace:
+          type: string
+        backendServiceName:
+          type: string
+        sourceCluster:
+          type: string
+        applicationPlans:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicationPlan"
+        applications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Application"
+    ThreeScaleRefreshResult:
+      description: Result of evicting discovery cache and reloading 3scale data
+      type: object
+      properties:
+        productCount:
+          type: integer
+          format: int32
+        backendCount:
+          type: integer
+          format: int32
+        refreshedAt:
+          type: string
+    ThreeScaleSource:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        adminUrl:
+          type: string
+        accessToken:
+          type: string
+        enabled:
+          type: boolean
+    ThreeScaleSourceStatus:
+      type: object
+      description: Reachability status for a configured 3scale Admin API source
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        adminUrl:
+          type: string
+        configured:
+          type: boolean
+        enabled:
+          type: boolean
+        reachable:
+          type: boolean
+        error:
+          type: string
 paths:
   /api/apicast/analyze/{namespace}/{name}:
     get:
@@ -141,8 +718,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: {}
+                $ref: "#/components/schemas/ClusterFeatures"
       summary: Get Features
       tags:
       - Cluster Resource
@@ -521,8 +1097,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  additionalProperties: {}
+                  $ref: "#/components/schemas/DriftEntry"
       summary: Check Drift
       tags:
       - Migration Resource
@@ -562,9 +1137,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  additionalProperties:
-                    type: string
+                  $ref: "#/components/schemas/TestCommand"
       summary: Get Test Commands
       tags:
       - Migration Resource
@@ -611,8 +1184,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  additionalProperties: {}
+                  $ref: "#/components/schemas/ThreeScaleBackend"
       summary: List Backends
       tags:
       - Three Scale Resource
@@ -664,8 +1236,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: {}
+                $ref: "#/components/schemas/ThreeScaleRefreshResult"
       summary: Refresh Discovery
       tags:
       - Three Scale Resource
@@ -732,8 +1303,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: {}
+                $ref: "#/components/schemas/ThreeScaleSourceStatus"
       summary: Get Source Status
       tags:
       - Three Scale Resource
@@ -746,469 +1316,10 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: {}
+                $ref: "#/components/schemas/ThreeScaleAdminStatus"
       summary: Get Status
       tags:
       - Three Scale Resource
-components:
-  schemas:
-    AnalyzeRequest:
-      type: object
-      properties:
-        gatewayStrategy:
-          type: string
-        products:
-          type: array
-          items:
-            type: string
-        targetClusterId:
-          type: string
-    ApicastPolicyMapping:
-      type: object
-      properties:
-        apicastPolicy:
-          type: string
-        rhclTarget:
-          type: string
-        gateforgeStatus:
-          $ref: "#/components/schemas/ImplementationStatus"
-        notes:
-          type: string
-    Application:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        userKey:
-          type: string
-        planName:
-          type: string
-        planSystemName:
-          type: string
-        accountEmail:
-          type: string
-        applicationId:
-          type: string
-        applicationKey:
-          type: string
-        redirectUrl:
-          type: string
-    ApplicationPlan:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        systemName:
-          type: string
-        state:
-          type: string
-        limits:
-          type: array
-          items:
-            $ref: "#/components/schemas/PlanLimit"
-    ApplyRequest:
-      type: object
-      properties:
-        excludedIndexes:
-          type: array
-          items:
-            type: integer
-            format: int32
-        yamlOverrides:
-          type: object
-          additionalProperties:
-            type: string
-    ApplyResult:
-      type: object
-      properties:
-        planId:
-          type: string
-        applied:
-          type: integer
-          format: int32
-        failed:
-          type: integer
-          format: int32
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResourceResult"
-        targetClusterId:
-          type: string
-    AuditEntry:
-      type: object
-      properties:
-        id:
-          type: string
-        timestamp:
-          $ref: "#/components/schemas/Instant"
-        action:
-          type: string
-        resourceKind:
-          type: string
-        resourceName:
-          type: string
-        namespace:
-          type: string
-        yamlBefore:
-          type: string
-        yamlAfter:
-          type: string
-        performedBy:
-          type: string
-        targetClusterId:
-          type: string
-    BackendUsage:
-      type: object
-      properties:
-        backendName:
-          type: string
-        path:
-          type: string
-    BulkRevertRequest:
-      type: object
-      properties:
-        planIds:
-          type: array
-          items:
-            type: string
-        deleteGateway:
-          type: boolean
-    BulkRevertResult:
-      type: object
-      properties:
-        totalPlans:
-          type: integer
-          format: int32
-        totalReverted:
-          type: integer
-          format: int32
-        totalFailed:
-          type: integer
-          format: int32
-        planResults:
-          type: array
-          items:
-            $ref: "#/components/schemas/ApplyResult"
-    ChatMessage:
-      type: object
-      properties:
-        role:
-          type: string
-        content:
-          type: string
-        cached:
-          type: boolean
-    ClusterReadiness:
-      type: object
-      properties:
-        clusterConnected:
-          type: boolean
-        targetClusterId:
-          type: string
-        connectionStatus:
-          type: string
-        prerequisites:
-          type: array
-          items:
-            $ref: "#/components/schemas/MigrationPrerequisite"
-    ConfirmRegistrationRequest:
-      type: object
-      properties:
-        componentYaml:
-          type: string
-    ConsolidatedMapping:
-      type: object
-      properties:
-        threescaleConcept:
-          type: string
-        rhclTarget:
-          type: string
-        apiGroup:
-          type: string
-        layer:
-          $ref: "#/components/schemas/Layer"
-        gateforgeStatus:
-          $ref: "#/components/schemas/ImplementationStatus"
-        notes:
-          type: string
-    GeneratedResource:
-      type: object
-      properties:
-        kind:
-          type: string
-        name:
-          type: string
-        namespace:
-          type: string
-        yaml:
-          type: string
-    ImplementationStatus:
-      type: string
-      enum:
-      - GENERATED
-      - PARTIAL
-      - SUGGESTED
-      - MANUAL
-      - NOT_APPLICABLE
-    ImportExportResponse:
-      type: object
-      properties:
-        importMode:
-          type: string
-        productCount:
-          type: integer
-          format: int32
-        products:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProductSummary"
-        manifest:
-          $ref: "#/components/schemas/ManifestSummary"
-    Instant:
-      type: string
-      format: date-time
-      examples:
-      - 2022-03-10T16:15:50Z
-    Layer:
-      type: string
-      enum:
-      - CONNECTIVITY
-      - CORE_POLICY
-      - EXTENSION
-      - PORTAL
-      - PLATFORM
-      - MANUAL
-    ManifestSummary:
-      type: object
-      properties:
-        schemaVersion:
-          type: string
-        adminUrl:
-          type: string
-        exportedAt:
-          type: string
-    MappingRule:
-      type: object
-      properties:
-        httpMethod:
-          type: string
-        pattern:
-          type: string
-        metricRef:
-          type: string
-        delta:
-          type: integer
-          format: int32
-    MigrationPlan:
-      type: object
-      properties:
-        id:
-          type: string
-        gatewayStrategy:
-          type: string
-        sourceProducts:
-          type: array
-          items:
-            type: string
-        resources:
-          type: array
-          items:
-            $ref: "#/components/schemas/GeneratedResource"
-        aiAnalysis:
-          type: string
-        createdAt:
-          $ref: "#/components/schemas/Instant"
-        catalogInfoYaml:
-          type: string
-        status:
-          type: string
-        targetClusterId:
-          type: string
-        targetClusterLabel:
-          type: string
-        consolidationWarnings:
-          type: array
-          items:
-            type: string
-        prerequisites:
-          type: array
-          items:
-            $ref: "#/components/schemas/MigrationPrerequisite"
-    MigrationPrerequisite:
-      type: object
-      properties:
-        id:
-          type: string
-        category:
-          type: string
-        title:
-          type: string
-        description:
-          type: string
-        requiredByPlan:
-          type: boolean
-        optionalTier:
-          type: boolean
-        docUrl:
-          type: string
-        status:
-          type: string
-        triggeredByCount:
-          type: integer
-          format: int32
-    PlanLimit:
-      type: object
-      properties:
-        metricName:
-          type: string
-        period:
-          type: string
-        value:
-          type: integer
-          format: int64
-    PolicyMappingReference:
-      type: object
-      properties:
-        taxonomy:
-          type: array
-          items:
-            $ref: "#/components/schemas/RhclTaxonomyLayer"
-        consolidated:
-          type: array
-          items:
-            $ref: "#/components/schemas/ConsolidatedMapping"
-        apicastPolicies:
-          type: array
-          items:
-            $ref: "#/components/schemas/ApicastPolicyMapping"
-    ProductSummary:
-      type: object
-      properties:
-        name:
-          type: string
-        systemName:
-          type: string
-        serviceId:
-          type: integer
-          format: int64
-    ProjectInfo:
-      type: object
-      properties:
-        name:
-          type: string
-        status:
-          type: string
-        creationTimestamp:
-          type: string
-        hasThreeScale:
-          type: boolean
-        hasKuadrant:
-          type: boolean
-    ResourceResult:
-      type: object
-      properties:
-        kind:
-          type: string
-        name:
-          type: string
-        namespace:
-          type: string
-        success:
-          type: boolean
-        message:
-          type: string
-    RhclTaxonomyLayer:
-      type: object
-      properties:
-        layer:
-          type: string
-        apiGroup:
-          type: string
-        resources:
-          type: array
-          items:
-            type: string
-    TargetCluster:
-      type: object
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        apiServerUrl:
-          type: string
-        token:
-          type: string
-        authType:
-          type: string
-        verifySsl:
-          type: boolean
-        enabled:
-          type: boolean
-    ThreeScaleProduct:
-      type: object
-      properties:
-        name:
-          type: string
-        namespace:
-          type: string
-        systemName:
-          type: string
-        serviceId:
-          type: integer
-          format: int64
-        description:
-          type: string
-        deploymentOption:
-          type: string
-        mappingRules:
-          type: array
-          items:
-            $ref: "#/components/schemas/MappingRule"
-        backendUsages:
-          type: array
-          items:
-            $ref: "#/components/schemas/BackendUsage"
-        authentication:
-          type: object
-          additionalProperties: {}
-        source:
-          type: string
-        backendNamespace:
-          type: string
-        backendServiceName:
-          type: string
-        sourceCluster:
-          type: string
-        applicationPlans:
-          type: array
-          items:
-            $ref: "#/components/schemas/ApplicationPlan"
-        applications:
-          type: array
-          items:
-            $ref: "#/components/schemas/Application"
-    ThreeScaleSource:
-      type: object
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        adminUrl:
-          type: string
-        accessToken:
-          type: string
-        enabled:
-          type: boolean
 info:
   title: GateForge API
   version: 0.2.0

@@ -787,6 +787,10 @@ export interface components {
             content?: string;
             cached?: boolean;
         };
+        /** @description Feature flags exposed to the UI */
+        ClusterFeatures: {
+            developerHub?: components["schemas"]["DeveloperHubFeature"];
+        };
         ClusterReadiness: {
             clusterConnected?: boolean;
             targetClusterId?: string;
@@ -803,6 +807,20 @@ export interface components {
             layer?: components["schemas"]["Layer"];
             gateforgeStatus?: components["schemas"]["ImplementationStatus"];
             notes?: string;
+        };
+        /** @description Red Hat Developer Hub integration */
+        DeveloperHubFeature: {
+            enabled?: boolean;
+            url?: string;
+        };
+        /** @description Drift status for a generated resource on the target cluster */
+        DriftEntry: {
+            kind?: string;
+            name?: string;
+            namespace?: string;
+            /** @description in-sync, missing, or error */
+            status?: string;
+            message?: string;
         };
         GeneratedResource: {
             kind?: string;
@@ -909,6 +927,42 @@ export interface components {
             verifySsl?: boolean;
             enabled?: boolean;
         };
+        /** @description Suggested curl command to validate a migrated route */
+        TestCommand: {
+            label?: string;
+            command?: string;
+            /** @description no-auth, bearer, api-key, or path-test */
+            type?: string;
+        };
+        /** @description Aggregate 3scale Admin API and discovery status */
+        ThreeScaleAdminStatus: {
+            crdDiscoveryEnabled?: boolean;
+            sources?: components["schemas"]["ThreeScaleSourceStatus"][];
+            configured?: boolean;
+            reachable?: boolean;
+            /** Format: int32 */
+            productCount?: number;
+            /** Format: int32 */
+            backendApiCount?: number;
+            /** Format: int32 */
+            activeDocsCount?: number;
+        };
+        /** @description 3scale backend from CRD discovery or Admin API */
+        ThreeScaleBackend: {
+            name?: string;
+            namespace?: string;
+            id?: unknown;
+            systemName?: string;
+            privateEndpoint?: string;
+            description?: string;
+            source?: string;
+            sourceCluster?: string;
+            createdAt?: string;
+            updatedAt?: string;
+            spec?: {
+                [key: string]: unknown;
+            };
+        };
         ThreeScaleProduct: {
             name?: string;
             namespace?: string;
@@ -929,12 +983,30 @@ export interface components {
             applicationPlans?: components["schemas"]["ApplicationPlan"][];
             applications?: components["schemas"]["Application"][];
         };
+        /** @description Result of evicting discovery cache and reloading 3scale data */
+        ThreeScaleRefreshResult: {
+            /** Format: int32 */
+            productCount?: number;
+            /** Format: int32 */
+            backendCount?: number;
+            refreshedAt?: string;
+        };
         ThreeScaleSource: {
             id?: string;
             label?: string;
             adminUrl?: string;
             accessToken?: string;
             enabled?: boolean;
+        };
+        /** @description Reachability status for a configured 3scale Admin API source */
+        ThreeScaleSourceStatus: {
+            id?: string;
+            label?: string;
+            adminUrl?: string;
+            configured?: boolean;
+            enabled?: boolean;
+            reachable?: boolean;
+            error?: string;
         };
     };
     responses: never;
@@ -1159,9 +1231,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ClusterFeatures"];
                 };
             };
         };
@@ -1597,9 +1667,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
+                    "application/json": components["schemas"]["DriftEntry"][];
                 };
             };
         };
@@ -1643,9 +1711,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: string;
-                    }[];
+                    "application/json": components["schemas"]["TestCommand"][];
                 };
             };
         };
@@ -1709,9 +1775,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    }[];
+                    "application/json": components["schemas"]["ThreeScaleBackend"][];
                 };
             };
         };
@@ -1774,9 +1838,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ThreeScaleRefreshResult"];
                 };
             };
         };
@@ -1862,9 +1924,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ThreeScaleSourceStatus"];
                 };
             };
         };
@@ -1884,9 +1944,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["ThreeScaleAdminStatus"];
                 };
             };
         };
