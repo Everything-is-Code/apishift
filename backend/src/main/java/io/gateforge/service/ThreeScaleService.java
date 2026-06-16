@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.gateforge.model.ThreeScaleProduct;
+import io.gateforge.port.threescale.ThreeScaleAdminPort;
 import io.gateforge.service.export.ExportParseResult;
 import io.gateforge.service.export.ThreeScaleExportParser;
 import io.quarkus.runtime.StartupEvent;
@@ -164,7 +165,7 @@ public class ThreeScaleService {
             }
         }
 
-        for (ThreeScaleAdminApiClient client : sourceRegistry.getAllClients()) {
+        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
             if (!client.isConfigured()) continue;
             for (ThreeScaleProduct p : listProductsFromAdminApi(client)) {
                 String key = client.getSourceId() + ":" + p.systemName();
@@ -290,7 +291,7 @@ public class ThreeScaleService {
             }
         }
 
-        for (ThreeScaleAdminApiClient client : sourceRegistry.getAllClients()) {
+        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
             if (!client.isConfigured()) continue;
             try {
                 List<Map<String, Object>> apiBackends = client.listBackendApis();
@@ -379,7 +380,7 @@ public class ThreeScaleService {
         status.put("crdDiscoveryEnabled", crdDiscoveryEnabled);
 
         List<Map<String, Object>> sourceStatuses = new ArrayList<>();
-        for (ThreeScaleAdminApiClient client : sourceRegistry.getAllClients()) {
+        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
             sourceStatuses.add(sourceRegistry.getSourceStatus(client.getSourceId()));
         }
         status.put("sources", sourceStatuses);
@@ -476,7 +477,7 @@ public class ThreeScaleService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<ThreeScaleProduct> listProductsFromAdminApi(ThreeScaleAdminApiClient client) {
+    private List<ThreeScaleProduct> listProductsFromAdminApi(ThreeScaleAdminPort client) {
         List<ThreeScaleProduct> products = new ArrayList<>();
         try {
             List<Map<String, Object>> services = client.listServices();
@@ -556,7 +557,7 @@ public class ThreeScaleService {
         }
         String sourceId = product.sourceCluster() != null && !product.sourceCluster().isBlank()
                 ? product.sourceCluster() : "default";
-        ThreeScaleAdminApiClient client = sourceRegistry.getClient(sourceId);
+        ThreeScaleAdminPort client = sourceRegistry.getClient(sourceId);
         if (client == null || !client.isConfigured()) {
             return product;
         }
@@ -595,7 +596,7 @@ public class ThreeScaleService {
     }
 
     private List<ThreeScaleProduct.ApplicationPlan> loadApplicationPlansForService(
-            ThreeScaleAdminApiClient client, long serviceId) {
+            ThreeScaleAdminPort client, long serviceId) {
         List<ThreeScaleProduct.ApplicationPlan> appPlans = new ArrayList<>();
         try {
             for (Map<String, Object> rp : client.listApplicationPlans(serviceId)) {
@@ -624,7 +625,7 @@ public class ThreeScaleService {
     }
 
     private List<ThreeScaleProduct.Application> loadApplicationsForService(
-            ThreeScaleAdminApiClient client, long serviceId,
+            ThreeScaleAdminPort client, long serviceId,
             List<ThreeScaleProduct.ApplicationPlan> appPlans) {
 
         List<ThreeScaleProduct.Application> apps = new ArrayList<>();
@@ -660,7 +661,7 @@ public class ThreeScaleService {
 
     private Map<String, String[]> resolveBackendEndpointMap() {
         Map<String, String[]> map = new HashMap<>();
-        for (ThreeScaleAdminApiClient client : sourceRegistry.getAllClients()) {
+        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
             if (!client.isConfigured()) continue;
             try {
                 List<Map<String, Object>> backends = client.listBackendApis();

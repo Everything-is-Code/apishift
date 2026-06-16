@@ -10,6 +10,7 @@ import io.gateforge.model.MigrationPlan;
 import io.gateforge.model.MigrationPrerequisite;
 import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.AuditEntry;
+import io.gateforge.port.threescale.ThreeScaleAdminPort;
 import io.gateforge.repository.AuditRepository;
 import io.gateforge.repository.MigrationPlanRepository;
 import io.gateforge.service.generator.AuthPolicyResourceGenerator;
@@ -1226,7 +1227,7 @@ public class MigrationService {
         Map<String, String> byName = new HashMap<>();
         if (!sourceRegistry.hasConfiguredClients()) return new BackendIndex(byId, byName);
 
-        for (ThreeScaleAdminApiClient client : sourceRegistry.getAllClients()) {
+        for (ThreeScaleAdminPort client : sourceRegistry.getAllClients()) {
             if (!client.isConfigured()) continue;
             try {
                 List<Map<String, Object>> backends = client.listBackendApis();
