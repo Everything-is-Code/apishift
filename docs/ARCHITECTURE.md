@@ -103,14 +103,27 @@ Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 
 Persistence: **PostgreSQL** (Flyway migrations in `src/main/resources/db/migration/`). Discovery cache: **Infinispan / Data Grid** (remote Hot Rod client).
 
+### Outbound ports and adapters
+
+Phase 4 introduced an outbound **port** for the 3scale Admin API:
+
+| Layer | Type | Class |
+|-------|------|-------|
+| Port | Interface | `port/threescale/ThreeScaleAdminPort` |
+| Adapter | HTTP client | `ThreeScaleAdminApiClient` |
+| Registry | CDI wiring | `ThreeScaleSourceRegistry` |
+
+`ThreeScaleService` and `MigrationService` depend on `ThreeScaleAdminPort`, not raw HTTP. When adding new external integrations, prefer the same pattern (port interface + adapter + registry or factory) before growing service classes.
+
 ### Known concentration points
 
-These classes carry most migration logic today. They work but are hard to review; Phase 2 hardening targets extractions, not rewrites:
+These classes still carry most migration logic. Further extractions are optional follow-ups (see [post-hardening waves](#architecture-hardening-complete)) — not blockers for feature work:
 
 | Class | ~LOC | Notes |
 |-------|------|-------|
-| `MigrationService` | 1400+ | Plan orchestration, apply, DevHub hooks; resource YAML delegated to `service/generator/` |
-| `MigrationResource` | 670+ | Large REST surface; DevHub logic moved to `DeveloperHubClient` |
+| `MigrationService` | 1,350+ | Plan orchestration; resource YAML delegated to `service/generator/` |
+| `ThreeScaleService` | 760+ | Cache, CRD discovery, Admin API enrichment |
+| `MigrationResource` | 350+ | REST surface; K8s apply/revert still in resource layer |
 | `service/export/*` | small files | Preferred pattern for new backend code |
 
 ---
@@ -155,9 +168,30 @@ Organized by purpose under `scripts/`. See **[scripts/README.md](../scripts/READ
 |----------|----------|
 | `dev/` | `./scripts/dev/local-up.sh` — Podman Compose stack |
 | `e2e/` | `E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh` |
-| `ci/` | `./scripts/ci/verify-export-minimal-fixture.sh` |
+| `ci/` | `verify-export-minimal-fixture.sh`, `export-openapi.sh`, `generate-frontend-api-types.sh` |
 | `release/` | `./scripts/release/sync-versions.sh` |
 | `lib/` | `source scripts/lib/version.sh` (Chart.yaml reader) |
+
+---
+
+## API contracts (OpenAPI → TypeScript)
+
+REST shapes are exported from the Quarkus build and synced to the frontend:
+
+```text
+backend (SmallRye OpenAPI)
+  → backend/openapi/openapi.yaml          # emitted by OpenApiBuildTest / mvn test
+  → frontend/openapi/gateforge.openapi.yaml
+  → frontend/src/app/core/api/generated/schema.ts   # openapi-typescript
+```
+
+| Step | Command |
+|------|---------|
+| Export schema only | `./scripts/ci/export-openapi.sh` |
+| Full sync + typegen | `./scripts/ci/generate-frontend-api-types.sh` or `npm run generate:api` from `frontend/` |
+| CI smoke | `OpenApiBuildTest` in [Backend tests](.github/workflows/backend-tests.yml) |
+
+Hand-written DTOs in `frontend/src/app/core/api/models/` are being migrated to generated types incrementally. After changing a REST response shape, regenerate and commit artifacts (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 
 ---
 
@@ -179,6 +213,8 @@ Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged t
 | 2 — backend | DevHub client, generators, repositories, `ExceptionMapper`, REST smoke tests |
 | 3 — frontend | `core/` / `shared/` / `features/*`, API facades, wizard step components |
 | 4 — contracts | `ThreeScaleAdminPort`, OpenAPI typegen, optional E2E workflow |
+
+**Optional follow-ups (post-hardening):** tighten OpenAPI schemas and adopt generated frontend types; further `MigrationService` / `ThreeScaleService` decomposition; expand `@QuarkusTest` coverage; wizard state extraction and `shared/` UI components.
 
 For future structural work, prefer stacked PRs under ~400 changed lines and avoid mixing large refactors with release-only changes.
 

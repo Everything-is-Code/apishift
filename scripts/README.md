@@ -32,3 +32,31 @@ Automation for local development, CI, E2E, fixtures, releases, and docs screensh
 | `docs/capture-screenshots.mjs` | docs | Capture UI PNGs for `docs/assets/screenshots/` | Node 20+, Playwright, Podman stack | `cd scripts/docs && npm ci && npm run capture-screenshots` |
 
 See `lib/README.md` for sourceable helper details.
+
+## E2E environment variables
+
+Used by `e2e/seed-export-analyze.sh` (see script header for full usage):
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `E2E_MODE` | `auto` | `fixture` \| `offline` \| `live` \| `auto` — `fixture` uses export-minimal tarball (no live 3scale) |
+| `E2E_SKIP_SEED` | — | Set to `1` to reuse existing export directory |
+| `THREESCALEEXTRACT_ROOT` | `../3scaleextract` | Path to 3scaleextract checkout (required for offline/live) |
+| `GATEFORGE_API_URL` | `http://localhost:8080/api` | GateForge API base URL |
+| `THREESCALE_OUTPUT_DIR` | `{extract}/export` | Export output directory |
+| `THREESCALE_REPORT_DIR` | `{extract}/report` | Visualize report output |
+| `E2E_ZIP_FILE` | `{output}/../threescale-export-e2e.zip` | Packaged zip for import-export API |
+
+## OpenAPI script chain
+
+`generate-frontend-api-types.sh` calls `export-openapi.sh` first, then copies `backend/openapi/openapi.yaml` to `frontend/openapi/gateforge.openapi.yaml` and runs `openapi-typescript`. Equivalent: `npm run generate:api` from `frontend/`.
+
+## CI workflows using scripts
+
+| Workflow | Scripts invoked |
+|----------|-----------------|
+| [Backend tests](../.github/workflows/backend-tests.yml) | `ci/verify-export-minimal-fixture.sh`; `OpenApiBuildTest` (OpenAPI export) |
+| [Frontend tests](../.github/workflows/frontend-tests.yml) | — (npm test only) |
+| [E2E (optional)](../.github/workflows/e2e-fixture.yml) | `dev/local-up.sh`, `e2e/seed-export-analyze.sh` |
+| [Capture screenshots](../.github/workflows/capture-screenshots.yml) | `dev/local-up.sh`, `e2e/seed-export-analyze.sh`, `docs/capture-screenshots.mjs --skip-stack` |
+| [Release](../.github/workflows/release.yml) | `lib/helm-repo-url.sh`, `release/sync-versions.sh` |
