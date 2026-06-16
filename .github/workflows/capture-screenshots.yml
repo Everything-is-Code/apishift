@@ -1,0 +1,44 @@
+name: Capture screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Install Playwright dependencies
+        working-directory: scripts
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Start stack and seed fixture data
+        run: |
+          cp .env.example .env
+          ./scripts/local-up.sh
+          E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
+
+      - name: Capture screenshots
+        working-directory: scripts
+        run: npm run capture-screenshots -- --skip-stack
+
+      - name: Upload screenshot artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateforge-screenshots
+          path: docs/assets/screenshots/*.png
+          if-no-files-found: error

@@ -1,0 +1,11 @@
+{
+  "name": "gateforge-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture-screenshots": "node capture-screenshots.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0"
+  }
+}

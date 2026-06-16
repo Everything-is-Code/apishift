@@ -304,6 +304,15 @@ E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
 
 The script asserts `product_count >= 4`, `incomplete: false`, visualize report, and analyze output with AuthPolicy resources (API key + OIDC JWT when full lab fixtures are used). Tenants with pre-existing products may report `product_count > 4`.
 
+**Refresh UI screenshots** (optional, requires Podman + Playwright):
+
+```bash
+cd scripts && npm ci && npx playwright install chromium
+npm run capture-screenshots
+```
+
+Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`) to download PNG artifacts.
+
 ---
 
 ## Key Features (v0.2.0)
