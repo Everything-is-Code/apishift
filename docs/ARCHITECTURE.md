@@ -80,6 +80,7 @@ Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 | `resource/` | JAX-RS REST endpoints (`/api/*`) |
 | `service/` | Business logic, K8s integration, 3scale clients |
 | `service/export/` | Offline export parse/validate/import — **reference sub-domain** (focused classes, good test coverage) |
+| `service/developerhub/` | Developer Hub catalog and scaffolder HTTP client |
 | `model/` | Immutable records / DTOs shared across layers |
 | `entity/` | JPA entities (plans, audit) |
 | `ai/` | LangChain4j migration agent and tool wiring |
@@ -106,7 +107,7 @@ These classes carry most migration logic today. They work but are hard to review
 | Class | ~LOC | Notes |
 |-------|------|-------|
 | `MigrationService` | 1700+ | Plan generation, apply, DevHub hooks, policy mapping |
-| `MigrationResource` | 670+ | Large REST surface; candidate for client/repository split |
+| `MigrationResource` | 670+ | Large REST surface; DevHub logic moved to `DeveloperHubClient` |
 | `service/export/*` | small files | Preferred pattern for new backend code |
 
 ---

@@ -1,6 +1,5 @@
 package io.gateforge.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -10,22 +9,17 @@ import io.gateforge.model.PolicyMappingCatalog;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.GateForgeMetrics;
 import io.gateforge.service.MigrationService;
+import io.gateforge.service.developerhub.DeveloperHubClient;
 import io.gateforge.service.export.ExportImportException;
 import io.gateforge.service.export.ExportImportService;
 import io.gateforge.service.export.ImportExportResponse;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -49,28 +43,7 @@ public class MigrationResource {
     ExportImportService exportImportService;
 
     @Inject
-    ObjectMapper objectMapper;
-
-    @ConfigProperty(name = "gateforge.developer-hub.scaffolder-url", defaultValue = "")
-    Optional<String> scaffolderUrl;
-
-    @ConfigProperty(name = "gateforge.developer-hub.scaffolder-token", defaultValue = "")
-    Optional<String> scaffolderToken;
-
-    @ConfigProperty(name = "gateforge.cluster-domain", defaultValue = "apps.cluster.example.com")
-    String clusterDomain;
-
-    @ConfigProperty(name = "gateforge.developer-hub.component-suffix", defaultValue = "-product")
-    String componentSuffix;
-
-    @ConfigProperty(name = "gateforge.developer-hub.enabled", defaultValue = "false")
-    boolean developerHubEnabled;
-
-    @ConfigProperty(name = "gateforge.developer-hub.url", defaultValue = "none")
-    String developerHubUrl;
-
-    private final HttpClient scaffolderClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10)).build();
+    DeveloperHubClient developerHubClient;
 
     public record AnalyzeRequest(String gatewayStrategy, List<String> products, String targetClusterId) {}
     public record ApplyRequest(List<Integer> excludedIndexes, Map<String, String> yamlOverrides) {}
@@ -165,272 +138,11 @@ public class MigrationResource {
             }
         }
 
-        if (developerHubEnabled && developerHubUrl != null && !developerHubUrl.isBlank()
-                && !"none".equalsIgnoreCase(developerHubUrl.trim())) {
-            postMigrationEventToDeveloperHub(plan, id);
-            registerCatalogEntities(plan);
-            unregister3ScaleEntities(plan);
+        if (developerHubClient.isActive()) {
+            developerHubClient.notifyPlanApplied(plan, id);
         }
 
         return result;
-    }
-
-    private void postMigrationEventToDeveloperHub(MigrationPlan plan, String planId) {
-        try {
-            String baseUrl = developerHubUrl.trim();
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            String url = baseUrl + "/api/catalog/migration-event";
-
-            List<Map<String, String>> resourcesPayload = new ArrayList<>();
-            for (MigrationPlan.GeneratedResource r : plan.resources()) {
-                Map<String, String> entry = new LinkedHashMap<>();
-                entry.put("kind", r.kind());
-                entry.put("name", r.name());
-                entry.put("namespace", r.namespace() != null ? r.namespace() : "");
-                resourcesPayload.add(entry);
-            }
-
-            for (String productName : plan.sourceProducts()) {
-                String sysName = productName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                String routeName = sysName + "-route";
-                String ns = plan.resources().stream()
-                        .filter(r -> "HTTPRoute".equals(r.kind()) && routeName.equals(r.name()))
-                        .findFirst()
-                        .map(MigrationPlan.GeneratedResource::namespace)
-                        .orElse("default");
-
-                Map<String, Object> payload = new LinkedHashMap<>();
-                payload.put("products", List.of(sysName));
-                payload.put("namespace", ns);
-                payload.put("planId", planId);
-                payload.put("resources", resourcesPayload);
-
-                String json = objectMapper.writeValueAsString(payload);
-                HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Content-Type", "application/json");
-                if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                    reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-                }
-                HttpRequest req = reqBuilder
-                        .POST(HttpRequest.BodyPublishers.ofString(json))
-                        .build();
-
-                HttpResponse<String> resp = scaffolderClient.send(req, HttpResponse.BodyHandlers.ofString());
-                LOG.infof("Developer Hub migration-event POST for %s → HTTP %d", sysName, resp.statusCode());
-                if (resp.statusCode() >= 400) {
-                    LOG.warnf("Developer Hub migration-event error for %s: %s", sysName, resp.body());
-                }
-            }
-        } catch (Exception e) {
-            LOG.warnf("Failed to POST migration-event to Developer Hub: %s", e.getMessage());
-        }
-    }
-
-    private void registerCatalogEntities(MigrationPlan plan) {
-        String catalogYaml = plan.catalogInfoYaml();
-        if (catalogYaml == null || catalogYaml.isBlank()) {
-            LOG.info("No catalog-info YAML in plan, skipping catalog registration");
-            return;
-        }
-        try {
-            String baseUrl = developerHubUrl.trim();
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            String locationUrl = baseUrl + "/api/catalog/locations";
-
-            String gateforgeBaseUrl = "https://gateforge-gateforge." + clusterDomain + "/api/migration/plans/" + plan.id();
-
-            for (String productName : plan.sourceProducts()) {
-                String sysName = productName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                String catalogEndpoint = gateforgeBaseUrl + "/catalog-info/" + sysName;
-
-                Map<String, Object> locationPayload = new LinkedHashMap<>();
-                locationPayload.put("type", "url");
-                locationPayload.put("target", catalogEndpoint);
-
-                String json = objectMapper.writeValueAsString(locationPayload);
-                HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                        .uri(URI.create(locationUrl))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Content-Type", "application/json");
-                if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                    reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-                }
-                HttpRequest req = reqBuilder
-                        .POST(HttpRequest.BodyPublishers.ofString(json))
-                        .build();
-
-                HttpResponse<String> resp = scaffolderClient.send(req, HttpResponse.BodyHandlers.ofString());
-                LOG.infof("Catalog location POST for %s → HTTP %d", sysName, resp.statusCode());
-                if (resp.statusCode() >= 400) {
-                    LOG.warnf("Catalog location error for %s: %s", sysName, resp.body());
-                }
-            }
-        } catch (Exception e) {
-            LOG.warnf("Failed to register catalog entities: %s", e.getMessage());
-        }
-    }
-
-    private void unregister3ScaleEntities(MigrationPlan plan) {
-        try {
-            String baseUrl = developerHubUrl.trim();
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            for (String productName : plan.sourceProducts()) {
-                String sysName = productName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-                unregister3ScaleEntity(sysName, baseUrl);
-            }
-        } catch (Exception e) {
-            LOG.warnf("Failed to unregister 3scale entities: %s", e.getMessage());
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void unregister3ScaleEntity(String sysName, String baseUrl) {
-        try {
-            String entitiesUrl = baseUrl + "/api/catalog/entities/by-query?"
-                    + "filter=kind=API,metadata.name=" + sysName;
-
-            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(entitiesUrl))
-                    .timeout(Duration.ofSeconds(15))
-                    .GET();
-            if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-            }
-            HttpResponse<String> resp = scaffolderClient.send(reqBuilder.build(), HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() != 200) {
-                LOG.warnf("Could not query 3scale entity '%s': HTTP %d", sysName, resp.statusCode());
-                return;
-            }
-
-            List<?> entities = objectMapper.readValue(resp.body(), List.class);
-            for (Object entity : entities) {
-                Map<String, Object> e = (Map<String, Object>) entity;
-                Map<String, Object> metadata = (Map<String, Object>) e.get("metadata");
-                Map<String, Object> annotations = metadata != null
-                        ? (Map<String, Object>) metadata.get("annotations")
-                        : null;
-                if (annotations == null) continue;
-
-                String originLocation = String.valueOf(
-                        annotations.getOrDefault("backstage.io/managed-by-origin-location", ""));
-                if (!originLocation.contains("3scale")) continue;
-
-                String uid = String.valueOf(metadata.get("uid"));
-                String locationRef = String.valueOf(
-                        annotations.getOrDefault("backstage.io/origin-location-ref", ""));
-
-                LOG.infof("Unregistering 3scale entity '%s' (uid=%s, origin=%s)", sysName, uid, originLocation);
-                if (locationRef != null && !locationRef.isBlank()) {
-                    deleteLocationByRef(baseUrl, locationRef);
-                } else {
-                    deleteEntityByUid(baseUrl, uid);
-                }
-            }
-        } catch (Exception e) {
-            LOG.warnf("Error unregistering 3scale entity '%s': %s", sysName, e.getMessage());
-        }
-    }
-
-    private void deleteLocationByRef(String baseUrl, String locationRef) {
-        try {
-            String url = baseUrl + "/api/catalog/locations/by-query?filter=target=" + locationRef;
-            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(15))
-                    .GET();
-            if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-            }
-            HttpResponse<String> resp = scaffolderClient.send(reqBuilder.build(), HttpResponse.BodyHandlers.ofString());
-            if (resp.statusCode() == 200) {
-                List<?> locations = objectMapper.readValue(resp.body(), List.class);
-                for (Object loc : locations) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> l = (Map<String, Object>) loc;
-                    String locId = String.valueOf(l.get("id"));
-                    HttpRequest delReq = HttpRequest.newBuilder()
-                            .uri(URI.create(baseUrl + "/api/catalog/locations/" + locId))
-                            .timeout(Duration.ofSeconds(15))
-                            .DELETE()
-                            .build();
-                    scaffolderClient.send(delReq, HttpResponse.BodyHandlers.ofString());
-                    LOG.infof("Deleted 3scale location %s", locId);
-                }
-            }
-        } catch (Exception e) {
-            LOG.warnf("Error deleting location ref '%s': %s", locationRef, e.getMessage());
-        }
-    }
-
-    private void deleteEntityByUid(String baseUrl, String uid) {
-        try {
-            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/api/catalog/entities/by-uid/" + uid))
-                    .timeout(Duration.ofSeconds(15));
-            if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-            }
-            HttpRequest delReq = reqBuilder.DELETE().build();
-            HttpResponse<String> resp = scaffolderClient.send(delReq, HttpResponse.BodyHandlers.ofString());
-            LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", uid, resp.statusCode());
-        } catch (Exception e) {
-            LOG.warnf("Error deleting entity uid '%s': %s", uid, e.getMessage());
-        }
-    }
-
-    private void triggerScaffolderTemplate(String templateName, Map<String, Object> values) {
-        if (scaffolderUrl.isEmpty() || scaffolderUrl.get().isBlank()) {
-            LOG.info("Scaffolder URL not configured, skipping template trigger");
-            return;
-        }
-        try {
-            Map<String, Object> payload = Map.of(
-                    "templateRef", "template:default/" + templateName,
-                    "values", values
-            );
-
-            String json = objectMapper.writeValueAsString(payload);
-            HttpRequest.Builder reqBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(scaffolderUrl.get()))
-                    .timeout(Duration.ofSeconds(30))
-                    .header("Content-Type", "application/json");
-
-            if (scaffolderToken.isPresent() && !scaffolderToken.get().isBlank()) {
-                reqBuilder.header("Authorization", "Bearer " + scaffolderToken.get());
-            }
-
-            HttpRequest req = reqBuilder
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
-
-            HttpResponse<String> resp = scaffolderClient.send(req, HttpResponse.BodyHandlers.ofString());
-            LOG.infof("Scaffolder API response: %d — %s", resp.statusCode(), resp.body());
-
-            if (resp.statusCode() >= 400) {
-                throw new jakarta.ws.rs.WebApplicationException(
-                        "Developer Hub Scaffolder API returned HTTP " + resp.statusCode() + ": " + resp.body(),
-                        resp.statusCode());
-            }
-        } catch (java.net.http.HttpTimeoutException e) {
-            String msg = "Developer Hub Scaffolder API timed out after 30s. The Component may not have been registered. "
-                    + "Check the Scaffolder tasks in Developer Hub or retry using POST /api/migration/plans/{id}/confirm-registration.";
-            LOG.error(msg, e);
-            throw new jakarta.ws.rs.WebApplicationException(msg, 504);
-        } catch (jakarta.ws.rs.WebApplicationException e) {
-            throw e;
-        } catch (Exception e) {
-            String msg = "Failed to trigger Scaffolder template: " + e.getMessage();
-            LOG.error(msg, e);
-            throw new jakarta.ws.rs.WebApplicationException(msg, 502);
-        }
     }
 
     private void applyYaml(KubernetesClient client, String yaml, String namespace) {
@@ -492,17 +204,7 @@ public class MigrationResource {
 
         migrationService.updatePlanStatus(id, "REVERTED");
 
-        for (String productName : plan.sourceProducts()) {
-            String sysName = productName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-            String compName = sysName.endsWith(componentSuffix) ? sysName : sysName + componentSuffix;
-            try {
-                triggerScaffolderTemplate("gateforge-unregister-component", Map.of(
-                        "componentName", compName
-                ));
-            } catch (Exception e) {
-                LOG.warnf("Failed to unregister component %s: %s", compName, e.getMessage());
-            }
-        }
+        developerHubClient.unregisterComponents(plan);
 
         return new ApplyResult(id, applied, failed, results, clusterId);
     }
@@ -573,27 +275,8 @@ public class MigrationResource {
             throw new NotFoundException("Plan not found: " + id);
         }
 
-        for (String productName : plan.sourceProducts()) {
-            String sysName = productName.toLowerCase().replaceAll("[^a-z0-9-]", "-");
-            String compName = sysName.endsWith(componentSuffix) ? sysName : sysName + componentSuffix;
-            String routeName = sysName + "-route";
-            String namespace = plan.resources().stream()
-                    .filter(r -> "HTTPRoute".equals(r.kind()) && r.name().equals(routeName))
-                    .findFirst().map(MigrationPlan.GeneratedResource::namespace).orElse("default");
-
-            Map<String, Object> templateValues = new LinkedHashMap<>(Map.of(
-                    "planId", id,
-                    "productName", sysName,
-                    "componentName", compName,
-                    "namespace", namespace,
-                    "owner", "group:default/3scale",
-                    "clusterDomain", clusterDomain
-            ));
-            if (request != null && request.componentYaml() != null && !request.componentYaml().isBlank()) {
-                templateValues.put("componentYaml", request.componentYaml());
-            }
-            triggerScaffolderTemplate("gateforge-register-component", templateValues);
-        }
+        String componentYaml = request != null ? request.componentYaml() : null;
+        developerHubClient.confirmRegistration(plan, id, componentYaml);
 
         return Map.of("status", "registered", "planId", id);
     }
