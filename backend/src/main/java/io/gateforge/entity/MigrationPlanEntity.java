@@ -39,6 +39,9 @@ public class MigrationPlanEntity extends PanacheEntityBase {
     @Column(name = "prerequisites_json", columnDefinition = "TEXT")
     public String prerequisitesJson;
 
+    @Column(name = "consolidation_warnings_json", columnDefinition = "TEXT")
+    public String consolidationWarningsJson;
+
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     public List<GeneratedResourceEntity> resources;
 }

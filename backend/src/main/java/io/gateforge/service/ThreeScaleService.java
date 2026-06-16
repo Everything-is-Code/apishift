@@ -590,11 +590,6 @@ public class ThreeScaleService {
         );
     }
 
-    /** @deprecated use {@link #refreshProductForMigration} */
-    public ThreeScaleProduct refreshApplications(ThreeScaleProduct product) {
-        return refreshProductForMigration(product);
-    }
-
     private List<ThreeScaleProduct.ApplicationPlan> loadApplicationPlansForService(
             ThreeScaleAdminPort client, long serviceId) {
         List<ThreeScaleProduct.ApplicationPlan> appPlans = new ArrayList<>();

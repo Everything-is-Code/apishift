@@ -1,10 +1,6 @@
 package io.gateforge.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gateforge.ai.MigrationAgent;
-import io.gateforge.entity.AuditEntryEntity;
-import io.gateforge.entity.GeneratedResourceEntity;
-import io.gateforge.entity.MigrationPlanEntity;
 import io.gateforge.model.MigrationPlan;
 import io.gateforge.model.MigrationPrerequisite;
 import io.gateforge.model.TestCommand;
@@ -40,9 +36,6 @@ public class MigrationService {
 
     @Inject
     ClusterRegistry clusterRegistry;
-
-    @Inject
-    ObjectMapper objectMapper;
 
     @Inject
     KuadrantCtlService kuadrantCtlService;
@@ -484,47 +477,6 @@ public class MigrationService {
         migrationPlanRepository.save(plan);
     }
 
-    private MigrationPlan toPlan(MigrationPlanEntity e) {
-        List<String> products;
-        try {
-            products = objectMapper.readValue(e.sourceProductsJson,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-        } catch (Exception ex) {
-            products = List.of();
-        }
-        List<MigrationPlan.GeneratedResource> resources = e.resources != null
-                ? e.resources.stream()
-                    .map(r -> new MigrationPlan.GeneratedResource(r.kind, r.name, r.namespace, r.yaml))
-                    .collect(Collectors.toList())
-                : List.of();
-        return new MigrationPlan(
-                e.id, e.gatewayStrategy, products, resources,
-                e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of(),
-                deserializePrerequisites(e.prerequisitesJson)
-        );
-    }
-
-    /**
-     * List view / hub overview: metadata only (avoids loading large generated YAML blobs).
-     */
-    private MigrationPlan toPlanSummary(MigrationPlanEntity e) {
-        List<String> products;
-        try {
-            products = objectMapper.readValue(e.sourceProductsJson,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-        } catch (Exception ex) {
-            products = List.of();
-        }
-        return new MigrationPlan(
-                e.id, e.gatewayStrategy, products,
-                List.of(),
-                e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of(),
-                deserializePrerequisites(e.prerequisitesJson)
-        );
-    }
-
     private List<MigrationPrerequisite> buildPrerequisites(
             List<MigrationPlan.GeneratedResource> resources, String targetClusterId) {
         List<MigrationPrerequisite> merged = new ArrayList<>();
@@ -555,26 +507,6 @@ public class MigrationService {
             ));
         }
         return new ArrayList<>(byId.values());
-    }
-
-    private List<MigrationPrerequisite> deserializePrerequisites(String json) {
-        if (json == null || json.isBlank()) {
-            return List.of();
-        }
-        try {
-            return objectMapper.readValue(json,
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, MigrationPrerequisite.class));
-        } catch (Exception e) {
-            LOG.warn("Failed to deserialize prerequisites JSON", e);
-            return List.of();
-        }
-    }
-
-    private AuditEntry toAuditEntry(AuditEntryEntity e) {
-        return new AuditEntry(
-                e.id, e.timestamp, e.action, e.resourceKind, e.resourceName,
-                e.namespace, e.yamlBefore, e.yamlAfter, e.performedBy, e.targetClusterId
-        );
     }
 
     public String getCatalogInfoForProduct(String planId, String productName) {
