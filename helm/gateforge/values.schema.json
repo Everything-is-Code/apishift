@@ -187,7 +187,7 @@
         },
         "sources": {
           "type": "string",
-          "description": "JSON array of multiple 3scale sources: [{\"id\":\"prod\",\"label\":\"Production\",\"url\":\"...\",\"token\":\"...\"}]"
+          "description": "JSON array of multiple 3scale sources: [{\"id\":\"prod\",\"label\":\"Production\",\"adminUrl\":\"https://...\",\"accessToken\":\"...\",\"enabled\":true}]"
         }
       }
     },

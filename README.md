@@ -637,6 +637,10 @@ helm install gateforge gateforge/gateforge \
 | `developerHub.scaffolderToken` | "" | Bearer token for Scaffolder API authentication |
 | `route.enabled` | true | Create OpenShift Route |
 
+**Helm vs local compose defaults:** The chart does not template `THREESCALE_CRD_DISCOVERY` or `APICAST_DISCOVERY`; the application defaults both to **`true`** on OpenShift. Local [podman-compose.yml](podman-compose.yml) / [`.env.example`](.env.example) default both to **`false`** for Admin-API-only discovery. See [helm/gateforge/README.md](helm/gateforge/README.md#values-documented-but-not-wired-in-the-chart) for the full env mapping.
+
+For module layout and API contracts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [architecture hardening archive](docs/archive/2026-06-16-architecture-hardening.md).
+
 ---
 
 ## Official Documentation

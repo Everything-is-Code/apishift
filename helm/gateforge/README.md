@@ -41,17 +41,20 @@ helm install gateforge gateforge/gateforge \
 | **MCP Servers** | 3scale, Connectivity Link, Kubernetes | Tool calling for AI agent via Model Context Protocol |
 | **Migration** | kuadrantctl, Fabric8 K8s Client | Generate HTTPRoute, AuthPolicy, RateLimitPolicy |
 
-## 3scale to Connectivity Link Mapping
+## 3scale to Connectivity Link Mapping (RHCL 1.3)
 
-| 3scale Object | Connectivity Link Resource |
-|--------------|---------------------------|
-| Product | Gateway + HTTPRoute + AuthPolicy + RateLimitPolicy |
-| Backend | Service/Endpoints (HTTPRoute backendRefs) |
-| Mapping Rules | HTTPRoute rules (path, method matches) |
-| Application Plans (limits) | RateLimitPolicy (rates, counters) |
-| Auth (OAuth2, API Key) | AuthPolicy (via Authorino/Keycloak) |
-| Proxy/Gateway config | Gateway listener configuration |
-| DNS/TLS settings | DNSPolicy + TLSPolicy |
+| 3scale concept | Connectivity Link resource | Notes |
+|----------------|---------------------------|-------|
+| Product / exposure | `Gateway` + `HTTPRoute` + OpenShift `Route` | Per product or shared gateway strategy |
+| Backend / mapping rules | `HTTPRoute` rules + `backendRefs` | PathPrefix consolidation from mapping rules |
+| Application (API key) | `Secret` + `AuthPolicy` (`apiKey`) | |
+| Application (OIDC JWT) | `AuthPolicy` (`jwt.issuerUrl`) | Bearer validation, not OIDCPolicy |
+| Application plans + limits | `PlanPolicy` (`extensions.kuadrant.io`) | Primary tier/limits vehicle |
+| Global / edge limit | `RateLimitPolicy` | Optional ceiling alongside PlanPolicy |
+| API catalog | `APIProduct` (`devportal.kuadrant.io`) | Optional; requires Developer Portal |
+| DNS / TLS | `DNSPolicy`, `TLSPolicy` | When multicluster or TLS policies apply |
+
+See the root [README.md](../../README.md) for the full consolidated mapping and wizard behavior.
 
 ## Gateway Strategies
 
@@ -69,38 +72,79 @@ helm install gateforge gateforge/gateforge \
 | `backend.image.tag` | `v0.2.0` | Backend image tag |
 | `frontend.image.repository` | `quay.io/maximilianopizarro/gateforge-frontend` | Frontend image |
 | `frontend.image.tag` | `v0.2.0` | Frontend image tag |
-| `ai.enabled` | `true` | Enable AI features |
 | `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | `deepseek-r1-distill-qwen-14b` | AI model name |
 | `ai.timeout` | `600s` | LLM request timeout (`AI_TIMEOUT`) |
-| `ai.apiKey` | `""` | LLM API key |
-| `threescale.adminApi.enabled` | `true` | Enable 3scale Admin API |
+| `ai.apiKey` | `""` | LLM API key (stored in release Secret) |
 | `threescale.adminApi.url` | `""` | 3scale Admin Portal URL |
-| `threescale.adminApi.accessToken` | `""` | 3scale provider access token |
-| `threescale.crdDiscovery.enabled` | `true` | Auto-discover 3scale CRDs in cluster |
+| `threescale.adminApi.accessToken` | `""` | 3scale provider access token (Secret) |
+| `threescale.sources` | `""` | JSON array of additional 3scale sources (`adminUrl`, `accessToken`) |
 | `connectivityLink.targetNamespace` | `kuadrant-system` | Target namespace for Kuadrant resources |
 | `connectivityLink.gatewayStrategy` | `shared` | Gateway strategy: shared / dual / dedicated |
 | `connectivityLink.gatewayClassName` | `istio` | Gateway class name |
-| `rbac.clusterAdmin` | `true` | Bind cluster-admin role to backend SA |
+| `clusterDomain` | `apps.cluster.example.com` | Cluster apps domain for generated hostnames |
+| `rbac.clusterAdmin` | `false` | Bind cluster-admin role to backend SA (dev only) |
 | `route.enabled` | `true` | Create OpenShift Route |
 | `route.host` | `""` | Route hostname (auto-generated if empty) |
 | `route.tls.termination` | `edge` | TLS termination type |
 
+> **Note:** `global.clusterDomain` in `values.yaml` is unused; use top-level `clusterDomain`.
+
+### Environment variable mapping (wired)
+
+Helm values below are rendered into the backend container environment and map to Quarkus `application.properties` keys.
+
+| Helm value | Container env | Application property |
+|------------|---------------|----------------------|
+| `ai.endpoint` | `AI_ENDPOINT` | `quarkus.langchain4j.openai.base-url` |
+| `ai.model` | `AI_MODEL` | `quarkus.langchain4j.openai.chat-model.model-name` |
+| `ai.timeout` | `AI_TIMEOUT` | `quarkus.langchain4j.openai.timeout` |
+| `ai.apiKey` (Secret) | `AI_API_KEY` | `quarkus.langchain4j.openai.api-key` |
+| `threescale.adminApi.url` | `THREESCALE_ADMIN_URL` | `gateforge.threescale.admin-url` |
+| `threescale.adminApi.accessToken` (Secret) | `THREESCALE_ACCESS_TOKEN` | `gateforge.threescale.access-token` |
+| `threescale.sources` | `THREESCALE_SOURCES` | `gateforge.threescale.sources` |
+| `connectivityLink.targetNamespace` | `CL_TARGET_NAMESPACE` | `gateforge.connectivity-link.target-namespace` |
+| `connectivityLink.gatewayStrategy` | `CL_GATEWAY_STRATEGY` | `gateforge.connectivity-link.gateway-strategy` |
+| `connectivityLink.gatewayClassName` | `CL_GATEWAY_CLASS` | `gateforge.connectivity-link.gateway-class-name` |
+| `clusterDomain` | `CLUSTER_DOMAIN` | `gateforge.cluster-domain` |
+| `developerHub.enabled` | `DEVELOPER_HUB_ENABLED` | `gateforge.developer-hub.enabled` |
+| `developerHub.url` | `DEVELOPER_HUB_URL` | `gateforge.developer-hub.url` |
+| `developerHub.scaffolderUrl` | `DEVHUB_SCAFFOLDER_URL` | `gateforge.developer-hub.scaffolder-url` |
+| `developerHub.scaffolderToken` | `DEVHUB_SCAFFOLDER_TOKEN` | `gateforge.developer-hub.scaffolder-token` |
+| `developerHub.componentSuffix` | `DEVHUB_COMPONENT_SUFFIX` | `gateforge.developer-hub.component-suffix` |
+| `targetClusters` | `TARGET_CLUSTERS` | `gateforge.target-clusters` |
+| `argocd.clusterDiscovery` | `ARGOCD_CLUSTER_DISCOVERY` | `gateforge.argocd.cluster-discovery` |
+| `postgresql.url` | `DATASOURCE_URL` | `quarkus.datasource.jdbc.url` |
+| `postgresql.*` (Secret) | `DATASOURCE_USERNAME`, `DATASOURCE_PASSWORD` | `quarkus.datasource.*` |
+| `observability.enabled` | `OBSERVABILITY_ENABLED` | `gateforge.observability.enabled` |
+| `observability.otelCollectorEndpoint` | `OTEL_ENDPOINT` (when enabled) | `quarkus.otel.exporter.otlp.endpoint` |
+| `datagrid.*` (when enabled) | `DATAGRID_HOST`, `DATAGRID_PORT`, credentials | `quarkus.infinispan-client.*` |
+
+### Values documented but **not wired** in the chart
+
+These appear in `values.yaml` or older docs but are **not** set on the backend Deployment. The application uses its built-in defaults instead.
+
+| Helm value | Effective default (app) | Local compose (`.env`) | Notes |
+|------------|-------------------------|------------------------|-------|
+| `ai.enabled` | AI always configured via endpoint/key env | N/A | Toggle not implemented in templates |
+| `threescale.adminApi.enabled` | URL/token presence | N/A | No separate enable flag in deployment |
+| `threescale.crdDiscovery.enabled` | `true` (`gateforge.threescale.crd-discovery`) | `false` in `.env.example` | **Not templated** — Helm installs enable CRD discovery by default |
+| `threescale.crdDiscovery.namespace` | — | N/A | **Not implemented** — scans cluster-wide |
+| `kuadrantctl.enabled` | `/usr/local/bin/kuadrantctl` in image | N/A | Path not overridden by Helm |
+| `APICAST_DISCOVERY` | `true` (`gateforge.apicast.discovery`) | `false` in `.env.example` | **Not templated** |
+| `KUBE_API_URL` / `KUBE_TOKEN` | In-cluster SA when on OpenShift | Set in `.env` for local | **Not templated** — use backend ServiceAccount RBAC on cluster |
+
+For discovery-only analysis without cluster CRD scans, set env overrides manually on the Deployment or use [local compose](../../podman-compose.yml) defaults.
+
 ## API Endpoints
+
+The REST surface is documented in the root [README.md](../../README.md#api-endpoints) and [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md). OpenAPI schema: `GET /q/openapi` on the backend Route.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/cluster/projects` | GET | List all cluster projects (cluster-admin) |
-| `/api/threescale/products` | GET | List 3scale Product CRDs |
-| `/api/threescale/backends` | GET | List 3scale Backend CRDs |
-| `/api/migration/analyze` | POST | Analyze and plan migration |
-| `/api/migration/plans` | GET | List migration plans |
-| `/api/audit/reports` | GET | View audit log |
-| `/api/chat` | POST | AI migration assistant |
-| `/api/chat/warm-faq` | POST | Trigger FAQ cache refresh |
-| `/api/chat/faq-status` | GET | FAQ cache status (`cached` / `total`) |
 | `/q/health/ready` | GET | Readiness probe |
 | `/q/health/live` | GET | Liveness probe |
+| `/q/openapi` | GET | OpenAPI 3 schema (JSON or YAML) |
 
 ## Container Images
 

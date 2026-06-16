@@ -5,6 +5,17 @@ All notable changes to GateForge are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Architecture hardening (Phases 1–4)**: script taxonomy, `docs/ARCHITECTURE.md`, backend layering (generators, repos, `DeveloperHubClient`, `MigrationExceptionMapper`), frontend `core/shared/features`, API facades, wizard step components, `ThreeScaleAdminPort`, OpenAPI typegen, optional E2E workflow (`workflow_dispatch`)
+- **Post-hardening docs (Wave A)**: API contract workflow in ARCHITECTURE.md, REST change checklist in CONTRIBUTING.md, E2E env vars and CI workflow index in `scripts/README.md`
+
+### Changed
+
+- **Documentation**: Helm env mapping and unwired-value disclosure (in progress); frontend contract adoption (planned)
+
 ## [0.2.0] - 2026-06-10
 
 ### Added
