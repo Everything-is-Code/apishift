@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { take, retry, timeout } from 'rxjs';
-import { ApiService, ChatMessage } from '../../core/api/api.service';
+import { ChatApiService } from '../../core/api/chat-api.service';
+import { ChatMessage } from '../../core/api/models';
 
 @Component({
   selector: 'app-chat',
@@ -425,7 +426,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     'Explain the migration steps'
   ];
 
-  constructor(private api: ApiService, private route: ActivatedRoute) {}
+  constructor(private chatApi: ChatApiService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.route.queryParams.pipe(take(1)).subscribe(params => {
@@ -464,7 +465,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.loading = true;
     this.requestScroll();
 
-    this.api.chat(content).pipe(
+    this.chatApi.send(content).pipe(
       timeout(115000),
       retry({ count: 1, delay: 2000 })
     ).subscribe({

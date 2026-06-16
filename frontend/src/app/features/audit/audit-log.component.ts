@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService, AuditEntry } from '../../core/api/api.service';
+import { AuditApiService } from '../../core/api/audit-api.service';
+import { AuditEntry } from '../../core/api/models';
 
 @Component({
   selector: 'app-audit-log',
@@ -322,10 +323,10 @@ export class AuditLogComponent implements OnInit {
   loading = true;
   expanded: Record<string, boolean> = {};
 
-  constructor(private api: ApiService) {}
+  constructor(private auditApi: AuditApiService) {}
 
   ngOnInit(): void {
-    this.api.getAuditLog().subscribe({
+    this.auditApi.getReports().subscribe({
       next: (data) => {
         this.entries = data;
         this.loading = false;

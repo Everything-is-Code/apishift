@@ -1,68 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ApiService, MigrationPlan } from './api.service';
+import { ClusterApiService } from './cluster-api.service';
+import { MigrationApiService } from './migration-api.service';
+import { ThreeScaleApiService } from './threescale-api.service';
+import { MigrationPlan } from './models';
 
-describe('ApiService', () => {
-  let service: ApiService;
+describe('ClusterApiService', () => {
+  let service: ClusterApiService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [ApiService],
+      providers: [ClusterApiService],
     });
-    service = TestBed.inject(ApiService);
+    service = TestBed.inject(ClusterApiService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  it('getProducts_requestsCorrectUrl', () => {
-    service.getProducts().subscribe(products => {
-      expect(products.length).toBe(1);
-      expect(products[0].name).toBe('demo-api');
-    });
-
-    const req = httpMock.expectOne('/api/threescale/products');
-    expect(req.request.method).toBe('GET');
-    req.flush([{
-      name: 'demo-api',
-      namespace: 'default',
-      systemName: 'demo-api',
-      description: 'Demo',
-      deploymentOption: 'hosted',
-      mappingRules: [],
-      backendUsages: [],
-      authentication: {},
-      source: 'local',
-    }]);
-  });
-
-  it('analyzeMigration_postsBody', () => {
-    const plan: MigrationPlan = {
-      id: 'plan-1',
-      gatewayStrategy: 'shared',
-      sourceProducts: ['demo-api'],
-      resources: [],
-      aiAnalysis: 'ok',
-      createdAt: new Date().toISOString(),
-    };
-
-    service.analyzeMigration('shared', ['demo-api'], 'local').subscribe(result => {
-      expect(result.id).toBe('plan-1');
-    });
-
-    const req = httpMock.expectOne('/api/migration/analyze');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({
-      gatewayStrategy: 'shared',
-      products: ['demo-api'],
-      targetClusterId: 'local',
-    });
-    req.flush(plan);
-  });
+  afterEach(() => httpMock.verify());
 
   it('getTargetClusters_requestsCorrectUrl', () => {
     service.getTargetClusters().subscribe(clusters => {
@@ -113,6 +69,83 @@ describe('ApiService', () => {
     const req = httpMock.expectOne('/api/cluster/targets/lab/validate');
     expect(req.request.method).toBe('GET');
     req.flush({ connected: true });
+  });
+});
+
+describe('ThreeScaleApiService', () => {
+  let service: ThreeScaleApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [ThreeScaleApiService],
+    });
+    service = TestBed.inject(ThreeScaleApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('getProducts_requestsCorrectUrl', () => {
+    service.getProducts().subscribe(products => {
+      expect(products.length).toBe(1);
+      expect(products[0].name).toBe('demo-api');
+    });
+
+    const req = httpMock.expectOne('/api/threescale/products');
+    expect(req.request.method).toBe('GET');
+    req.flush([{
+      name: 'demo-api',
+      namespace: 'default',
+      systemName: 'demo-api',
+      description: 'Demo',
+      deploymentOption: 'hosted',
+      mappingRules: [],
+      backendUsages: [],
+      authentication: {},
+      source: 'local',
+    }]);
+  });
+});
+
+describe('MigrationApiService', () => {
+  let service: MigrationApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [MigrationApiService],
+    });
+    service = TestBed.inject(MigrationApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('analyze_postsBody', () => {
+    const plan: MigrationPlan = {
+      id: 'plan-1',
+      gatewayStrategy: 'shared',
+      sourceProducts: ['demo-api'],
+      resources: [],
+      aiAnalysis: 'ok',
+      createdAt: new Date().toISOString(),
+    };
+
+    service.analyze('shared', ['demo-api'], 'local').subscribe(result => {
+      expect(result.id).toBe('plan-1');
+    });
+
+    const req = httpMock.expectOne('/api/migration/analyze');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      gatewayStrategy: 'shared',
+      products: ['demo-api'],
+      targetClusterId: 'local',
+    });
+    req.flush(plan);
   });
 
   it('applyPlan_postsExclusionsAndOverrides', () => {
