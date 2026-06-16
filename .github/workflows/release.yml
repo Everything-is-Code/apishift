@@ -117,13 +117,26 @@ jobs:
           source scripts/helm-repo-url.sh
           helm repo index docs/ --url "${HELM_REPO_URL}"
 
-      - name: Commit and push Helm chart
+      - name: Publish Helm chart via pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/
-          git diff --staged --quiet || git commit -m "chore: publish Helm chart ${{ env.RELEASE_TAG }} [skip ci]"
-          git push origin HEAD:main
+          if git diff --staged --quiet; then
+            echo "No Helm chart changes to publish."
+            exit 0
+          fi
+          BRANCH="chore/helm-chart-${{ env.RELEASE_TAG }}"
+          git checkout -b "${BRANCH}"
+          git commit -m "chore: publish Helm chart ${{ env.RELEASE_TAG }}"
+          git push origin "${BRANCH}"
+          gh pr create \
+            --base main \
+            --head "${BRANCH}" \
+            --title "chore: publish Helm chart ${{ env.RELEASE_TAG }}" \
+            --body "Automated Helm repository update for release ${{ env.RELEASE_TAG }}."
 
       - name: Prepare release notes
         run: |
