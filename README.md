@@ -26,9 +26,11 @@ AI-powered migration platform for transitioning from **Red Hat 3scale API Manage
 
 ## Architecture Overview
 
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for module boundaries, data flows, and contributor navigation.
+
 | Layer | Technology | Description |
 |-------|-----------|-------------|
-| **Frontend** | Angular 18 | SPA served by Nginx (UBI9) |
+| **Frontend** | Angular 19 | SPA served by Nginx (UBI9) |
 | **Backend** | Quarkus 3.x, Java 17 | REST API, AI agent, MCP servers, kuadrantctl integration |
 | **Persistence** | PostgreSQL 15 | Migration plans, audit trail, federated logs |
 | **DB Migrations** | Flyway | Versioned schema evolution (`db/migration/V*.sql`) |

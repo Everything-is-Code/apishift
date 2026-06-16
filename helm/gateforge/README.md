@@ -35,7 +35,7 @@ helm install gateforge gateforge/gateforge \
 
 | Layer | Technology | Description |
 |-------|-----------|-------------|
-| **Frontend** | Angular 18, @rhds/elements | SPA with Red Hat Design System, served by Nginx (UBI9) |
+| **Frontend** | Angular 19, @rhds/elements | SPA with Red Hat Design System, served by Nginx (UBI9) |
 | **Backend** | Quarkus 3.x, Java 17 | REST API, AI agent, MCP servers, kuadrantctl integration |
 | **AI** | LangChain4j, deepseek-r1-distill-qwen-14b | Migration analysis and chat assistant via LiteLLM |
 | **MCP Servers** | 3scale, Connectivity Link, Kubernetes | Tool calling for AI agent via Model Context Protocol |
