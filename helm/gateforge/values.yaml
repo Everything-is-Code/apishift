@@ -3,7 +3,7 @@ global:
 
 backend:
   image:
-    repository: quay.io/maximilianopizarro/gateforge-backend
+    repository: quay.io/everythingascode/apishift-backend
     tag: v0.3.0
     pullPolicy: Always
   replicas: 1
@@ -17,7 +17,7 @@ backend:
 
 frontend:
   image:
-    repository: quay.io/maximilianopizarro/gateforge-frontend
+    repository: quay.io/everythingascode/apishift-frontend
     tag: v0.3.0
     pullPolicy: Always
   replicas: 1

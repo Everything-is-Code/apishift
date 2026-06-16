@@ -12,7 +12,7 @@ permissions:
 
 env:
   QUAY_REGISTRY: quay.io
-  QUAY_NAMESPACE: maximilianopizarro
+  QUAY_NAMESPACE: everythingascode
 
 jobs:
   release:
@@ -63,17 +63,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push gateforge-backend
+      - name: Build and push apishift-backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile.jvm
           push: true
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-backend:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-backend:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:${{ env.RELEASE_TAG }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-backend:latest
 
-      - name: Build and push gateforge-frontend
+      - name: Build and push apishift-frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -82,28 +82,28 @@ jobs:
           build-args: |
             APP_VERSION=${{ env.APP_VERSION }}
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-frontend:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-frontend:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:${{ env.RELEASE_TAG }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-frontend:latest
 
-      - name: Build and push gateforge-devhub-plugin
+      - name: Build and push apishift-devhub-plugin
         uses: docker/build-push-action@v6
         with:
-          context: ./gateforge-devhub-plugin
-          file: ./gateforge-devhub-plugin/Dockerfile
+          context: ./apishift-devhub-plugin
+          file: ./apishift-devhub-plugin/Dockerfile
           push: true
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-devhub-plugin:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-devhub-plugin:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:${{ env.RELEASE_TAG }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-plugin:latest
 
-      - name: Build and push gateforge-devhub-frontend-plugin
+      - name: Build and push apishift-devhub-frontend-plugin
         uses: docker/build-push-action@v6
         with:
           context: ./gateforge-devhub-frontend
           file: ./gateforge-devhub-frontend/Dockerfile
           push: true
           tags: |
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-devhub-frontend-plugin:${{ env.RELEASE_TAG }}
-            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/gateforge-devhub-frontend-plugin:latest
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:${{ env.RELEASE_TAG }}
+            ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/apishift-devhub-frontend-plugin:latest
 
       - name: Install Helm
         uses: azure/setup-helm@v4

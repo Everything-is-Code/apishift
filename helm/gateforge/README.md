@@ -68,9 +68,9 @@ See the root [README.md](../../README.md) for the full consolidated mapping and 
 
 | Value | Default | Description |
 |-------|---------|-------------|
-| `backend.image.repository` | `quay.io/maximilianopizarro/gateforge-backend` | Backend image |
+| `backend.image.repository` | `quay.io/everythingascode/apishift-backend` | Backend image |
 | `backend.image.tag` | `v0.3.0` | Backend image tag |
-| `frontend.image.repository` | `quay.io/maximilianopizarro/gateforge-frontend` | Frontend image |
+| `frontend.image.repository` | `quay.io/everythingascode/apishift-frontend` | Frontend image |
 | `frontend.image.tag` | `v0.3.0` | Frontend image tag |
 | `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | `deepseek-r1-distill-qwen-14b` | AI model name |
@@ -150,8 +150,8 @@ The REST surface is documented in the root [README.md](../../README.md#api-endpo
 
 | Image | Description |
 |-------|-------------|
-| `quay.io/maximilianopizarro/gateforge-backend` | Quarkus backend with kuadrantctl (UBI9 OpenJDK 17) |
-| `quay.io/maximilianopizarro/gateforge-frontend` | Angular frontend with Nginx (UBI9 Nginx 124) |
+| `quay.io/everythingascode/apishift-backend` | Quarkus backend with kuadrantctl (UBI9 OpenJDK 17) |
+| `quay.io/everythingascode/apishift-frontend` | Angular frontend with Nginx (UBI9 Nginx 124) |
 
 ## Official Documentation
 

@@ -14,7 +14,7 @@ sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT}/helm/gateforge/Ch
 # Maven artifact version (project root <version>, not dependency versions)
 sed -i "0,/<version>/{s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>/}" "${ROOT}/backend/pom.xml"
 
-for pkg in frontend gateforge-devhub-plugin gateforge-devhub-frontend; do
+for pkg in frontend apishift-devhub-plugin gateforge-devhub-frontend; do
 	sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "${ROOT}/${pkg}/package.json"
 done
 
@@ -22,17 +22,17 @@ done
 sed -i "s/tag: v[0-9.]*$/tag: ${VERSION_V}/" "${ROOT}/helm/gateforge/values.yaml"
 
 # DevHub plugin health endpoint
-sed -i "s/version: '[0-9.]*'/version: '${VERSION}'/" "${ROOT}/gateforge-devhub-plugin/src/router.ts"
+sed -i "s/version: '[0-9.]*'/version: '${VERSION}'/" "${ROOT}/apishift-devhub-plugin/src/router.ts"
 
 # User-facing docs (version strings only — not historical chart entries in index.yaml)
 sed -i "s/>v[0-9.]*</>${VERSION_V}</g" "${ROOT}/docs/index.html"
 sed -i "s/NEW v[0-9.]*/NEW ${VERSION_V}/" "${ROOT}/docs/index.html"
 sed -i "s/GateForge v[0-9.]*/GateForge ${VERSION_V}/" "${ROOT}/docs/index.html"
-sed -i "s/>0\.[0-9.]* (<code>quay.io\/maximilianopizarro\/gateforge-devhub-plugin<\/code>)/>${VERSION} (<code>quay.io\/maximilianopizarro\/gateforge-devhub-plugin<\/code>)/" "${ROOT}/docs/index.html"
+sed -i "s/>0\.[0-9.]* (<code>quay.io\/everythingascode\/apishift-devhub-plugin<\/code>)/>${VERSION} (<code>quay.io\/everythingascode\/apishift-devhub-plugin<\/code>)/" "${ROOT}/docs/index.html"
 sed -i "s/<td>v[0-9.]*<\/td><td>Backend image tag<\/td>/<td>${VERSION_V}<\/td><td>Backend image tag<\/td>/" "${ROOT}/docs/index.html"
 sed -i "s/<td>v[0-9.]*<\/td><td>Frontend image tag<\/td>/<td>${VERSION_V}<\/td><td>Frontend image tag<\/td>/" "${ROOT}/docs/index.html"
-sed -i "s/gateforge-devhub-plugin:[0-9.]*!/gateforge-devhub-plugin:${VERSION}!/g" "${ROOT}/docs/index.html"
-sed -i "s/gateforge-devhub-frontend-plugin:[0-9.]*!/gateforge-devhub-frontend-plugin:${VERSION}!/g" "${ROOT}/docs/index.html"
+sed -i "s/apishift-devhub-plugin:[0-9.]*!/apishift-devhub-plugin:${VERSION}!/g" "${ROOT}/docs/index.html"
+sed -i "s/apishift-devhub-frontend-plugin:[0-9.]*!/apishift-devhub-frontend-plugin:${VERSION}!/g" "${ROOT}/docs/index.html"
 sed -i "s/targetRevision: \"[0-9.]*\"/targetRevision: \"${VERSION}\"/" "${ROOT}/docs/index.html"
 
 sed -i "s/> \\*\\*v[0-9.]*\\*\\* --> **${VERSION_V}** --/" "${ROOT}/README.md"

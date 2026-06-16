@@ -8,9 +8,9 @@
 
 [![Build](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml/badge.svg)](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/gateforge)](https://artifacthub.io/packages/search?repo=gateforge)
-[![Quay.io Backend](https://img.shields.io/badge/quay.io-backend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-backend)
-[![Quay.io Frontend](https://img.shields.io/badge/quay.io-frontend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-frontend)
-[![Quay.io DevHub Frontend](https://img.shields.io/badge/quay.io-devhub--frontend-blue)](https://quay.io/repository/maximilianopizarro/gateforge-devhub-frontend-plugin)
+[![Quay.io Backend](https://img.shields.io/badge/quay.io-backend-blue)](https://quay.io/repository/everythingascode/apishift-backend)
+[![Quay.io Frontend](https://img.shields.io/badge/quay.io-frontend-blue)](https://quay.io/repository/everythingascode/apishift-frontend)
+[![Quay.io DevHub Frontend](https://img.shields.io/badge/quay.io-devhub--frontend-blue)](https://quay.io/repository/everythingascode/apishift-devhub-frontend-plugin)
 [![OpenShift](https://img.shields.io/badge/OpenShift-4.21-red)](https://docs.openshift.com/)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://everything-is-code.github.io/gateforge/)
 
