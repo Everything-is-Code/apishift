@@ -7,7 +7,7 @@ GateForge is a monorepo that migrates **Red Hat 3scale API Management** configur
 1. Skim the [repository layout](#repository-layout) table.
 2. Follow the [migration data flow](#migration-data-flow) for the core product path.
 3. Use [scripts/README.md](../scripts/README.md) for local stack and E2E commands.
-4. Read [deferred refactors](#deferred-refactors-out-of-scope-here) before proposing structural changes.
+4. See [architecture hardening archive](archive/2026-06-16-architecture-hardening.md) for the completed refactor initiative (Phases 1–4).
 
 ---
 
@@ -169,17 +169,18 @@ Organized by purpose under `scripts/`. See **[scripts/README.md](../scripts/READ
 
 ---
 
-## Deferred refactors (out of scope here)
+## Architecture hardening (complete)
 
-Documented for orientation; tracked in architecture-hardening phases 2–3:
+Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged to `main`. Full PR/issue audit trail: [docs/archive/2026-06-16-architecture-hardening.md](archive/2026-06-16-architecture-hardening.md).
 
-| Phase | Target |
+| Phase | Result |
 |-------|--------|
-| 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
-| 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); wizard step components (3.3 done) |
-| 4 — later | 3scale port ([#67](https://github.com/Everything-is-Code/gateforge/issues/67) done), OpenAPI typegen ([#69](https://github.com/Everything-is-Code/gateforge/issues/69) done), optional E2E ([#71](https://github.com/Everything-is-Code/gateforge/issues/71)) |
+| 1 — structure | Script taxonomy, `ARCHITECTURE.md`, contributor docs |
+| 2 — backend | DevHub client, generators, repositories, `ExceptionMapper`, REST smoke tests |
+| 3 — frontend | `core/` / `shared/` / `features/*`, API facades, wizard step components |
+| 4 — contracts | `ThreeScaleAdminPort`, OpenAPI typegen, optional E2E workflow |
 
-Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.
+For future structural work, prefer stacked PRs under ~400 changed lines and avoid mixing large refactors with release-only changes.
 
 ---
 
