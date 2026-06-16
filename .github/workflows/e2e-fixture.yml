@@ -1,0 +1,42 @@
+name: E2E (optional)
+
+# Slow lab pipeline — run manually when validating export → analyze flows.
+# Does not run on pull requests by default.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: E2E mode passed to seed-export-analyze.sh
+        required: false
+        default: fixture
+        type: choice
+        options:
+          - fixture
+          - offline
+          - live
+
+concurrency:
+  group: e2e-fixture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose zip
+
+      - name: Start stack and run E2E pipeline
+        env:
+          E2E_MODE: ${{ inputs.mode }}
+        run: |
+          cp .env.example .env
+          podman-compose --env-file .env build backend frontend
+          ./scripts/dev/local-up.sh
+          E2E_MODE="${E2E_MODE}" ./scripts/e2e/seed-export-analyze.sh

@@ -40,6 +40,8 @@ For module layout, REST surface, and migration data flows, read **[docs/ARCHITEC
 - `backend/Dockerfile.jvm` uses `-DskipTests` during image builds for speed; CI is the validation path for tests.
 - Maintainers: consider marking **Backend tests / backend-test** as a required status check on `main` after this workflow is merged.
 
+**Optional E2E (slow):** the [E2E (optional)](.github/workflows/e2e-fixture.yml) workflow runs only on **workflow_dispatch** (Actions → E2E (optional) → Run workflow). Default mode is `fixture` (no live 3scale). Locally: `E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh` with `./scripts/dev/local-up.sh` running.
+
 **Fastest path (containers):**
 
 ```bash
