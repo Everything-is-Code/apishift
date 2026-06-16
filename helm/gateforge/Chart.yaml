@@ -2,8 +2,8 @@ apiVersion: v2
 name: gateforge
 description: AI-powered 3scale to Red Hat Connectivity Link migration platform
 type: application
-version: 0.2.0
-appVersion: "0.2.0"
+version: 0.3.0
+appVersion: "0.3.0"
 icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
 home: https://everything-is-code.github.io/gateforge/
 sources:

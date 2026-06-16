@@ -1922,7 +1922,7 @@
   },
   "info" : {
     "title" : "GateForge API",
-    "version" : "0.2.0",
+    "version" : "0.3.0",
     "description" : "3scale to Connectivity Link migration console REST API"
   },
   "servers" : [ {

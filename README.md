@@ -16,7 +16,7 @@
 
 AI-powered migration platform for transitioning from **Red Hat 3scale API Management** to **Red Hat Connectivity Link** (Kuadrant) on OpenShift. Built with **Quarkus** (backend), **Angular** (frontend), **PostgreSQL** (persistence), and **LangChain4j** (AI).
 
-> **v0.2.0** -- M2 offline import, M3 E2E lab pipeline, RHCL 1.3 policy mapping gaps, pipeline-driven release.
+> **v0.3.0** -- Architecture hardening, post-hardening maintainability (docs, contracts, backend decomposition, tests, wizard state service).
 
 ### About this project
 
@@ -317,7 +317,7 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 
 ---
 
-## Key Features (v0.2.0)
+## Key Features (v0.3.0)
 
 ### Phase 1: Multiple 3scale Sources
 - Connect to **N 3scale Admin API endpoints** simultaneously
@@ -346,7 +346,7 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 - **Pre-registration Editing**: Edit Component definition before catalog registration
 - **Catalog Enrichment**: `GateForgeKuadrantProcessor` enriches 3scale API entities with `kuadrant.io/*` annotations
 
-### Phase 6: APICast Discovery and Migration (v0.2.0)
+### Phase 6: APICast Discovery and Migration (v0.3.0)
 - **APIManager CRD scanning**: Discovers `APIManager` resources cluster-wide via Fabric8 client
 - **Self-managed detection**: Filters for APIManagers with `spec.apicast` (self-managed) and `Available` condition
 - **Configuration analysis**: Extracts staging/production specs, custom policies, TLS, OpenTracing settings
@@ -615,8 +615,8 @@ helm install gateforge gateforge/gateforge \
 
 | Value | Default | Description |
 |-------|---------|-------------|
-| `backend.image.tag` | v0.2.0 | Backend image tag |
-| `frontend.image.tag` | v0.2.0 | Frontend image tag |
+| `backend.image.tag` | v0.3.0 | Backend image tag |
+| `frontend.image.tag` | v0.3.0 | Frontend image tag |
 | `ai.enabled` | true | Enable AI features |
 | `ai.endpoint` | litellm-prod... | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | deepseek-r1-distill-qwen-14b | AI model name (use provider slug allowed by your key; no `openai/` prefix on RHDP MaaS) |

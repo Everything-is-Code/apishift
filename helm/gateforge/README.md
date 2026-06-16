@@ -69,9 +69,9 @@ See the root [README.md](../../README.md) for the full consolidated mapping and 
 | Value | Default | Description |
 |-------|---------|-------------|
 | `backend.image.repository` | `quay.io/maximilianopizarro/gateforge-backend` | Backend image |
-| `backend.image.tag` | `v0.2.0` | Backend image tag |
+| `backend.image.tag` | `v0.3.0` | Backend image tag |
 | `frontend.image.repository` | `quay.io/maximilianopizarro/gateforge-frontend` | Frontend image |
-| `frontend.image.tag` | `v0.2.0` | Frontend image tag |
+| `frontend.image.tag` | `v0.3.0` | Frontend image tag |
 | `ai.endpoint` | `https://litellm-prod.apps.maas.redhatworkshops.io/v1` | LLM endpoint URL (RHDP MaaS: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`) |
 | `ai.model` | `deepseek-r1-distill-qwen-14b` | AI model name |
 | `ai.timeout` | `600s` | LLM request timeout (`AI_TIMEOUT`) |
