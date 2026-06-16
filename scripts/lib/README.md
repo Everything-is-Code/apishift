@@ -15,5 +15,3 @@ source scripts/lib/common.sh
 source scripts/lib/version.sh
 echo "GateForge ${VERSION_V}"
 ```
-
-Backward-compatible wrappers at `scripts/version.sh` and `scripts/helm-repo-url.sh` source these files.

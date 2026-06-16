@@ -8,9 +8,6 @@
  *   cd scripts/docs && npm ci && npx playwright install chromium
  *   npm run capture-screenshots
  *
- * Legacy (backward compatible):
- *   cd scripts && npm ci && npm run capture-screenshots
- *
  * Options:
  *   --skip-stack   Skip local-up and E2E seed (stack already running with fixture data)
  */
@@ -52,8 +49,8 @@ async function main() {
     if (!existsSync(path.join(ROOT, '.env'))) {
       runShell('cp .env.example .env');
     }
-    runShell('./scripts/local-up.sh');
-    runShell('E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh');
+    runShell('./scripts/dev/local-up.sh');
+    runShell('E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh');
   } else {
     runShell('curl -sf http://localhost:8080/q/health/ready >/dev/null');
     runShell('curl -sf http://localhost:4200 >/dev/null');

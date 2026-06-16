@@ -1,5 +1,5 @@
 # GateForge local stack — Podman Compose
-# Quick start: cp .env.example .env  (fill secrets)  &&  ./scripts/local-up.sh
+# Quick start: cp .env.example .env  (fill secrets)  &&  ./scripts/dev/local-up.sh
 # Discovery-only mode (no Kuadrant): uses 3scale Admin API; K8s/CRD/APICast off by default.
 
 version: "3.8"

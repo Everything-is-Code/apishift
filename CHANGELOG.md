@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **M2 offline import**: `POST /api/migration/import-export`, export zip upload in Migration Wizard, 3scaleextract fixture integration
-- **M3 E2E lab**: `scripts/e2e-seed-export-analyze.sh` with `E2E_MODE` (`auto`, `live`, `offline`, `fixture`)
+- **M3 E2E lab**: `scripts/e2e/seed-export-analyze.sh` with `E2E_MODE` (`auto`, `live`, `offline`, `fixture`)
 - **RHCL 1.3 policy mapping**: gap catalog, prerequisites panel, `GET /api/migration/policy-mapping`
 - **Discovery refresh**: `POST /api/threescale/refresh` bypasses cache on demand
 - **Release pipeline**: `release.yml` publishes immutable semver images and Helm chart on `v*` tags
-- **Version sync**: `scripts/version.sh` and `scripts/sync-versions.sh` (Chart.yaml as SSOT)
-- **Local dev**: `podman-compose.yml`, `scripts/local-up.sh` / `local-down.sh`
+- **Version sync**: `scripts/lib/version.sh` and `scripts/release/sync-versions.sh` (Chart.yaml as SSOT)
+- **Local dev**: `podman-compose.yml`, `scripts/dev/local-up.sh` / `local-down.sh`
 - **CI**: backend and frontend unit test workflows; export fixture verification script
 - **Governance**: CODEOWNERS, CONTRIBUTING, org metadata
 

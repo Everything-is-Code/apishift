@@ -21,7 +21,7 @@ jobs:
           sudo apt-get install -y podman podman-compose
 
       - name: Install Playwright dependencies
-        working-directory: scripts
+        working-directory: scripts/docs
         run: |
           npm ci
           npx playwright install chromium --with-deps
@@ -30,11 +30,11 @@ jobs:
         run: |
           cp .env.example .env
           podman-compose --env-file .env build backend frontend
-          ./scripts/local-up.sh
-          E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
+          ./scripts/dev/local-up.sh
+          E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh
 
       - name: Capture screenshots
-        working-directory: scripts
+        working-directory: scripts/docs
         run: npm run capture-screenshots -- --skip-stack
 
       - name: Upload screenshot artifacts

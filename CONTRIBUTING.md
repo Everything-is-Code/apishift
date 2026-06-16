@@ -42,7 +42,7 @@ See the main [README](README.md) for how to run the backend, frontend, and local
 
 ```bash
 cp .env.example .env   # add 3scale token + optional AI key
-./scripts/local-up.sh
+./scripts/dev/local-up.sh
 ```
 
 No Kuadrant or OpenShift cluster is required for 3scale Admin API discovery and migration analysis.

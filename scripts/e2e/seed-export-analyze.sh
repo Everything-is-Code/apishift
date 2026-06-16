@@ -4,7 +4,7 @@
 #
 # Usage:
 #   export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
-#   ./scripts/e2e-seed-export-analyze.sh
+#   ./scripts/e2e/seed-export-analyze.sh
 #
 # Optional:
 #   E2E_MODE=offline|live|auto|fixture   (default: auto)
@@ -186,7 +186,7 @@ resolve_mode() {
 			if gateforge_ready; then
 				echo "offline"
 			else
-				die "GateForge not ready at ${GATEFORGE_API}; start ./scripts/local-up.sh or set E2E_MODE=fixture"
+				die "GateForge not ready at ${GATEFORGE_API}; start ./scripts/dev/local-up.sh or set E2E_MODE=fixture"
 			fi
 			;;
 		*) die "unknown E2E_MODE=${MODE} (use auto|offline|live|fixture)" ;;
@@ -204,7 +204,7 @@ main() {
 	case "${resolved}" in
 		fixture)
 			prepare_fixture_export
-			gateforge_ready || die "GateForge required for analyze; start ./scripts/local-up.sh"
+			gateforge_ready || die "GateForge required for analyze; start ./scripts/dev/local-up.sh"
 			import_export_offline
 			;;
 		*)

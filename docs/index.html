@@ -323,10 +323,10 @@
         <div class="phase-card" style="border-left: 3px solid #1565c0;">
           <span class="phase-badge" style="background:#e3f2fd;color:#1565c0;">NEW v0.2.0</span>
           <h4>E2E Lab Pipeline (M3)</h4>
-          <p><code>scripts/e2e-seed-export-analyze.sh</code> orchestrates seed → export → visualize → analyze. Use <code>E2E_MODE=fixture</code> for smoke without live 3scale.</p>
+          <p><code>scripts/e2e/seed-export-analyze.sh</code> orchestrates seed → export → visualize → analyze. Use <code>E2E_MODE=fixture</code> for smoke without live 3scale.</p>
         </div>
         <div class="phase-card" style="border-left: 3px solid #6a1b9a;">
-          <span class="phase-badge" style="background:#f3e5f5;color:#6a1b9a;">v0.1.9</span>
+          <span class="phase-badge" style="background:#f3e5f5;color:#6a1b9a;">v0.2.0</span>
           <h4>APICast Discovery &amp; Migration</h4>
           <p>Discovers <code>APIManager</code> CRDs cluster-wide to find self-managed and multi-tenant APICast instances. Analyzes staging/production specs, custom Lua policies, TLS, and OpenTracing configuration. Maps APICast to Istio Gateway, EnvoyFilter, DestinationRule, and TelemetryPolicy.</p>
         </div>
@@ -913,11 +913,11 @@ rules:
         </p>
         <div class="install-block" style="margin:12px 0;">
           <span class="comment"># Terminal 1 — start stack</span><br>
-          <span class="cmd">cp .env.example .env<br>./scripts/local-up.sh</span><br><br>
+          <span class="cmd">cp .env.example .env<br>./scripts/dev/local-up.sh</span><br><br>
           <span class="comment"># Terminal 2 — full lab E2E</span><br>
-          <span class="cmd">export THREESCALEEXTRACT_ROOT=../3scaleextract<br>./scripts/e2e-seed-export-analyze.sh</span><br><br>
+          <span class="cmd">export THREESCALEEXTRACT_ROOT=../3scaleextract<br>./scripts/e2e/seed-export-analyze.sh</span><br><br>
           <span class="comment"># Smoke without live 3scale</span><br>
-          <span class="cmd">E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh</span>
+          <span class="cmd">E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh</span>
         </div>
         <table class="api-table" style="margin-top:12px;">
           <thead><tr><th><code>E2E_MODE</code></th><th>Behavior</th></tr></thead>

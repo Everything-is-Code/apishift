@@ -14,7 +14,7 @@ sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT}/helm/gateforge/Ch
 # Maven artifact version (project root <version>, not dependency versions)
 sed -i "0,/<version>/{s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>/}" "${ROOT}/backend/pom.xml"
 
-for pkg in gateforge-devhub-plugin gateforge-devhub-frontend; do
+for pkg in frontend gateforge-devhub-plugin gateforge-devhub-frontend; do
 	sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "${ROOT}/${pkg}/package.json"
 done
 
