@@ -48,7 +48,6 @@ class MigrationServiceForTest extends MigrationService {
         OpenApiSynthesisService openApiSynthesisService = new OpenApiSynthesisService();
         ReflectionTestSupport.inject(openApiSynthesisService, "objectMapper", new ObjectMapper());
         ReflectionTestSupport.inject(migrationService, "openApiSynthesisService", openApiSynthesisService);
-        ReflectionTestSupport.inject(migrationService, "objectMapper", new ObjectMapper());
         ReflectionTestSupport.inject(migrationService, "kuadrantCtlService", TestDoubles.failingKuadrantCtl());
         ReflectionTestSupport.inject(migrationService, "migrationAgent",
                 (io.gateforge.ai.MigrationAgent) prompt -> "test analysis");

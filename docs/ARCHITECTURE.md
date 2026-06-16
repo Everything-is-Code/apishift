@@ -121,7 +121,8 @@ These classes still carry most migration logic. Further extractions are optional
 
 | Class | ~LOC | Notes |
 |-------|------|-------|
-| `MigrationService` | 1,050+ | Plan orchestration; OAS via `service/migration/OpenApiSynthesisService` |
+| `MigrationService` | ~1,000 | Plan orchestration; persistence via `MigrationPlanRepository` |
+| `service/migration/*` | small | `BackendEndpointResolver`, `OpenApiSynthesisService`, `ClusterResourceApplyService` |
 | `ThreeScaleService` | 760+ | Cache, CRD discovery, Admin API enrichment |
 | `MigrationResource` | 300+ | REST surface; K8s apply/revert/drift delegated to `service/cluster/ClusterResourceApplyService` |
 | `service/export/*` | small files | Preferred pattern for new backend code |

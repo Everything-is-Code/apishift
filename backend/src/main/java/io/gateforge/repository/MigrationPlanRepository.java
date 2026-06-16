@@ -66,6 +66,12 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
         } catch (Exception e) {
             entity.prerequisitesJson = "[]";
         }
+        try {
+            entity.consolidationWarningsJson = objectMapper.writeValueAsString(
+                    plan.consolidationWarnings() != null ? plan.consolidationWarnings() : List.of());
+        } catch (Exception e) {
+            entity.consolidationWarningsJson = "[]";
+        }
 
         List<GeneratedResourceEntity> resourceEntities = new ArrayList<>();
         for (MigrationPlan.GeneratedResource r : plan.resources()) {
@@ -100,7 +106,8 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
         return new MigrationPlan(
                 e.id, e.gatewayStrategy, products, resources,
                 e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of(),
+                e.targetClusterId, e.targetClusterLabel,
+                deserializeStringList(e.consolidationWarningsJson),
                 deserializePrerequisites(e.prerequisitesJson)
         );
     }
@@ -111,7 +118,8 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
                 e.id, e.gatewayStrategy, deserializeProducts(e.sourceProductsJson),
                 List.of(),
                 e.aiAnalysis, e.createdAt, e.catalogInfoYaml, e.status,
-                e.targetClusterId, e.targetClusterLabel, List.of(),
+                e.targetClusterId, e.targetClusterLabel,
+                deserializeStringList(e.consolidationWarningsJson),
                 deserializePrerequisites(e.prerequisitesJson)
         );
     }
@@ -121,6 +129,19 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
             return objectMapper.readValue(json,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
         } catch (Exception ex) {
+            return List.of();
+        }
+    }
+
+    private List<String> deserializeStringList(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (Exception e) {
+            LOG.warn("Failed to deserialize string list JSON", e);
             return List.of();
         }
     }
