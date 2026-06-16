@@ -1,9 +1,11 @@
 FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS builder
 USER 0
+ARG APP_VERSION=dev
 WORKDIR /opt/app-root/src
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+RUN printf "export const appVersion = '%s';\n" "$APP_VERSION" > src/environments/version.ts
 RUN npm run build -- --configuration production
 
 FROM registry.access.redhat.com/ubi9/nginx-124:1
