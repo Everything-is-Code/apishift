@@ -83,6 +83,7 @@ Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 | `service/developerhub/` | Developer Hub catalog and scaffolder HTTP client |
 | `model/` | Immutable records / DTOs shared across layers |
 | `entity/` | JPA entities (plans, audit) |
+| `repository/` | Panache persistence for migration plans and audit entries |
 | `ai/` | LangChain4j migration agent and tool wiring |
 | `mcp/` | Model Context Protocol tool definitions |
 
