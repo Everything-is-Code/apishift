@@ -21,7 +21,7 @@ The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
 | Path | Purpose |
 |------|---------|
 | `src/app/app.routes.ts` | Route table (`/`, `/threescale`, `/migrate`, `/chat`, `/audit`, `/settings`) |
-| `src/app/core/api/` | Domain HTTP facades (`ClusterApiService`, `ThreeScaleApiService`, `MigrationApiService`, …) and DTOs in `models/` |
+| `src/app/core/api/` | Domain HTTP facades (`ClusterApiService`, `ThreeScaleApiService`, `MigrationApiService`, …), hand-written DTOs in `models/`, and OpenAPI-generated types in `generated/` |
 | `src/app/features/migration/` | Migration wizard container and `steps/` child components |
 | `src/app/shared/` | Reusable UI pieces (empty until extracted from features) |
 | `src/environments/version.ts` | Build-time version stamp (synced from Helm chart on release) |
@@ -33,7 +33,10 @@ Components are **standalone** (no NgModules). Migration wizard styles live in `m
 ```bash
 npm run build      # production bundle → dist/frontend
 npm test           # Karma + Jasmine (ChromeHeadless in CI)
+npm run generate:api   # refresh generated/schema.ts from backend OpenAPI (requires Java 17+)
 ```
+
+Hand-written models in `core/api/models/` are still used by facades. After REST contract changes, run `npm run generate:api` from `frontend/` and align models incrementally with `core/api/generated/`.
 
 ## Docker
 

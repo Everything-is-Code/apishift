@@ -177,7 +177,7 @@ Documented for orientation; tracked in architecture-hardening phases 2–3:
 |-------|--------|
 | 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
 | 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); wizard step components (3.3 done) |
-| 4 — later | OpenAPI typegen; optional E2E in CI (manual workflow) |
+| 4 — later | 3scale port abstractions ([#67](https://github.com/Everything-is-Code/gateforge/issues/67) done), OpenAPI typegen ([#69](https://github.com/Everything-is-Code/gateforge/issues/69)), optional E2E ([#71](https://github.com/Everything-is-Code/gateforge/issues/71)) |
 
 Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.
 
