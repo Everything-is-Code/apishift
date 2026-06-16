@@ -24,6 +24,8 @@ Automation for local development, CI, E2E, fixtures, releases, and docs screensh
 | `dev/local-up.sh` | dev | Build and start stack via podman-compose | Podman, podman-compose, `.env` | `./scripts/dev/local-up.sh` |
 | `dev/local-down.sh` | dev | Stop local stack | podman-compose | `./scripts/dev/local-down.sh` |
 | `ci/verify-export-minimal-fixture.sh` | ci | Verify export-minimal tarball SHA256 | bash, sha256sum | `./scripts/ci/verify-export-minimal-fixture.sh` |
+| `ci/export-openapi.sh` | ci | Emit OpenAPI schema via `OpenApiBuildTest` | Java 17+, Maven | `./scripts/ci/export-openapi.sh` |
+| `ci/generate-frontend-api-types.sh` | ci | Sync schema to frontend and run `openapi-typescript` | Java 17+, Node 20+ | `./scripts/ci/generate-frontend-api-types.sh` |
 | `e2e/seed-export-analyze.sh` | e2e | 3scaleextract seed → analyze via GateForge API | curl, jq; optional Go/zip for live | `E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh` |
 | `fixtures/sync-export-minimal-fixture.sh` | fixtures | Copy export-minimal from 3scaleextract | 3scaleextract checkout | `THREESCALEEXTRACT_ROOT=../3scaleextract ./scripts/fixtures/sync-export-minimal-fixture.sh` |
 | `release/sync-versions.sh` | release | Propagate Chart.yaml version to Maven, npm, Helm, docs | bash, sed | `./scripts/release/sync-versions.sh` |
