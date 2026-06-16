@@ -14,7 +14,7 @@ npm install
 npm start          # ng serve — http://localhost:4200
 ```
 
-The dev server proxies `/api` to the Quarkus backend (`proxy.conf.json`).
+The dev server proxies `/api` to the Quarkus backend via [`proxy.conf.json`](proxy.conf.json) (configured in `angular.json`). Start the backend first (`./scripts/dev/local-up.sh` or `cd backend && mvn quarkus:dev`).
 
 ## Project layout
 
@@ -44,4 +44,4 @@ The root `frontend/Dockerfile` builds the static bundle and copies it into a UBI
 
 ## Architecture
 
-See [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) for how the frontend fits the monorepo and planned feature-module refactors.
+See [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) for frontend layout (`core/`, `shared/`, `features/*`) and the [architecture hardening archive](../docs/archive/2026-06-16-architecture-hardening.md). API contract details: [core/api/README.md](src/app/core/api/README.md).
