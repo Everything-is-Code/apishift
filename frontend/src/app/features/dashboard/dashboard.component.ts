@@ -2,7 +2,9 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ApiService, ProjectInfo, ThreeScaleStatus } from '../../core/api/api.service';
+import { ClusterApiService } from '../../core/api/cluster-api.service';
+import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
+import { ProjectInfo, ThreeScaleStatus } from '../../core/api/models';
 
 const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
 
@@ -396,10 +398,14 @@ export class DashboardComponent implements OnInit {
     return pages;
   }
 
-  constructor(private api: ApiService, private router: Router) {}
+  constructor(
+    private clusterApi: ClusterApiService,
+    private threescaleApi: ThreeScaleApiService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.api.getProjects().subscribe({
+    this.clusterApi.getProjects().subscribe({
       next: (data) => {
         this.allProjects = data;
         this.systemProjects = data.filter(p => this.isSystem(p.name));
@@ -409,7 +415,7 @@ export class DashboardComponent implements OnInit {
       },
       error: () => { this.loading = false; }
     });
-    this.api.getThreeScaleStatus().subscribe({
+    this.threescaleApi.getStatus().subscribe({
       next: (status) => { this.adminApiStatus = status; },
       error: () => {}
     });

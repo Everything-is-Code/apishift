@@ -3,7 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import JSZip from 'jszip';
-import { ApiService, ThreeScaleProduct, MigrationPlan, MigrationPrerequisite, ApplyResult, FeatureFlags, BulkRevertResult, TestCommand, TargetCluster, DriftEntry, ImportExportResponse } from '../../core/api/api.service';
+import { ClusterApiService } from '../../core/api/cluster-api.service';
+import { MigrationApiService } from '../../core/api/migration-api.service';
+import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
+import {
+  ApplyResult,
+  BulkRevertResult,
+  DriftEntry,
+  ImportExportResponse,
+  MigrationPlan,
+  MigrationPrerequisite,
+  TargetCluster,
+  TestCommand,
+  ThreeScaleProduct,
+} from '../../core/api/models';
 
 @Component({
   selector: 'app-migration-wizard',
@@ -1700,17 +1713,21 @@ export class MigrationWizardComponent implements OnInit {
     this.visibleProducts.forEach(p => p.selected = target);
   }
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private clusterApi: ClusterApiService,
+    private migrationApi: MigrationApiService,
+    private threescaleApi: ThreeScaleApiService
+  ) {}
 
   ngOnInit(): void {
     this.loadLiveProducts();
-    this.api.getFeatures().subscribe({
+    this.clusterApi.getFeatures().subscribe({
       next: (f) => {
         this.developerHubEnabled = f.developerHub?.enabled ?? false;
         this.developerHubUrl = f.developerHub?.url ?? '';
       }
     });
-    this.api.getTargetClusters().subscribe({
+    this.clusterApi.getTargetClusters().subscribe({
       next: (clusters) => this.targetClusters = clusters,
       error: () => this.targetClusters = [{ id: 'local', label: 'Local (in-cluster)', apiServerUrl: '', token: '', authType: 'in-cluster', verifySsl: true, enabled: true }]
     });
@@ -1732,7 +1749,7 @@ export class MigrationWizardComponent implements OnInit {
 
   loadLiveProducts(): void {
     this.productsLoading = true;
-    this.api.getProducts().subscribe({
+    this.threescaleApi.getProducts().subscribe({
       next: (data) => {
         this.products = data.map(p => ({ product: p, selected: false }));
         this.productsLoading = false;
@@ -1760,7 +1777,7 @@ export class MigrationWizardComponent implements OnInit {
     }
     this.importing = true;
     this.importError = '';
-    this.api.importExport(this.selectedExportFile).subscribe({
+    this.migrationApi.importExport(this.selectedExportFile).subscribe({
       next: (result) => {
         this.importResult = result;
         this.reloadProductsAfterImport();
@@ -1778,7 +1795,7 @@ export class MigrationWizardComponent implements OnInit {
 
   private reloadProductsAfterImport(): void {
     this.productsLoading = true;
-    this.api.getProducts().subscribe({
+    this.threescaleApi.getProducts().subscribe({
       next: (data) => {
         this.products = data.map(p => ({ product: p, selected: false }));
         this.productsLoading = false;
@@ -1805,7 +1822,7 @@ export class MigrationWizardComponent implements OnInit {
   refreshReadiness(): void {
     if (!this.plan) return;
     this.readinessLoading = true;
-    this.api.getClusterReadiness(this.plan.targetClusterId, this.plan.id).subscribe({
+    this.clusterApi.getClusterReadiness(this.plan.targetClusterId, this.plan.id).subscribe({
       next: (readiness) => {
         if (readiness.prerequisites?.length) {
           this.plan = { ...this.plan!, prerequisites: readiness.prerequisites };
@@ -1826,7 +1843,7 @@ export class MigrationWizardComponent implements OnInit {
     this.revertResult = null;
     const selected = this.products.filter(p => p.selected).map(p => p.product.name);
     this.analyzeStage = 'Generating Connectivity Link resources…';
-    this.api.analyzeMigration(this.gatewayStrategy, selected, this.selectedClusterId).subscribe({
+    this.migrationApi.analyze(this.gatewayStrategy, selected, this.selectedClusterId).subscribe({
       next: (plan) => {
         this.analyzeStage = 'Finalizing migration plan…';
         this.plan = plan;
@@ -1855,7 +1872,7 @@ export class MigrationWizardComponent implements OnInit {
     for (const [k, v] of Object.entries(this.editedYamls)) {
       if (v) yamlOverrides[k] = v;
     }
-    this.api.applyPlan(this.plan.id, excludedIndexes, yamlOverrides).subscribe({
+    this.migrationApi.applyPlan(this.plan.id, excludedIndexes, yamlOverrides).subscribe({
       next: (result) => {
         this.applyResult = result;
         this.applying = false;
@@ -1873,7 +1890,7 @@ export class MigrationWizardComponent implements OnInit {
   revertMigration(): void {
     if (!this.plan) return;
     this.reverting = true;
-    this.api.revertPlan(this.plan.id).subscribe({
+    this.migrationApi.revertPlan(this.plan.id).subscribe({
       next: (result) => {
         this.revertResult = result;
         this.reverting = false;
@@ -1936,7 +1953,7 @@ export class MigrationWizardComponent implements OnInit {
     this.registering = true;
     this.registrationError = '';
     const yaml = this.editedComponentYaml || this.plan.catalogInfoYaml || '';
-    this.api.confirmRegistration(this.plan.id, yaml).subscribe({
+    this.migrationApi.confirmRegistration(this.plan.id, yaml).subscribe({
       next: () => {
         this.registrationDone = true;
         this.registering = false;
@@ -1954,7 +1971,7 @@ export class MigrationWizardComponent implements OnInit {
 
   loadTestCommands(): void {
     if (!this.plan) return;
-    this.api.getTestCommands(this.plan.id).subscribe({
+    this.migrationApi.getTestCommands(this.plan.id).subscribe({
       next: (cmds) => this.testCommands = cmds,
       error: () => this.testCommands = []
     });
@@ -1972,7 +1989,7 @@ export class MigrationWizardComponent implements OnInit {
     this.historyOpen = !this.historyOpen;
     if (this.historyOpen && this.allPlans.length === 0) {
       this.historyLoading = true;
-      this.api.getPlans().subscribe({
+      this.migrationApi.getPlans().subscribe({
         next: (plans) => {
           this.allPlans = plans;
           this.historyLoading = false;
@@ -2009,7 +2026,7 @@ export class MigrationWizardComponent implements OnInit {
     if (!confirm(`This will delete Connectivity Link resources for ${count} plan(s). 3scale will resume routing. Continue?`)) return;
     this.bulkReverting = true;
     this.bulkResult = null;
-    this.api.revertBulk(this.selectedPlanIds, this.deleteGateway).subscribe({
+    this.migrationApi.revertBulk(this.selectedPlanIds, this.deleteGateway).subscribe({
       next: (result) => {
         this.bulkResult = result;
         this.bulkReverting = false;
@@ -2026,7 +2043,7 @@ export class MigrationWizardComponent implements OnInit {
 
   checkDrift(planId: string): void {
     this.driftLoading = { ...this.driftLoading, [planId]: true };
-    this.api.checkDrift(planId).subscribe({
+    this.migrationApi.checkDrift(planId).subscribe({
       next: (results) => {
         this.driftResults = { ...this.driftResults, [planId]: results };
         this.driftLoading = { ...this.driftLoading, [planId]: false };

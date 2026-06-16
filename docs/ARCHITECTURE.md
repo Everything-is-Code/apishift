@@ -126,12 +126,12 @@ Angular 19 standalone components. Layout uses `core/`, `shared/`, and `features/
 | `features/chat/` | `/chat` | AI assistant |
 | `features/audit/` | `/audit` | Audit trail |
 | `features/settings/` | `/settings` | Cluster/sources configuration |
-| `core/api/api.service.ts` | — | Single HTTP facade to `/api/*` (domain facades planned) |
+| `core/api/` | Domain HTTP facades and `models/` DTOs |
 | `shared/` | — | Reusable UI (scaffolded; empty) |
 
 `ng serve` proxies `/api` to `http://localhost:8080` (see `proxy.conf.json`). Production build is static assets behind Nginx.
 
-**Known concentration:** `migration-wizard.component.ts` (~2000 LOC) and `api.service.ts` (~330 LOC). Phase 3 hardening plans feature folders and API facades.
+**Known concentration:** `migration-wizard.component.ts` (~2000 LOC). Phase 3.3 will split wizard steps into child components.
 
 ---
 
@@ -175,7 +175,7 @@ Documented for orientation; tracked in architecture-hardening phases 2–3:
 | Phase | Target |
 |-------|--------|
 | 2 — backend | Extract `DeveloperHubClient`, generator strategies, repositories, `ExceptionMapper`, `@QuarkusTest` smoke tests |
-| 3 — frontend | `core/`, `shared/`, `features/*` folders (3.1 done); domain API facades; split wizard steps |
+| 3 — frontend | `core/`, `shared/`, `features/*` (3.1); domain API facades (3.2); split wizard steps (3.3) |
 | 4 — later | 3scale port abstractions, OpenAPI typegen, E2E in CI |
 
 Do **not** mix large refactors with release or docs-only PRs. Prefer stacked PRs under 400 changed lines when touching god classes.

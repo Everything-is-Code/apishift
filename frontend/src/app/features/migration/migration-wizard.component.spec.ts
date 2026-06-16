@@ -2,12 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { MigrationWizardComponent } from './migration-wizard.component';
+import { ClusterApiService } from '../../core/api/cluster-api.service';
+import { MigrationApiService } from '../../core/api/migration-api.service';
+import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
 import {
-  ApiService,
   MigrationPlan,
   MigrationPrerequisite,
   ThreeScaleProduct,
-} from '../../core/api/api.service';
+} from '../../core/api/models';
 
 const mockProduct: ThreeScaleProduct = {
   name: 'demo-api',
@@ -37,31 +39,40 @@ const localCluster = {
   enabled: true,
 };
 
-function createApiSpy(): jasmine.SpyObj<ApiService> {
-  return jasmine.createSpyObj<ApiService>('ApiService', [
-    'getProducts',
-    'getFeatures',
-    'getTargetClusters',
-    'analyzeMigration',
-    'getClusterReadiness',
-    'importExport',
-  ]);
+interface WizardApiSpies {
+  cluster: jasmine.SpyObj<ClusterApiService>;
+  migration: jasmine.SpyObj<MigrationApiService>;
+  threescale: jasmine.SpyObj<ThreeScaleApiService>;
 }
 
-function stubApiDefaults(apiSpy: jasmine.SpyObj<ApiService>): void {
-  apiSpy.getProducts.and.returnValue(of([]));
-  apiSpy.getFeatures.and.returnValue(of({ developerHub: { enabled: false, url: '' } }));
-  apiSpy.getTargetClusters.and.returnValue(of([localCluster]));
+function createApiSpies(): WizardApiSpies {
+  return {
+    threescale: jasmine.createSpyObj<ThreeScaleApiService>('ThreeScaleApiService', ['getProducts']),
+    cluster: jasmine.createSpyObj<ClusterApiService>('ClusterApiService', [
+      'getFeatures',
+      'getTargetClusters',
+      'getClusterReadiness',
+    ]),
+    migration: jasmine.createSpyObj<MigrationApiService>('MigrationApiService', ['analyze', 'importExport']),
+  };
 }
 
-async function configureWizard(apiSpy: jasmine.SpyObj<ApiService>): Promise<{
+function stubApiDefaults(spies: WizardApiSpies): void {
+  spies.threescale.getProducts.and.returnValue(of([]));
+  spies.cluster.getFeatures.and.returnValue(of({ developerHub: { enabled: false, url: '' } }));
+  spies.cluster.getTargetClusters.and.returnValue(of([localCluster]));
+}
+
+async function configureWizard(spies: WizardApiSpies): Promise<{
   fixture: ComponentFixture<MigrationWizardComponent>;
   component: MigrationWizardComponent;
 }> {
   await TestBed.configureTestingModule({
     imports: [MigrationWizardComponent],
     providers: [
-      { provide: ApiService, useValue: apiSpy },
+      { provide: ThreeScaleApiService, useValue: spies.threescale },
+      { provide: ClusterApiService, useValue: spies.cluster },
+      { provide: MigrationApiService, useValue: spies.migration },
       provideRouter([]),
     ],
   }).compileComponents();
@@ -71,16 +82,16 @@ async function configureWizard(apiSpy: jasmine.SpyObj<ApiService>): Promise<{
 }
 
 describe('MigrationWizardComponent init', () => {
-  let apiSpy: jasmine.SpyObj<ApiService>;
+  let spies: WizardApiSpies;
 
   beforeEach(() => {
-    apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
+    spies = createApiSpies();
+    stubApiDefaults(spies);
   });
 
   it('ngOnInit_loadsProducts', async () => {
-    apiSpy.getProducts.and.returnValue(of([mockProduct, otherProduct]));
-    const { fixture, component } = await configureWizard(apiSpy);
+    spies.threescale.getProducts.and.returnValue(of([mockProduct, otherProduct]));
+    const { fixture, component } = await configureWizard(spies);
 
     fixture.detectChanges();
 
@@ -90,8 +101,8 @@ describe('MigrationWizardComponent init', () => {
   });
 
   it('ngOnInit_productError_clearsLoading', async () => {
-    apiSpy.getProducts.and.returnValue(throwError(() => new Error('load failed')));
-    const { fixture, component } = await configureWizard(apiSpy);
+    spies.threescale.getProducts.and.returnValue(throwError(() => new Error('load failed')));
+    const { fixture, component } = await configureWizard(spies);
 
     fixture.detectChanges();
 
@@ -100,8 +111,8 @@ describe('MigrationWizardComponent init', () => {
   });
 
   it('ngOnInit_clusterError_fallsBackToLocal', async () => {
-    apiSpy.getTargetClusters.and.returnValue(throwError(() => new Error('cluster failed')));
-    const { fixture, component } = await configureWizard(apiSpy);
+    spies.cluster.getTargetClusters.and.returnValue(throwError(() => new Error('cluster failed')));
+    const { fixture, component } = await configureWizard(spies);
 
     fixture.detectChanges();
 
@@ -114,10 +125,10 @@ describe('MigrationWizardComponent step 1', () => {
   let component: MigrationWizardComponent;
 
   beforeEach(async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.getProducts.and.returnValue(of([mockProduct, otherProduct]));
-    const configured = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.threescale.getProducts.and.returnValue(of([mockProduct, otherProduct]));
+    const configured = await configureWizard(spies);
     configured.fixture.detectChanges();
     component = configured.component;
   });
@@ -151,10 +162,10 @@ describe('MigrationWizardComponent export import', () => {
   };
 
   it('setProductSource_export_clearsLiveProducts', async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.getProducts.and.returnValue(of([mockProduct]));
-    const { fixture, component } = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.threescale.getProducts.and.returnValue(of([mockProduct]));
+    const { fixture, component } = await configureWizard(spies);
     fixture.detectChanges();
 
     component.setProductSource('export');
@@ -165,16 +176,16 @@ describe('MigrationWizardComponent export import', () => {
   });
 
   it('importExportArchive_successReloadsProducts', async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.importExport.and.returnValue(of({
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.migration.importExport.and.returnValue(of({
       importMode: 'export-v1',
       productCount: 1,
       products: [{ name: 'Seed Alpha', systemName: 'seed_alpha', serviceId: 1 }],
       manifest: { schemaVersion: '1.0', adminUrl: 'https://example.com', exportedAt: '2024-01-01' },
     }));
-    apiSpy.getProducts.and.returnValue(of([exportProduct]));
-    const { fixture, component } = await configureWizard(apiSpy);
+    spies.threescale.getProducts.and.returnValue(of([exportProduct]));
+    const { fixture, component } = await configureWizard(spies);
     fixture.detectChanges();
 
     component.setProductSource('export');
@@ -182,8 +193,8 @@ describe('MigrationWizardComponent export import', () => {
     component.importExportArchive();
     fixture.detectChanges();
 
-    expect(apiSpy.importExport).toHaveBeenCalled();
-    expect(apiSpy.getProducts).toHaveBeenCalled();
+    expect(spies.migration.importExport).toHaveBeenCalled();
+    expect(spies.threescale.getProducts).toHaveBeenCalled();
     expect(component.products.length).toBe(1);
     expect(component.importResult?.productCount).toBe(1);
     expect(component.importing).toBe(false);
@@ -191,10 +202,10 @@ describe('MigrationWizardComponent export import', () => {
   });
 
   it('importExportArchive_errorShowsMessage', async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.importExport.and.returnValue(throwError(() => ({ error: 'Only .zip export archives are supported' })));
-    const { fixture, component } = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.migration.importExport.and.returnValue(throwError(() => ({ error: 'Only .zip export archives are supported' })));
+    const { fixture, component } = await configureWizard(spies);
     fixture.detectChanges();
 
     component.setProductSource('export');
@@ -202,7 +213,7 @@ describe('MigrationWizardComponent export import', () => {
     component.importExportArchive();
 
     expect(component.importError).toContain('.zip');
-    expect(apiSpy.importExport).not.toHaveBeenCalled();
+    expect(spies.migration.importExport).not.toHaveBeenCalled();
   });
 });
 
@@ -219,11 +230,11 @@ describe('MigrationWizardComponent analyze', () => {
   };
 
   it('analyze_advancesToStep3', async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.getProducts.and.returnValue(of([mockProduct]));
-    apiSpy.analyzeMigration.and.returnValue(of(mockPlan));
-    const { fixture, component } = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.threescale.getProducts.and.returnValue(of([mockProduct]));
+    spies.migration.analyze.and.returnValue(of(mockPlan));
+    const { fixture, component } = await configureWizard(spies);
     fixture.detectChanges();
 
     component.products[0].selected = true;
@@ -231,22 +242,22 @@ describe('MigrationWizardComponent analyze', () => {
     component.gatewayStrategy = 'dual';
     component.analyze();
 
-    expect(apiSpy.analyzeMigration).toHaveBeenCalledWith('dual', ['demo-api'], 'local');
+    expect(spies.migration.analyze).toHaveBeenCalledWith('dual', ['demo-api'], 'local');
     expect(component.step).toBe(3);
     expect(component.plan).toEqual(mockPlan);
     expect(component.analyzing).toBe(false);
   });
 
   it('analyze_skipsWhenAlreadyAnalyzing', async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    apiSpy.analyzeMigration.and.returnValue(of(mockPlan));
-    const { component } = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    spies.migration.analyze.and.returnValue(of(mockPlan));
+    const { component } = await configureWizard(spies);
 
     component.analyzing = true;
     component.analyze();
 
-    expect(apiSpy.analyzeMigration).not.toHaveBeenCalled();
+    expect(spies.migration.analyze).not.toHaveBeenCalled();
   });
 });
 
@@ -254,9 +265,9 @@ describe('MigrationWizardComponent review helpers', () => {
   let component: MigrationWizardComponent;
 
   beforeEach(async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
-    const configured = await configureWizard(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
+    const configured = await configureWizard(spies);
     component = configured.component;
   });
 
@@ -341,13 +352,15 @@ describe('MigrationWizardComponent prerequisites', () => {
   };
 
   beforeEach(async () => {
-    const apiSpy = createApiSpy();
-    stubApiDefaults(apiSpy);
+    const spies = createApiSpies();
+    stubApiDefaults(spies);
 
     await TestBed.configureTestingModule({
       imports: [MigrationWizardComponent],
       providers: [
-        { provide: ApiService, useValue: apiSpy },
+        { provide: ThreeScaleApiService, useValue: spies.threescale },
+        { provide: ClusterApiService, useValue: spies.cluster },
+        { provide: MigrationApiService, useValue: spies.migration },
         provideRouter([]),
       ],
     }).compileComponents();

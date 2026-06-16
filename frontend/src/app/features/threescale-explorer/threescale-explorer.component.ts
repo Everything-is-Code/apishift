@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { ApiService, ThreeScaleProduct, ThreeScaleBackend, ThreeScaleStatus } from '../../core/api/api.service';
+import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
+import { ThreeScaleBackend, ThreeScaleProduct, ThreeScaleStatus } from '../../core/api/models';
 
 type SourceTab = 'all' | 'crd' | 'admin-api';
 
@@ -520,7 +521,7 @@ export class ThreeScaleExplorerComponent implements OnInit {
   backendPage = 1;
   pageSize = 24;
 
-  constructor(private api: ApiService) {}
+  constructor(private threescaleApi: ThreeScaleApiService) {}
 
   get crdCount(): number { return this.products.filter(p => p.source?.includes('CRD')).length; }
   get apiCount(): number { return this.products.filter(p => p.source?.includes('Admin API')).length; }
@@ -598,16 +599,16 @@ export class ThreeScaleExplorerComponent implements OnInit {
     this.refreshing = true;
     this.refreshMessage = '';
     this.refreshStage = 'Clearing cache and reconnecting to 3scale…';
-    this.api.refreshThreeScaleDiscovery().subscribe({
+    this.threescaleApi.refreshDiscovery().subscribe({
       next: (result) => {
         this.refreshStage = 'Loading products and backends…';
-        this.api.getThreeScaleStatus().subscribe({
+        this.threescaleApi.getStatus().subscribe({
           next: (s) => this.status = s,
           error: () => { /* keep previous status */ }
         });
         forkJoin({
-          products: this.api.getProducts(),
-          backends: this.api.getBackends()
+          products: this.threescaleApi.getProducts(),
+          backends: this.threescaleApi.getBackends()
         }).subscribe({
           next: ({ products, backends }) => {
             this.products = products;
@@ -634,7 +635,7 @@ export class ThreeScaleExplorerComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadingStage = 'Checking 3scale connectivity...';
-    this.api.getThreeScaleStatus().subscribe({
+    this.threescaleApi.getStatus().subscribe({
       next: (s) => {
         this.status = s;
         this.loadingStage = 'Discovering Products and Backends...';
@@ -649,8 +650,8 @@ export class ThreeScaleExplorerComponent implements OnInit {
 
   private loadData(): void {
     forkJoin({
-      products: this.api.getProducts(),
-      backends: this.api.getBackends()
+      products: this.threescaleApi.getProducts(),
+      backends: this.threescaleApi.getBackends()
     }).subscribe({
       next: ({ products, backends }) => {
         this.products = products;

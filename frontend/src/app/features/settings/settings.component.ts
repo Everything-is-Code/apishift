@@ -2,7 +2,9 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ApiService, ThreeScaleSource, TargetCluster } from '../../core/api/api.service';
+import { ClusterApiService } from '../../core/api/cluster-api.service';
+import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
+import { TargetCluster, ThreeScaleSource } from '../../core/api/models';
 
 @Component({
   selector: 'app-settings',
@@ -223,7 +225,10 @@ export class SettingsComponent implements OnInit {
   newSource: Partial<ThreeScaleSource> = { id: '', label: '', adminUrl: '', accessToken: '', enabled: true };
   newCluster: Partial<TargetCluster> = { id: '', label: '', apiServerUrl: '', token: '', authType: 'token', verifySsl: false, enabled: true };
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private threescaleApi: ThreeScaleApiService,
+    private clusterApi: ClusterApiService
+  ) {}
 
   ngOnInit(): void {
     this.loadSources();
@@ -232,7 +237,7 @@ export class SettingsComponent implements OnInit {
 
   loadSources(): void {
     this.sourcesLoading = true;
-    this.api.getSources().subscribe({
+    this.threescaleApi.getSources().subscribe({
       next: (s) => {
         this.sources = s;
         this.sourcesLoading = false;
@@ -243,21 +248,21 @@ export class SettingsComponent implements OnInit {
   }
 
   loadClusters(): void {
-    this.api.getTargetClusters().subscribe({
+    this.clusterApi.getTargetClusters().subscribe({
       next: (c) => this.clusters = c,
       error: () => this.clusters = [{ id: 'local', label: 'Local (in-cluster)', apiServerUrl: '', token: '', authType: 'in-cluster', verifySsl: true, enabled: true }]
     });
   }
 
   checkSourceStatus(id: string): void {
-    this.api.getSourceStatus(id).subscribe({
+    this.threescaleApi.getSourceStatus(id).subscribe({
       next: (status) => this.sourceStatuses = { ...this.sourceStatuses, [id]: status },
       error: () => this.sourceStatuses = { ...this.sourceStatuses, [id]: { reachable: false, error: 'Failed to check' } }
     });
   }
 
   validateCluster(id: string): void {
-    this.api.validateTargetCluster(id).subscribe({
+    this.clusterApi.validateTargetCluster(id).subscribe({
       next: (result) => this.clusterStatuses = { ...this.clusterStatuses, [id]: { valid: true, ...result } },
       error: () => this.clusterStatuses = { ...this.clusterStatuses, [id]: { valid: false } }
     });
@@ -271,7 +276,7 @@ export class SettingsComponent implements OnInit {
       accessToken: this.newSource.accessToken!,
       enabled: true
     };
-    this.api.addSource(source).subscribe({
+    this.threescaleApi.addSource(source).subscribe({
       next: () => {
         this.showAddSource = false;
         this.newSource = { id: '', label: '', adminUrl: '', accessToken: '', enabled: true };
@@ -282,7 +287,7 @@ export class SettingsComponent implements OnInit {
 
   removeSource(id: string): void {
     if (!confirm(`Remove 3scale source "${id}"? This will stop discovering products from this source.`)) return;
-    this.api.removeSource(id).subscribe({ next: () => this.loadSources() });
+    this.threescaleApi.removeSource(id).subscribe({ next: () => this.loadSources() });
   }
 
   addCluster(): void {
@@ -295,7 +300,7 @@ export class SettingsComponent implements OnInit {
       verifySsl: false,
       enabled: true
     };
-    this.api.addTargetCluster(cluster).subscribe({
+    this.clusterApi.addTargetCluster(cluster).subscribe({
       next: () => {
         this.showAddCluster = false;
         this.newCluster = { id: '', label: '', apiServerUrl: '', token: '', authType: 'token', verifySsl: false, enabled: true };
@@ -306,6 +311,6 @@ export class SettingsComponent implements OnInit {
 
   removeCluster(id: string): void {
     if (!confirm(`Remove target cluster "${id}"?`)) return;
-    this.api.removeTargetCluster(id).subscribe({ next: () => this.loadClusters() });
+    this.clusterApi.removeTargetCluster(id).subscribe({ next: () => this.loadClusters() });
   }
 }
