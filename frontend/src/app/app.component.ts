@@ -1,5 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { appVersion } from '../environments/version';
 
 @Component({
   selector: 'app-root',
@@ -42,10 +43,10 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <a href="https://github.com/Kuadrant/kuadrantctl" target="_blank">kuadrantctl</a>
             <a href="https://docs.redhat.com/en/documentation/red_hat_3scale_api_management" target="_blank">3scale Docs</a>
             <a href="https://gateway-api.sigs.k8s.io/" target="_blank">Gateway API</a>
-            <a href="https://maximilianopizarro.github.io/gateforge/" target="_blank">GateForge Docs</a>
+            <a href="https://everything-is-code.github.io/gateforge/" target="_blank">GateForge Docs</a>
             <a href="https://github.com/Everything-is-Code/gateforge" target="_blank">GitHub</a>
           </div>
-          <p class="copyright">GateForge v0.1.9 &copy; 2026 Maximiliano Pizarro &mdash; Apache 2.0 License</p>
+          <p class="copyright">GateForge v{{ version }} &copy; 2026 Maximiliano Pizarro &mdash; Apache 2.0 License</p>
         </div>
       </div>
     </footer>
@@ -100,4 +101,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
     }
   `]
 })
-export class AppComponent {}
+export class AppComponent {
+  readonly version = appVersion;
+}
