@@ -5,7 +5,7 @@
  * Prerequisites: Podman, podman-compose, curl, bash.
  *
  * Usage:
- *   cd scripts && npm ci && npx playwright install chromium
+ *   cd scripts/docs && npm ci && npx playwright install chromium
  *   npm run capture-screenshots
  *
  * Options:
@@ -18,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(__dirname, '../..');
 const OUT_DIR = path.join(ROOT, 'docs/assets/screenshots');
 const BASE_URL = process.env.GATEFORGE_UI_URL || 'http://localhost:4200';
 const SKIP_STACK = process.argv.includes('--skip-stack');
@@ -49,8 +49,8 @@ async function main() {
     if (!existsSync(path.join(ROOT, '.env'))) {
       runShell('cp .env.example .env');
     }
-    runShell('./scripts/local-up.sh');
-    runShell('E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh');
+    runShell('./scripts/dev/local-up.sh');
+    runShell('E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh');
   } else {
     runShell('curl -sf http://localhost:8080/q/health/ready >/dev/null');
     runShell('curl -sf http://localhost:4200 >/dev/null');

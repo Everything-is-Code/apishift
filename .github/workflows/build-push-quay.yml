@@ -18,7 +18,7 @@ jobs:
 
       - name: Resolve application version
         run: |
-          source scripts/version.sh
+          source scripts/lib/version.sh
           echo "APP_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Login to Quay.io

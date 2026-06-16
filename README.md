@@ -265,8 +265,8 @@ The import parser accepts **schema 1.0** exports from live `threescale-export` r
 GateForge tests consume the 3scaleextract tarball (not a vendored directory tree):
 
 ```bash
-./scripts/sync-export-minimal-fixture.sh   # THREESCALEEXTRACT_ROOT or ../3scaleextract
-./scripts/verify-export-minimal-fixture.sh
+./scripts/fixtures/sync-export-minimal-fixture.sh   # THREESCALEEXTRACT_ROOT or ../3scaleextract
+./scripts/ci/verify-export-minimal-fixture.sh
 cd backend && mvn test
 ```
 
@@ -279,15 +279,15 @@ Automated **seed → export → visualize → GateForge analyze** for lab valida
 ```bash
 # Terminal 1 — GateForge stack
 cp .env.example .env   # THREESCALE_*, AI_*, optional THREESCALEEXTRACT_ROOT
-./scripts/local-up.sh
+./scripts/dev/local-up.sh
 
 # Terminal 2 — full lab E2E (requires 3scale Admin API + 3scaleextract checkout)
 export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
 export THREESCALEEXTRACT_ROOT=../3scaleextract   # optional if repo is beside gateforge
-./scripts/e2e-seed-export-analyze.sh
+./scripts/e2e/seed-export-analyze.sh
 
 # Smoke without live 3scale (fixture tarball + offline import only)
-E2E_MODE=fixture ./scripts/e2e-seed-export-analyze.sh
+E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh
 ```
 
 | `E2E_MODE` | Behavior |
@@ -307,7 +307,7 @@ The script asserts `product_count >= 4`, `incomplete: false`, visualize report, 
 **Refresh UI screenshots** (optional, requires Podman + Playwright):
 
 ```bash
-cd scripts && npm ci && npx playwright install chromium
+cd scripts/docs && npm ci && npx playwright install chromium
 npm run capture-screenshots
 ```
 
@@ -451,8 +451,8 @@ mvn quarkus:dev
 **Offline export fixture (tests):** See [Offline integration (M2)](#offline-integration-m2) for the full cross-repo flow. Quick refresh from a local 3scaleextract checkout:
 
 ```bash
-./scripts/sync-export-minimal-fixture.sh
-./scripts/verify-export-minimal-fixture.sh
+./scripts/fixtures/sync-export-minimal-fixture.sh
+./scripts/ci/verify-export-minimal-fixture.sh
 ```
 
 **Frontend:**
@@ -469,20 +469,20 @@ Open **http://localhost:4200**. The Angular dev server proxies `/api` to `http:/
 
 Local stack uses **public** images (PostgreSQL, Infinispan) — no Red Hat registry login required.
 
-**Requirements:** [Podman](https://podman.io/) and [podman-compose](https://github.com/containers/podman-compose). The first `./scripts/local-up.sh` run builds backend and frontend images and may take several minutes.
+**Requirements:** [Podman](https://podman.io/) and [podman-compose](https://github.com/containers/podman-compose). The first `./scripts/dev/local-up.sh` run builds backend and frontend images and may take several minutes.
 
 **Quick start:**
 
 ```bash
 cp .env.example .env
 # Edit .env: THREESCALE_ACCESS_TOKEN, AI_API_KEY, AI_ENDPOINT, AI_MODEL, AI_TIMEOUT (default 600s), optional KUBE_*
-./scripts/local-up.sh
+./scripts/dev/local-up.sh
 ```
 
 **Stop / reset:**
 
 ```bash
-./scripts/local-down.sh          # stop containers
+./scripts/dev/local-down.sh          # stop containers
 podman-compose down -v         # stop and delete DB volume
 ```
 

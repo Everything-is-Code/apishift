@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 # Verify committed export-minimal tarball matches its SHA256 sidecar.
 set -euo pipefail
-
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
 FIXTURES="${ROOT}/backend/src/test/resources/fixtures"
 ARTIFACT="export-minimal-1.0.tar.gz"
 TARBALL="${FIXTURES}/${ARTIFACT}"
 CHECKSUM="${FIXTURES}/${ARTIFACT}.sha256"
 
 if [[ ! -f "${TARBALL}" || ! -f "${CHECKSUM}" ]]; then
-	echo "missing fixture tarball or checksum under ${FIXTURES}" >&2
-	exit 1
+	die "missing fixture tarball or checksum under ${FIXTURES}"
 fi
 
 ( cd "${FIXTURES}" && sha256sum -c "${ARTIFACT}.sha256" )

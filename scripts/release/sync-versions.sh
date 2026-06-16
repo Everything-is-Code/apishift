@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Propagate helm/gateforge/Chart.yaml version to dependent artifacts.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=scripts/version.sh
-source "${ROOT}/scripts/version.sh"
+# shellcheck source=scripts/lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
+# shellcheck source=scripts/lib/version.sh
+source "${ROOT}/scripts/lib/version.sh"
 
 echo "Syncing version ${VERSION} (${VERSION_V}) from Chart.yaml..."
 
@@ -13,8 +14,8 @@ sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT}/helm/gateforge/Ch
 # Maven artifact version (project root <version>, not dependency versions)
 sed -i "0,/<version>/{s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>/}" "${ROOT}/backend/pom.xml"
 
-for pkg in gateforge-devhub-plugin gateforge-devhub-frontend; do
-  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "${ROOT}/${pkg}/package.json"
+for pkg in frontend gateforge-devhub-plugin gateforge-devhub-frontend; do
+	sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "${ROOT}/${pkg}/package.json"
 done
 
 # Helm default image tags

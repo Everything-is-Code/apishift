@@ -4,7 +4,7 @@
 #
 # Usage:
 #   export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
-#   ./scripts/e2e-seed-export-analyze.sh
+#   ./scripts/e2e/seed-export-analyze.sh
 #
 # Optional:
 #   E2E_MODE=offline|live|auto|fixture   (default: auto)
@@ -13,8 +13,11 @@
 #   GATEFORGE_API_URL=http://localhost:8080/api
 #   THREESCALE_OUTPUT_DIR=./export
 set -euo pipefail
+# shellcheck source=scripts/lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+step() { printf '==> %s\n' "$*"; }
+
 EXTRACT_ROOT="${THREESCALEEXTRACT_ROOT:-}"
 if [[ -z "${EXTRACT_ROOT}" ]]; then
 	EXTRACT_ROOT="$(cd "${ROOT}/../3scaleextract" 2>/dev/null && pwd || true)"
@@ -31,9 +34,6 @@ PRODUCT_NAMES=(
 	"Seed App ID Product"
 	"Seed Multi-Backend Product"
 )
-
-log() { printf '==> %s\n' "$*"; }
-die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 require_cmd() {
 	for cmd in "$@"; do
@@ -63,11 +63,11 @@ run_seed_export() {
 	: "${THREESCALE_ACCESS_TOKEN:?set THREESCALE_ACCESS_TOKEN}"
 
 	if [[ "${E2E_SKIP_SEED:-}" == "1" && -f "${OUTPUT_DIR}/manifest.json" ]]; then
-		log "E2E_SKIP_SEED=1 — reusing ${OUTPUT_DIR}/manifest.json"
+		step "E2E_SKIP_SEED=1 — reusing ${OUTPUT_DIR}/manifest.json"
 		return 0
 	fi
 
-	log "Seeding and exporting via 3scaleextract"
+	step "Seeding and exporting via 3scaleextract"
 	(
 		cd "${EXTRACT_ROOT}"
 		THREESCALE_OUTPUT_DIR="${OUTPUT_DIR}" ./scripts/demo/seed-and-export.sh
@@ -81,12 +81,12 @@ verify_export_manifest() {
 	count="$(jq -r '.product_count // 0' "${OUTPUT_DIR}/manifest.json")"
 	[[ "${incomplete}" == "false" ]] || die "export incomplete=true (check Admin token and tenant)"
 	[[ "${count}" -ge 4 ]] || die "expected product_count>=4, got ${count}"
-	log "Export manifest OK (${count} products, incomplete=false)"
+	step "Export manifest OK (${count} products, incomplete=false)"
 }
 
 run_visualize() {
 	[[ -n "${EXTRACT_ROOT}" ]] || die "3scaleextract required for visualize"
-	log "Building threescale-visualize"
+	step "Building threescale-visualize"
 	(
 		cd "${EXTRACT_ROOT}"
 		go build -o bin/threescale-visualize ./cmd/threescale-visualize
@@ -94,7 +94,7 @@ run_visualize() {
 		bin/threescale-visualize "${OUTPUT_DIR}" -o "${REPORT_DIR}"
 	)
 	[[ -f "${REPORT_DIR}/index.md" ]] || die "visualize report missing: ${REPORT_DIR}/index.md"
-	log "Visualize report: ${REPORT_DIR}/index.md"
+	step "Visualize report: ${REPORT_DIR}/index.md"
 }
 
 prepare_fixture_export() {
@@ -108,7 +108,7 @@ prepare_fixture_export() {
 	fi
 	[[ -f "${OUTPUT_DIR}/manifest.json" ]] || die "fixture extract missing manifest.json"
 	PRODUCT_NAMES=("Seed Alpha Product" "Seed Multi-Backend Product")
-	log "Fixture export loaded (smoke analyze, ${#PRODUCT_NAMES[@]} products)"
+	step "Fixture export loaded (smoke analyze, ${#PRODUCT_NAMES[@]} products)"
 }
 
 zip_export() {
@@ -119,29 +119,29 @@ zip_export() {
 		zip -qr "${ZIP_FILE}" .
 	)
 	[[ -f "${ZIP_FILE}" ]] || die "failed to create ${ZIP_FILE}"
-	log "Packaged export zip: ${ZIP_FILE}"
+	step "Packaged export zip: ${ZIP_FILE}"
 }
 
 import_export_offline() {
 	zip_export
-	log "POST ${GATEFORGE_API}/migration/import-export"
+	step "POST ${GATEFORGE_API}/migration/import-export"
 	local response
 	response="$(curl -sf -X POST "${GATEFORGE_API}/migration/import-export" -F "file=@${ZIP_FILE}")"
 	echo "${response}" | jq -e '.importMode == "export-v1"' >/dev/null
 	local imported
 	imported="$(echo "${response}" | jq -r '.productCount')"
-	log "Imported ${imported} product(s) (offline)"
+	step "Imported ${imported} product(s) (offline)"
 }
 
 refresh_live_products() {
-	log "POST ${GATEFORGE_API}/threescale/refresh"
+	step "POST ${GATEFORGE_API}/threescale/refresh"
 	curl -sf -X POST "${GATEFORGE_API}/threescale/refresh" -H 'Content-Type: application/json' -d '{}' >/dev/null
 }
 
 analyze_products() {
 	local products_json
 	products_json="$(printf '%s\n' "${PRODUCT_NAMES[@]}" | jq -R . | jq -s .)"
-	log "POST ${GATEFORGE_API}/migration/analyze (${#PRODUCT_NAMES[@]} products)"
+	step "POST ${GATEFORGE_API}/migration/analyze (${#PRODUCT_NAMES[@]} products)"
 	local plan
 	plan="$(curl -sf -X POST "${GATEFORGE_API}/migration/analyze" \
 		-H 'Content-Type: application/json' \
@@ -159,7 +159,7 @@ analyze_products() {
 	[[ "${auth_count}" -ge 1 ]] || die "expected at least one AuthPolicy, got ${auth_count}"
 	[[ "${httproute_count}" -ge 1 ]] || die "expected at least one HTTPRoute, got ${httproute_count}"
 
-	log "Plan ${plan_id}: AuthPolicy=${auth_count}, HTTPRoute=${httproute_count}"
+	step "Plan ${plan_id}: AuthPolicy=${auth_count}, HTTPRoute=${httproute_count}"
 
 	if [[ "${#PRODUCT_NAMES[@]}" -ge 4 ]]; then
 		[[ "${auth_count}" -ge 4 ]] || die "expected >=4 AuthPolicy for lab fixtures, got ${auth_count}"
@@ -168,13 +168,13 @@ analyze_products() {
 	fi
 
 	if [[ "${warnings}" == *"OIDC"* || "${warnings}" == *"oidc"* || "${warnings}" == *"issuer"* ]]; then
-		log "OIDC-related consolidation warning present (expected for lab placeholder issuer)"
+		step "OIDC-related consolidation warning present (expected for lab placeholder issuer)"
 	else
-		log "No OIDC consolidation warning (OK if issuer resolved from export)"
+		step "No OIDC consolidation warning (OK if issuer resolved from export)"
 	fi
 
 	echo "${plan}" | jq '{id, gatewayStrategy, sourceProducts, resourceKinds: [.resources[].kind] | unique, warnings: .consolidationWarnings}'
-	log "E2E analyze checks passed"
+	step "E2E analyze checks passed"
 }
 
 resolve_mode() {
@@ -186,7 +186,7 @@ resolve_mode() {
 			if gateforge_ready; then
 				echo "offline"
 			else
-				die "GateForge not ready at ${GATEFORGE_API}; start ./scripts/local-up.sh or set E2E_MODE=fixture"
+				die "GateForge not ready at ${GATEFORGE_API}; start ./scripts/dev/local-up.sh or set E2E_MODE=fixture"
 			fi
 			;;
 		*) die "unknown E2E_MODE=${MODE} (use auto|offline|live|fixture)" ;;
@@ -199,12 +199,12 @@ main() {
 
 	local resolved
 	resolved="$(resolve_mode)"
-	log "E2E mode: ${resolved}"
+	step "E2E mode: ${resolved}"
 
 	case "${resolved}" in
 		fixture)
 			prepare_fixture_export
-			gateforge_ready || die "GateForge required for analyze; start ./scripts/local-up.sh"
+			gateforge_ready || die "GateForge required for analyze; start ./scripts/dev/local-up.sh"
 			import_export_offline
 			;;
 		*)
@@ -223,7 +223,7 @@ main() {
 	esac
 
 	analyze_products
-	log "E2E lab pipeline complete"
+	step "E2E lab pipeline complete"
 }
 
 main "$@"

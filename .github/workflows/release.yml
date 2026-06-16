@@ -24,7 +24,7 @@ jobs:
 
       - name: Validate release version
         run: |
-          source scripts/version.sh
+          source scripts/lib/version.sh
           if [ "${{ github.event_name }}" = "push" ]; then
             REF_TAG="${GITHUB_REF_NAME}"
             TAG_VER="${REF_TAG#v}"
@@ -114,7 +114,7 @@ jobs:
 
       - name: Update Helm repo index
         run: |
-          source scripts/helm-repo-url.sh
+          source scripts/lib/helm-repo-url.sh
           helm repo index docs/ --url "${HELM_REPO_URL}"
 
       - name: Publish Helm chart via pull request
@@ -140,7 +140,7 @@ jobs:
 
       - name: Prepare release notes
         run: |
-          source scripts/version.sh
+          source scripts/lib/version.sh
           NOTES_FILE="${RUNNER_TEMP}/release-notes.md"
           if [ -f CHANGELOG.md ] && grep -q "^## \[${VERSION}\]" CHANGELOG.md; then
             sed -n "/^## \[${VERSION}\]/,/^## \[/p" CHANGELOG.md | sed '$d' > "${NOTES_FILE}"
