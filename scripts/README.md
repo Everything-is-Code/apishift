@@ -24,6 +24,9 @@ Automation for local development, CI, E2E, fixtures, releases, and docs screensh
 | `dev/local-up.sh` | dev | Build and start stack via podman-compose | Podman, podman-compose, `.env` | `./scripts/dev/local-up.sh` |
 | `dev/local-down.sh` | dev | Stop local stack | podman-compose | `./scripts/dev/local-down.sh` |
 | `ci/verify-export-minimal-fixture.sh` | ci | Verify export-minimal tarball SHA256 | bash, sha256sum | `./scripts/ci/verify-export-minimal-fixture.sh` |
+| `ci/retry.sh` | ci | Retry flaky commands (CI resilience) | bash | `RETRY_ATTEMPTS=3 ./scripts/ci/retry.sh mvn test` |
+| `ci/pr_preflight.sh` | ci | Unified PR validation (backend + OpenAPI + frontend) | Java 17+, Node 20+, Chrome | `./scripts/ci/pr_preflight.sh` |
+| `ci/pipeline_health_report.py` | ci | Rolling GitHub Actions success-rate report | Python 3.12+, `gh` or `GH_TOKEN` | `python scripts/ci/pipeline_health_report.py --repo owner/repo` |
 | `ci/export-openapi.sh` | ci | Emit OpenAPI schema via `OpenApiBuildTest` | Java 17+, Maven | `./scripts/ci/export-openapi.sh` |
 | `ci/generate-frontend-api-types.sh` | ci | Sync schema to frontend and run `openapi-typescript` | Java 17+, Node 20+ | `./scripts/ci/generate-frontend-api-types.sh` |
 | `e2e/seed-export-analyze.sh` | e2e | 3scaleextract seed → analyze via GateForge API | curl, jq; optional Go/zip for live | `E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh` |
@@ -55,8 +58,11 @@ Used by `e2e/seed-export-analyze.sh` (see script header for full usage):
 
 | Workflow | Scripts invoked |
 |----------|-----------------|
-| [Backend tests](../.github/workflows/backend-tests.yml) | `ci/verify-export-minimal-fixture.sh`; `OpenApiBuildTest` (OpenAPI export) |
-| [Frontend tests](../.github/workflows/frontend-tests.yml) | — (npm test only) |
+| [PR Validation](../.github/workflows/pr-check.yml) | `ci/pr_preflight.sh` (uses `retry.sh`, `verify-export-minimal-fixture.sh`) |
+| [Pipeline Health](../.github/workflows/pipeline-health.yml) | `ci/pipeline_health_report.py` |
+| [Security Advisory](../.github/workflows/security-advisory.yml) | — (dependency-review + CodeQL, advisory mode) |
+| [Backend tests](../.github/workflows/backend-tests.yml) | Manual only; same checks as preflight backend stage |
+| [Frontend tests](../.github/workflows/frontend-tests.yml) | Manual only; same checks as preflight frontend stage |
 | [E2E (optional)](../.github/workflows/e2e-fixture.yml) | `dev/local-up.sh`, `e2e/seed-export-analyze.sh` |
 | [Capture screenshots](../.github/workflows/capture-screenshots.yml) | `dev/local-up.sh`, `e2e/seed-export-analyze.sh`, `docs/capture-screenshots.mjs --skip-stack` |
 | [Release](../.github/workflows/release.yml) | `lib/helm-repo-url.sh`, `release/sync-versions.sh` |

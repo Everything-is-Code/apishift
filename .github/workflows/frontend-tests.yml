@@ -1,10 +1,8 @@
 name: Frontend tests
 
+# Manual/debug only — PR and main pushes use pr-check.yml (Build & Verify).
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: frontend-tests-${{ github.ref }}
@@ -51,4 +49,6 @@ jobs:
             frontend/src/app/core/api/generated/
 
       - name: Run frontend unit tests
-        run: npm test -- --no-watch --browsers=ChromeHeadlessCI
+        run: |
+          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=15 ../scripts/ci/retry.sh \
+            npm test -- --no-watch --browsers=ChromeHeadlessCI

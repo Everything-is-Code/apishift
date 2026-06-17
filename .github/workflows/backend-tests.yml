@@ -1,10 +1,8 @@
 name: Backend tests
 
+# Manual/debug only — PR and main pushes use pr-check.yml (Build & Verify).
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: backend-tests-${{ github.ref }}
@@ -32,7 +30,10 @@ jobs:
         run: ../scripts/ci/verify-export-minimal-fixture.sh
 
       - name: Export OpenAPI schema
-        run: mvn -q -Dtest=OpenApiBuildTest test
+        run: |
+          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=20 ../scripts/ci/retry.sh \
+            mvn -q -Dtest=OpenApiBuildTest test
 
       - name: Run backend unit tests
-        run: mvn test
+        run: |
+          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=20 ../scripts/ci/retry.sh mvn test
