@@ -25,7 +25,7 @@ jobs:
       ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run dependency review
         id: dependency_review
@@ -57,7 +57,7 @@ jobs:
       ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Initialize CodeQL
         id: codeql_init
@@ -112,7 +112,7 @@ jobs:
       ENFORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.enforce || 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Initialize CodeQL
         id: codeql_init
