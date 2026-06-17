@@ -4,7 +4,7 @@ WORKDIR /build
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn package -DskipTests
+RUN mvn package -DskipTests -Dquarkus.package.jar.type=uber-jar
 
 FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.20
 
