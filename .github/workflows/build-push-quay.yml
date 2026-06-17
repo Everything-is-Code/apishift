@@ -24,14 +24,6 @@ jobs:
             context: ./frontend
             dockerfile: ./frontend/Dockerfile.ci
             needs-version: true
-          - image: apishift-devhub-plugin
-            context: ./gateforge-devhub-plugin
-            dockerfile: ./gateforge-devhub-plugin/Dockerfile
-            needs-version: false
-          - image: apishift-devhub-frontend-plugin
-            context: ./gateforge-devhub-frontend
-            dockerfile: ./gateforge-devhub-frontend/Dockerfile
-            needs-version: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -73,6 +65,8 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: ${{ matrix.needs-version && format('APP_VERSION={0}', env.APP_VERSION) || '' }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
           tags: |
             ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:latest
             ${{ env.QUAY_REGISTRY }}/${{ env.QUAY_NAMESPACE }}/${{ matrix.image }}:${{ github.sha }}
