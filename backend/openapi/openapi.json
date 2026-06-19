@@ -632,6 +632,33 @@
           }
         }
       },
+      "TargetClusterView" : {
+        "description" : "Target Kubernetes cluster (public view — credentials never exposed)",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "apiServerUrl" : {
+            "type" : "string"
+          },
+          "authType" : {
+            "type" : "string"
+          },
+          "verifySsl" : {
+            "type" : "boolean"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "credentialConfigured" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "TestCommand" : {
         "description" : "Suggested curl command to validate a migrated route",
         "type" : "object",
@@ -844,6 +871,27 @@
           },
           "error" : {
             "type" : "string"
+          }
+        }
+      },
+      "ThreeScaleSourceView" : {
+        "description" : "3scale Admin API source (public view — credentials never exposed)",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "adminUrl" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "credentialConfigured" : {
+            "type" : "boolean"
           }
         }
       }
@@ -1144,7 +1192,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/TargetCluster"
+                    "$ref" : "#/components/schemas/TargetClusterView"
                   }
                 }
               }
@@ -1172,7 +1220,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/TargetCluster"
+                  "$ref" : "#/components/schemas/TargetClusterView"
                 }
               }
             }
@@ -1815,7 +1863,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ThreeScaleSource"
+                    "$ref" : "#/components/schemas/ThreeScaleSourceView"
                   }
                 }
               }
@@ -1843,7 +1891,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ThreeScaleSource"
+                  "$ref" : "#/components/schemas/ThreeScaleSourceView"
                 }
               }
             }
