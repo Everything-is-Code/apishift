@@ -27,7 +27,7 @@ jobs:
             needs-version: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Resolve application version
         if: matrix.needs-version
