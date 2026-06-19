@@ -1,6 +1,6 @@
 import { MigrationPrerequisite } from './migration.models';
 
-export type { ClusterFeaturesDto as FeatureFlags } from '../generated';
+export type { ClusterFeaturesDto as FeatureFlags, TargetClusterViewDto as TargetClusterView } from '../generated';
 
 export interface ProjectInfo {
   name: string;
@@ -10,6 +10,7 @@ export interface ProjectInfo {
   hasKuadrant: boolean;
 }
 
+/** POST create payload — includes token; GET responses use TargetClusterView. */
 export interface TargetCluster {
   id: string;
   label: string;

@@ -3,6 +3,7 @@ export type {
   ThreeScaleBackendDto as ThreeScaleBackend,
   ThreeScaleRefreshResultDto as ThreeScaleRefreshResult,
   ThreeScaleSourceStatusDto as ThreeScaleSourceStatus,
+  ThreeScaleSourceViewDto as ThreeScaleSourceView,
 } from '../generated';
 
 export interface ThreeScaleProduct {
@@ -20,6 +21,7 @@ export interface ThreeScaleProduct {
   sourceCluster?: string;
 }
 
+/** POST create payload — includes accessToken; GET responses use ThreeScaleSourceView. */
 export interface ThreeScaleSource {
   id: string;
   label: string;
@@ -27,3 +29,4 @@ export interface ThreeScaleSource {
   accessToken: string;
   enabled: boolean;
 }
+

@@ -927,6 +927,16 @@ export interface components {
             verifySsl?: boolean;
             enabled?: boolean;
         };
+        /** @description Target Kubernetes cluster (public view — credentials never exposed) */
+        TargetClusterView: {
+            id?: string;
+            label?: string;
+            apiServerUrl?: string;
+            authType?: string;
+            verifySsl?: boolean;
+            enabled?: boolean;
+            credentialConfigured?: boolean;
+        };
         /** @description Suggested curl command to validate a migrated route */
         TestCommand: {
             label?: string;
@@ -1007,6 +1017,14 @@ export interface components {
             enabled?: boolean;
             reachable?: boolean;
             error?: string;
+        };
+        /** @description 3scale Admin API source (public view — credentials never exposed) */
+        ThreeScaleSourceView: {
+            id?: string;
+            label?: string;
+            adminUrl?: string;
+            enabled?: boolean;
+            credentialConfigured?: boolean;
         };
     };
     responses: never;
@@ -1316,7 +1334,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TargetCluster"][];
+                    "application/json": components["schemas"]["TargetClusterView"][];
                 };
             };
         };
@@ -1340,7 +1358,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TargetCluster"];
+                    "application/json": components["schemas"]["TargetClusterView"];
                 };
             };
         };
@@ -1858,7 +1876,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ThreeScaleSource"][];
+                    "application/json": components["schemas"]["ThreeScaleSourceView"][];
                 };
             };
         };
@@ -1882,7 +1900,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ThreeScaleSource"];
+                    "application/json": components["schemas"]["ThreeScaleSourceView"];
                 };
             };
         };

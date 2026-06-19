@@ -17,6 +17,7 @@ export type TestCommandDto = components['schemas']['TestCommand'];
 export type ImportExportResponseDto = components['schemas']['ImportExportResponse'];
 
 export type TargetClusterDto = components['schemas']['TargetCluster'];
+export type TargetClusterViewDto = components['schemas']['TargetClusterView'];
 export type ClusterReadinessDto = components['schemas']['ClusterReadiness'];
 export type ClusterFeaturesDto = components['schemas']['ClusterFeatures'];
 export type ProjectInfoDto = components['schemas']['ProjectInfo'];
@@ -26,4 +27,5 @@ export type ThreeScaleBackendDto = components['schemas']['ThreeScaleBackend'];
 export type ThreeScaleAdminStatusDto = components['schemas']['ThreeScaleAdminStatus'];
 export type ThreeScaleRefreshResultDto = components['schemas']['ThreeScaleRefreshResult'];
 export type ThreeScaleSourceDto = components['schemas']['ThreeScaleSource'];
+export type ThreeScaleSourceViewDto = components['schemas']['ThreeScaleSourceView'];
 export type ThreeScaleSourceStatusDto = components['schemas']['ThreeScaleSourceStatus'];

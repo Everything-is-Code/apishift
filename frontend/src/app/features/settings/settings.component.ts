@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ClusterApiService } from '../../core/api/cluster-api.service';
 import { ThreeScaleApiService } from '../../core/api/threescale-api.service';
-import { TargetCluster, ThreeScaleSource } from '../../core/api/models';
+import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceView } from '../../core/api/models';
 
 @Component({
   selector: 'app-settings',
@@ -214,8 +214,8 @@ import { TargetCluster, ThreeScaleSource } from '../../core/api/models';
   `]
 })
 export class SettingsComponent implements OnInit {
-  sources: ThreeScaleSource[] = [];
-  clusters: TargetCluster[] = [];
+  sources: ThreeScaleSourceView[] = [];
+  clusters: TargetClusterView[] = [];
   sourcesLoading = true;
   sourceStatuses: Record<string, Record<string, unknown>> = {};
   clusterStatuses: Record<string, Record<string, unknown>> = {};

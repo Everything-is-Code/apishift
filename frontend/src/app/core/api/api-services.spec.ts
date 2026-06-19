@@ -31,10 +31,10 @@ describe('ClusterApiService', () => {
       id: 'local',
       label: 'Local',
       apiServerUrl: '',
-      token: '',
       authType: 'in-cluster',
       verifySsl: true,
       enabled: true,
+      credentialConfigured: false,
     }]);
   });
 

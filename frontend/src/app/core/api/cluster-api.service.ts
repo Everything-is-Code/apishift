@@ -6,13 +6,14 @@ import type {
   ClusterFeaturesDto,
   ClusterReadinessDto,
   ProjectInfoDto,
-  TargetClusterDto,
+  TargetClusterViewDto,
 } from './generated';
 import type {
   ClusterReadiness,
   FeatureFlags,
   ProjectInfo,
   TargetCluster,
+  TargetClusterView,
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -29,12 +30,12 @@ export class ClusterApiService {
     return this.http.get<ClusterFeaturesDto>(`${this.baseUrl}/features`) as unknown as Observable<FeatureFlags>;
   }
 
-  getTargetClusters(): Observable<TargetCluster[]> {
-    return this.http.get<TargetClusterDto[]>(`${this.baseUrl}/targets`) as unknown as Observable<TargetCluster[]>;
+  getTargetClusters(): Observable<TargetClusterView[]> {
+    return this.http.get<TargetClusterViewDto[]>(`${this.baseUrl}/targets`);
   }
 
-  addTargetCluster(cluster: TargetCluster): Observable<TargetCluster> {
-    return this.http.post<TargetClusterDto>(`${this.baseUrl}/targets`, cluster) as unknown as Observable<TargetCluster>;
+  addTargetCluster(cluster: TargetCluster): Observable<TargetClusterView> {
+    return this.http.post<TargetClusterViewDto>(`${this.baseUrl}/targets`, cluster);
   }
 
   removeTargetCluster(id: string): Observable<void> {
