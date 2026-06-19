@@ -14,7 +14,7 @@ RETRY_ATTEMPTS="${RETRY_ATTEMPTS:-2}" RETRY_SLEEP_SECONDS="${RETRY_SLEEP_SECONDS
     set -euo pipefail
     cd backend
     mvn -q -Dtest=OpenApiBuildTest test
-    mvn test
+    mvn verify
   '
 
 echo "Running PR preflight: frontend OpenAPI types in sync."

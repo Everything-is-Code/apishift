@@ -36,4 +36,12 @@ jobs:
 
       - name: Run backend unit tests
         run: |
-          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=20 ../scripts/ci/retry.sh mvn test
+          RETRY_ATTEMPTS=2 RETRY_SLEEP_SECONDS=20 ../scripts/ci/retry.sh mvn verify
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: warn
