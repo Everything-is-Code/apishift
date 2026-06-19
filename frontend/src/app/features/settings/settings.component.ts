@@ -39,10 +39,13 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
             <div class="source-info">
               <div class="source-header">
                 <span class="source-label">{{ s.label || s.id }}</span>
-                <span class="badge" [class.badge-ok]="sourceStatuses[s.id]?.['reachable']" [class.badge-off]="!sourceStatuses[s.id]?.['reachable']">
-                  {{ sourceStatuses[s.id]?.['reachable'] ? 'Connected' : (sourceStatuses[s.id] ? 'Unreachable' : 'Checking...') }}
+                <span class="badge" [class.badge-ok]="sourceStatuses[s.id!]?.['reachable']" [class.badge-off]="!sourceStatuses[s.id!]?.['reachable']">
+                  {{ sourceStatuses[s.id!]?.['reachable'] ? 'Connected' : (sourceStatuses[s.id!] ? 'Unreachable' : 'Checking...') }}
                 </span>
                 <span class="badge badge-id">{{ s.id }}</span>
+                <span class="badge" [class.badge-cred-ok]="s.credentialConfigured" [class.badge-cred-off]="!s.credentialConfigured">
+                  {{ s.credentialConfigured ? 'Credential set' : 'No credential' }}
+                </span>
               </div>
               <div class="source-meta">
                 <code>{{ s.adminUrl }}</code>
@@ -51,8 +54,8 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
               </div>
             </div>
             <div class="source-actions">
-              <button type="button" class="btn-check" (click)="checkSourceStatus(s.id)">Check</button>
-              <button type="button" class="btn-remove" (click)="removeSource(s.id)" *ngIf="s.id !== 'default'">Remove</button>
+              <button type="button" class="btn-check" (click)="checkSourceStatus(s.id!)">Check</button>
+              <button type="button" class="btn-remove" (click)="removeSource(s.id!)" *ngIf="s.id !== 'default'">Remove</button>
             </div>
           </div>
         </div>
@@ -103,8 +106,11 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
               <div class="source-header">
                 <span class="source-label">{{ c.label }}</span>
                 <span class="badge badge-id">{{ c.id }}</span>
-                <span class="badge" [class.badge-ok]="clusterStatuses[c.id]?.['valid']" [class.badge-off]="clusterStatuses[c.id] && !clusterStatuses[c.id]?.['valid']">
-                  {{ clusterStatuses[c.id]?.['valid'] ? 'Valid' : (clusterStatuses[c.id] ? 'Invalid' : '—') }}
+                <span class="badge" *ngIf="c.id !== 'local'" [class.badge-cred-ok]="c.credentialConfigured" [class.badge-cred-off]="!c.credentialConfigured">
+                  {{ c.credentialConfigured ? 'Credential set' : 'No credential' }}
+                </span>
+                <span class="badge" [class.badge-ok]="clusterStatuses[c.id!]?.['valid']" [class.badge-off]="clusterStatuses[c.id!] && !clusterStatuses[c.id!]?.['valid']">
+                  {{ clusterStatuses[c.id!]?.['valid'] ? 'Valid' : (clusterStatuses[c.id!] ? 'Invalid' : '—') }}
                 </span>
               </div>
               <div class="source-meta">
@@ -114,8 +120,8 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
               </div>
             </div>
             <div class="source-actions">
-              <button type="button" class="btn-check" (click)="validateCluster(c.id)" *ngIf="c.id !== 'local'">Validate</button>
-              <button type="button" class="btn-remove" (click)="removeCluster(c.id)" *ngIf="c.id !== 'local'">Remove</button>
+              <button type="button" class="btn-check" (click)="validateCluster(c.id!)" *ngIf="c.id !== 'local'">Validate</button>
+              <button type="button" class="btn-remove" (click)="removeCluster(c.id!)" *ngIf="c.id !== 'local'">Remove</button>
             </div>
           </div>
         </div>
@@ -182,6 +188,8 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
     .badge-ok { background: #e6f5e0; color: #2d6b24; }
     .badge-off { background: #fef3cd; color: #8a5500; }
     .badge-id { background: #f5f5f5; color: #6a6e73; }
+    .badge-cred-ok { background: #e6f0ff; color: #004080; }
+    .badge-cred-off { background: #f5f5f5; color: #6a6e73; }
     .pill { font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; background: #e6f5e0; color: #2d6b24; }
     .pill-off { background: #f5f5f5; color: #6a6e73; }
 
@@ -241,7 +249,9 @@ export class SettingsComponent implements OnInit {
       next: (s) => {
         this.sources = s;
         this.sourcesLoading = false;
-        s.forEach(src => this.checkSourceStatus(src.id));
+        s.forEach(src => {
+          if (src.id) this.checkSourceStatus(src.id);
+        });
       },
       error: () => this.sourcesLoading = false
     });
@@ -250,7 +260,15 @@ export class SettingsComponent implements OnInit {
   loadClusters(): void {
     this.clusterApi.getTargetClusters().subscribe({
       next: (c) => this.clusters = c,
-      error: () => this.clusters = [{ id: 'local', label: 'Local (in-cluster)', apiServerUrl: '', token: '', authType: 'in-cluster', verifySsl: true, enabled: true }]
+      error: () => this.clusters = [{
+        id: 'local',
+        label: 'Local (in-cluster)',
+        apiServerUrl: '',
+        authType: 'in-cluster',
+        verifySsl: true,
+        enabled: true,
+        credentialConfigured: false,
+      }]
     });
   }
 

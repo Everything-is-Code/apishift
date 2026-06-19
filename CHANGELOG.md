@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **API secret redaction**: `GET`/`POST` responses for `/api/threescale/sources` and `/api/cluster/targets` no longer include `accessToken` or `token`; responses expose `credentialConfigured` instead. POST request bodies still accept credentials for create.
+
+### Changed
+
+- **Settings**: source and cluster lists show a credential status badge derived from `credentialConfigured` (tokens are never displayed after save).
+
 ## [0.3.0] - 2026-06-16
 
 ### Added
