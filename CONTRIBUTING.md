@@ -42,6 +42,10 @@ For module layout, REST surface, and migration data flows, read **[docs/ARCHITEC
 
 **Optional E2E (slow):** [E2E (optional)](.github/workflows/e2e-fixture.yml) runs only on **workflow_dispatch** (Actions → E2E (optional) → Run workflow). Default mode is `fixture` (no live 3scale). Locally: `E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh` with `./scripts/dev/local-up.sh` running.
 
+### Dependency updates (Dependabot)
+
+[Dependabot](.github/dependabot.yml) opens weekly PRs for Maven (`backend/`), npm (`frontend/`), and GitHub Actions. Each PR runs **PR Validation** (`pr-check.yml`) and the advisory **Security Advisory** workflow (dependency review). Review and merge like any other contribution; patch/minor auto-merge is out of scope for now (see [#101](https://github.com/Everything-is-Code/apishift/issues/101)).
+
 ### REST contract changes
 
 When adding or changing a REST endpoint or response DTO:
