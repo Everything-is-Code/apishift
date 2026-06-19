@@ -8,12 +8,13 @@ import type {
   ThreeScaleBackendDto,
   ThreeScaleProductDto,
   ThreeScaleRefreshResultDto,
-  ThreeScaleSourceDto,
   ThreeScaleSourceStatusDto,
+  ThreeScaleSourceViewDto,
 } from './generated';
 import type {
   ThreeScaleProduct,
   ThreeScaleSource,
+  ThreeScaleSourceView,
   ThreeScaleStatus,
 } from './models';
 
@@ -47,12 +48,12 @@ export class ThreeScaleApiService {
     );
   }
 
-  getSources(): Observable<ThreeScaleSource[]> {
-    return this.http.get<ThreeScaleSourceDto[]>(`${this.baseUrl}/sources`) as unknown as Observable<ThreeScaleSource[]>;
+  getSources(): Observable<ThreeScaleSourceView[]> {
+    return this.http.get<ThreeScaleSourceViewDto[]>(`${this.baseUrl}/sources`);
   }
 
-  addSource(source: ThreeScaleSource): Observable<ThreeScaleSource> {
-    return this.http.post<ThreeScaleSourceDto>(`${this.baseUrl}/sources`, source) as unknown as Observable<ThreeScaleSource>;
+  addSource(source: ThreeScaleSource): Observable<ThreeScaleSourceView> {
+    return this.http.post<ThreeScaleSourceViewDto>(`${this.baseUrl}/sources`, source);
   }
 
   removeSource(id: string): Observable<void> {

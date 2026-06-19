@@ -9,7 +9,7 @@ import {
   DriftEntry,
   ImportExportResponse,
   MigrationPlan,
-  TargetCluster,
+  TargetClusterView,
   TestCommand,
   ThreeScaleProduct,
 } from '../../core/api/models';
@@ -80,7 +80,7 @@ export class MigrationWizardStateService {
   productSearchQuery = '';
   migrateProductPage = 1;
   migratePageSize = 24;
-  targetClusters: TargetCluster[] = [];
+  targetClusters: TargetClusterView[] = [];
   selectedClusterId = 'local';
   productSource: 'live' | 'export' = 'live';
   importing = false;
@@ -250,10 +250,10 @@ export class MigrationWizardStateService {
             id: 'local',
             label: 'Local (in-cluster)',
             apiServerUrl: '',
-            token: '',
             authType: 'in-cluster',
             verifySsl: true,
             enabled: true,
+            credentialConfigured: false,
           },
         ];
       },

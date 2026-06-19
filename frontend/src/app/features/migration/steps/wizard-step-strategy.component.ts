@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TargetCluster } from '../../../core/api/models';
+import { TargetClusterView } from '../../../core/api/models';
 
 export interface GatewayStrategyOption {
   value: string;
@@ -19,7 +19,7 @@ export interface GatewayStrategyOption {
 export class WizardStepStrategyComponent {
   @Input({ required: true }) strategies!: GatewayStrategyOption[];
   @Input({ required: true }) gatewayStrategy!: string;
-  @Input({ required: true }) targetClusters!: TargetCluster[];
+  @Input({ required: true }) targetClusters!: TargetClusterView[];
   @Input({ required: true }) selectedClusterId!: string;
   @Input() analyzing = false;
 
