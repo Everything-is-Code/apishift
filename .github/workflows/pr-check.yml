@@ -45,3 +45,19 @@ jobs:
 
       - name: PR preflight (build, tests, OpenAPI contract)
         run: ./scripts/ci/pr_preflight.sh
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: warn
+
+      - name: Upload frontend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage/frontend/
+          if-no-files-found: warn
