@@ -4,6 +4,7 @@ import io.gateforge.model.ClusterFeatures;
 import io.gateforge.model.ClusterReadiness;
 import io.gateforge.model.ProjectInfo;
 import io.gateforge.model.TargetCluster;
+import io.gateforge.model.TargetClusterView;
 import io.gateforge.service.ClusterReadinessService;
 import io.gateforge.service.ClusterRegistry;
 import io.gateforge.service.ClusterService;
@@ -60,15 +61,17 @@ public class ClusterResource {
 
     @GET
     @Path("/targets")
-    public List<TargetCluster> listTargetClusters() {
-        return clusterRegistry.listClusters();
+    public List<TargetClusterView> listTargetClusters() {
+        return clusterRegistry.listClusters().stream()
+                .map(TargetClusterView::from)
+                .toList();
     }
 
     @POST
     @Path("/targets")
-    public TargetCluster addTargetCluster(TargetCluster cluster) {
+    public TargetClusterView addTargetCluster(TargetCluster cluster) {
         clusterRegistry.addCluster(cluster);
-        return cluster;
+        return TargetClusterView.from(cluster);
     }
 
     @DELETE

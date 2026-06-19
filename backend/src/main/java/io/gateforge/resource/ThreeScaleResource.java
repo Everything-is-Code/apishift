@@ -6,6 +6,7 @@ import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.model.ThreeScaleRefreshResult;
 import io.gateforge.model.ThreeScaleSource;
 import io.gateforge.model.ThreeScaleSourceStatus;
+import io.gateforge.model.ThreeScaleSourceView;
 import io.gateforge.service.ThreeScaleService;
 import io.gateforge.service.ThreeScaleSourceRegistry;
 import jakarta.inject.Inject;
@@ -65,15 +66,17 @@ public class ThreeScaleResource {
 
     @GET
     @Path("/sources")
-    public List<ThreeScaleSource> listSources() {
-        return sourceRegistry.listSources();
+    public List<ThreeScaleSourceView> listSources() {
+        return sourceRegistry.listSources().stream()
+                .map(ThreeScaleSourceView::from)
+                .toList();
     }
 
     @POST
     @Path("/sources")
-    public ThreeScaleSource addSource(ThreeScaleSource source) {
+    public ThreeScaleSourceView addSource(ThreeScaleSource source) {
         sourceRegistry.addSource(source);
-        return source;
+        return ThreeScaleSourceView.from(source);
     }
 
     @DELETE
