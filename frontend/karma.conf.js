@@ -23,6 +23,15 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/frontend'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'lcov' }],
+      check: {
+        global: {
+          statements: 80,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+        },
+      },
+      exclude: ['src/environments/**', 'src/app/core/api/generated/**'],
     },
     reporters: ['progress', 'kjhtml'],
     browsers: ['Chrome'],
