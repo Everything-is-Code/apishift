@@ -1,7 +1,8 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, SecurityContext, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
 import { take, retry, timeout } from 'rxjs';
 import { ChatApiService } from '../../core/api/chat-api.service';
 import { ChatMessage } from '../../core/api/models';
@@ -426,7 +427,11 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     'Explain the migration steps'
   ];
 
-  constructor(private chatApi: ChatApiService, private route: ActivatedRoute) {}
+  constructor(
+    private chatApi: ChatApiService,
+    private route: ActivatedRoute,
+    private sanitizer: DomSanitizer,
+  ) {}
 
   ngOnInit(): void {
     this.route.queryParams.pipe(take(1)).subscribe(params => {
@@ -487,12 +492,13 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
   formatMessage(text: string): string {
     const safe = text ?? '';
-    return safe
+    const html = safe
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/\n/g, '<br>')
       .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
   }
 
   private requestScroll(): void {
