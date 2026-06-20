@@ -9,8 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenApiSynthesisServiceTest {
@@ -79,5 +81,54 @@ class OpenApiSynthesisServiceTest {
         assertTrue(root.get("paths").get("/items").has("post"));
         assertTrue(root.get("paths").get("/items/{id}").has("patch"));
         assertTrue(root.get("paths").get("/items/{id}").has("delete"));
+    }
+
+    @Test
+    void parseExternalYaml_validOpenApi_returnsPathsMap() {
+        String yaml = """
+                openapi: 3.0.3
+                info:
+                  title: demo
+                  version: 1.0.0
+                paths:
+                  /items:
+                    get:
+                      operationId: listItems
+                """;
+
+        Map<String, Object> parsed = service.parseExternalYaml(yaml);
+
+        assertNotNull(parsed);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> paths = (Map<String, Object>) parsed.get("paths");
+        assertNotNull(paths);
+        assertTrue(paths.containsKey("/items"));
+    }
+
+    @Test
+    void parseExternalYaml_taggedPayload_doesNotInstantiateObjects() {
+        String yaml = "!!java.net.URL [http://evil.example.com]\n";
+
+        assertNull(service.parseExternalYaml(yaml));
+    }
+
+    @Test
+    void parseExternalYaml_oversizeBody_returnsNull() {
+        char[] chars = new char[OpenApiSynthesisService.MAX_EXTERNAL_YAML_CHARS + 1];
+        java.util.Arrays.fill(chars, 'a');
+        String yaml = "openapi: 3.0.3\ninfo:\n  title: x\npaths: {}\n" + new String(chars);
+
+        assertNull(service.parseExternalYaml(yaml));
+    }
+
+    @Test
+    void parseExternalYaml_excessiveNesting_returnsNull() {
+        StringBuilder yaml = new StringBuilder();
+        for (int depth = 0; depth < 25; depth++) {
+            yaml.append("  ".repeat(depth)).append("level").append(depth).append(":\n");
+        }
+        yaml.append("  ".repeat(25)).append("value: 1\n");
+
+        assertNull(service.parseExternalYaml(yaml.toString()));
     }
 }
