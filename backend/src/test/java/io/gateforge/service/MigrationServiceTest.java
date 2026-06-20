@@ -1,11 +1,14 @@
 package io.gateforge.service;
 
 import io.gateforge.model.MigrationPlan;
+import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.service.support.MigrationFixtures;
 import io.gateforge.service.support.MigrationServiceTestSupport;
+import io.gateforge.service.support.ReflectionTestSupport;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -140,5 +143,84 @@ class MigrationServiceTest extends MigrationServiceTestSupport {
         MigrationPlan plan = service.analyze("dual", List.of("demo-api"), "local");
 
         assertTrue(warningsContain(plan, "DNSPolicy"));
+    }
+
+    @Test
+    void analyze_oidcWithIssuer_buildsJwtAuthPolicy() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.oidcWithIssuer()));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        String authYaml = resourceYaml(plan, "AuthPolicy");
+        assertTrue(authYaml.contains("jwt:"));
+        assertTrue(authYaml.contains("issuerUrl"));
+    }
+
+    @Test
+    void analyze_tlsDeployment_addsSuggestedWarning() {
+        ThreeScaleProduct tlsProduct = new ThreeScaleProduct(
+                "demo-api", "default", "demo-api", 1L, "Demo", "custom-ssl",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                Map.of(), "default", "default", "api-backend", null, List.of(), List.of());
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(List.of(tlsProduct));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertTrue(warningsContain(plan, "TLS"));
+    }
+
+    @Test
+    void analyze_multipleProducts_generatesPerProductRoutes() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct(), MigrationFixtures.otherApiKeyProduct()));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api", "other-api"), "local");
+
+        assertEquals(2, countKind(plan, "HTTPRoute"));
+        assertTrue(resourceNames(plan, "HTTPRoute").contains("demo-api-route"));
+        assertTrue(resourceNames(plan, "HTTPRoute").contains("other-api-route"));
+    }
+
+    @Test
+    void analyze_browserOAuthFlow_addsSuggestedWarning() {
+        ThreeScaleProduct browserOidc = new ThreeScaleProduct(
+                "demo-api", "default", "demo-api", 1L, "Demo", "hosted",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                Map.of("type", "oidc", "oidc_issuer_type", "authorization_code"),
+                "default", "default", "api-backend", null, List.of(), List.of());
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(List.of(browserOidc));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertTrue(warningsContain(plan, "OIDCPolicy"));
+    }
+
+    @Test
+    void analyze_observabilityEnabled_addsTelemetryPolicy() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(MigrationFixtures.apiKeyProduct()));
+        ReflectionTestSupport.inject(service, "observabilityEnabled", true);
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertTrue(hasKind(plan, "TelemetryPolicy"));
+    }
+
+    @Test
+    void analyze_oidcIntrospectionWithoutEndpoint_addsWarning() {
+        MigrationServiceForTest service = MigrationServiceForTest.createWithProducts(
+                List.of(new ThreeScaleProduct(
+                        "demo-api", "default", "demo-api", 1L, "Demo", "hosted",
+                        List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                        List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                        Map.of("type", "oidc", "auth_type", "introspection"),
+                        "default", "default", "api-backend", null, List.of(), List.of())));
+
+        MigrationPlan plan = service.analyze("shared", List.of("demo-api"), "local");
+
+        assertTrue(warningsContain(plan, "introspection endpoint not found"));
     }
 }

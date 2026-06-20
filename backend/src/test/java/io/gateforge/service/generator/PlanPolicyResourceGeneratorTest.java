@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlanPolicyResourceGeneratorTest {
@@ -51,5 +52,20 @@ class PlanPolicyResourceGeneratorTest {
 
         assertTrue(resource.yaml().contains("PlanPolicy"));
         assertTrue(resource.yaml().contains("clientID"));
+    }
+
+    @Test
+    void build_skipsDraftPlans() {
+        var product = new ThreeScaleProduct(
+                "demo-api", "default", "demo-api", 1L, "Demo", "hosted",
+                List.of(), List.of(), Map.of(), "default", "default", "api-backend", null,
+                List.of(new ThreeScaleProduct.ApplicationPlan(
+                        10L, "Draft", "draft", "draft", List.of())),
+                List.of());
+
+        var resource = generator.build("plan-demo", "default", "demo-route", product, ThreeScaleAuthMode.API_KEY);
+
+        assertTrue(resource.yaml().contains("PlanPolicy"));
+        assertFalse(resource.yaml().contains("name: draft"));
     }
 }

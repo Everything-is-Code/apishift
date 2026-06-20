@@ -29,6 +29,23 @@ class RateLimitResourceGeneratorTest {
     }
 
     @Test
+    void deriveGlobalRateLimit_prefersHourLimitsWhenNoMinute() {
+        var product = new io.gateforge.model.ThreeScaleProduct(
+                "demo-api", "default", "demo-api", 1L, "Demo", "hosted",
+                java.util.List.of(), java.util.List.of(), java.util.Map.of(),
+                "default", "default", "api-backend", null,
+                java.util.List.of(new io.gateforge.model.ThreeScaleProduct.ApplicationPlan(
+                        10L, "Basic", "basic", "published",
+                        java.util.List.of(new io.gateforge.model.ThreeScaleProduct.PlanLimit("hits", "hour", 500)))),
+                java.util.List.of());
+
+        var derived = RateLimitResourceGenerator.deriveGlobalRateLimit(product);
+
+        assertEquals(500L, derived.limit());
+        assertEquals("1h", derived.window());
+    }
+
+    @Test
     void build_emitsRateLimitPolicyYaml() {
         var product = MigrationFixtures.apiKeyProductWithPlans();
         var derived = RateLimitResourceGenerator.deriveGlobalRateLimit(product);

@@ -40,6 +40,18 @@ public class StubThreeScaleAdminApiClient extends ThreeScaleAdminApiClient {
         this.backendApis = backendApis;
     }
 
+    public void setApplicationPlans(List<Map<String, Object>> applicationPlans) {
+        this.applicationPlans = applicationPlans;
+    }
+
+    public void setApplications(List<Map<String, Object>> applications) {
+        this.applications = applications;
+    }
+
+    public void setServiceProxy(Map<String, Object> serviceProxy) {
+        this.serviceProxy = serviceProxy;
+    }
+
     public int servicesLoadCount() {
         return servicesLoadCount.get();
     }

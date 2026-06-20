@@ -45,4 +45,44 @@ class HttpRouteResourceGeneratorTest {
         assertTrue(resource.yaml().contains("hostnames:"));
         assertTrue(resource.yaml().contains("demo-api.apps.example.com"));
     }
+
+    @Test
+    void build_multipleRules_emitsDistinctMatches() {
+        var product = MigrationFixtures.apiKeyProduct();
+        var rules = List.of(
+                new io.gateforge.model.ThreeScaleProduct.MappingRule("GET", "/health", "hits", 1),
+                new io.gateforge.model.ThreeScaleProduct.MappingRule("POST", "/orders", "hits", 1));
+
+        var resource = generator.build(
+                "demo-api-route",
+                "default",
+                "gateforge-shared",
+                product,
+                rules,
+                "api-backend",
+                List.of());
+
+        assertTrue(resource.yaml().contains("/health"));
+        assertTrue(resource.yaml().contains("/orders"));
+    }
+
+    @Test
+    void build_multipleResolvedBackends_emitsPerBackendRules() {
+        var product = MigrationFixtures.apiKeyProduct();
+        var resolved = List.of(
+                new ResolvedBackend("billing", "default", "/billing"),
+                new ResolvedBackend("payments", "default", "/payments"));
+
+        var resource = generator.build(
+                "demo-api-route",
+                "default",
+                "gateforge-shared",
+                product,
+                List.of(),
+                "api-backend",
+                resolved);
+
+        assertTrue(resource.yaml().contains("name: billing"));
+        assertTrue(resource.yaml().contains("name: payments"));
+    }
 }
