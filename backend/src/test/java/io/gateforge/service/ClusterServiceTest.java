@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.gateforge.model.ThreeScaleProduct;
 import io.gateforge.service.support.ReflectionTestSupport;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +52,29 @@ class ClusterServiceTest {
         ReflectionTestSupport.inject(service, "threeScaleService", threeScaleService);
 
         assertNull(service.getProject("missing"));
+    }
+
+    @Test
+    void listProjects_sortsNamespacesWithThreeScaleFirst() {
+        Namespace demo = namespace("demo-ns", "Active");
+        Namespace other = namespace("other-ns", "Active");
+        KubernetesClient client = kubernetesClient(demo, other);
+
+        ThreeScaleProduct product = new ThreeScaleProduct(
+                "demo-api", "demo-ns", "demo-api", 1L, "Demo", "hosted",
+                List.of(), List.of(), java.util.Map.of(), "CRD",
+                "backend-ns", "api-backend", "local", List.of(), List.of());
+        ThreeScaleService threeScaleService = mock(ThreeScaleService.class);
+        when(threeScaleService.listProducts()).thenReturn(List.of(product));
+
+        ClusterService service = new ClusterService();
+        ReflectionTestSupport.inject(service, "kubernetesClient", client);
+        ReflectionTestSupport.inject(service, "threeScaleService", threeScaleService);
+
+        var projects = service.listProjects();
+
+        assertEquals(2, projects.size());
+        assertEquals("demo-ns", projects.get(0).name());
     }
 
     @SuppressWarnings("unchecked")

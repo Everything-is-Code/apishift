@@ -120,6 +120,91 @@ class MigrationPlanLifecycleResourceTest {
                 .body("status", equalTo("REVERTED"));
     }
 
+    @Test
+    void listPlans_afterAnalyze_includesCreatedPlan() {
+        String planId = analyzeSharedPlan();
+
+        given()
+                .when()
+                .get("/api/migration/plans")
+                .then()
+                .statusCode(200)
+                .body("id", hasItem(planId));
+    }
+
+    @Test
+    void getTestCommands_afterAnalyze_returnsCurlCommands() {
+        String planId = analyzeSharedPlan();
+
+        given()
+                .when()
+                .get("/api/migration/plans/" + planId + "/test-commands")
+                .then()
+                .statusCode(200)
+                .body("size()", greaterThan(0))
+                .body("[0].command", containsString("curl"));
+    }
+
+    @Test
+    void getCatalogInfo_buildsComponentYaml() {
+        String planId = analyzeSharedPlan();
+
+        given()
+                .when()
+                .get("/api/migration/plans/" + planId + "/catalog-info/Seed Alpha Product")
+                .then()
+                .statusCode(200)
+                .contentType(containsString("yaml"))
+                .body(containsString("kind: Component"));
+    }
+
+    @Test
+    void policyMapping_returnsReference() {
+        given()
+                .when()
+                .get("/api/migration/policy-mapping")
+                .then()
+                .statusCode(200)
+                .body("consolidated.size()", greaterThan(0));
+    }
+
+    @Test
+    void applyPlan_withExcludedIndex_skipsResource() {
+        String planId = analyzeSharedPlan();
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("excludedIndexes", List.of(0)))
+                .when()
+                .post("/api/migration/plans/" + planId + "/apply")
+                .then()
+                .statusCode(200)
+                .body("results[0].message", equalTo("Skipped"));
+    }
+
+    @Test
+    void getPlan_unknownId_returns404() {
+        given()
+                .when()
+                .get("/api/migration/plans/does-not-exist")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void revertBulk_afterAnalyze_revertsPlans() {
+        String planId = analyzeSharedPlan();
+
+        given()
+                .contentType("application/json")
+                .body(Map.of("planIds", List.of(planId), "deleteGateway", false))
+                .when()
+                .post("/api/migration/revert-bulk")
+                .then()
+                .statusCode(200)
+                .body("totalPlans", equalTo(1));
+    }
+
     private String analyzeSharedPlan() {
         return given()
                 .contentType("application/json")

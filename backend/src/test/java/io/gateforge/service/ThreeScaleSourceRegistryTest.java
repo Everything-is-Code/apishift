@@ -6,6 +6,8 @@ import io.gateforge.service.support.ReflectionTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ThreeScaleSourceRegistryTest {
@@ -51,5 +53,32 @@ class ThreeScaleSourceRegistryTest {
         registry.addSource(new ThreeScaleSource(
                 "remote", "Remote", "https://3scale.example.com", "token", true));
         assertTrue(registry.hasConfiguredClients());
+    }
+
+    @Test
+    void getSourceStatus_unknownSource_returnsError() {
+        Map<String, Object> status = registry.getSourceStatus("missing");
+
+        assertEquals("Source not found", status.get("error"));
+    }
+
+    @Test
+    void getAllClients_returnsRegisteredClients() {
+        registry.addSource(new ThreeScaleSource(
+                "lab", "Lab 3scale", "https://3scale.example.com", "token", true));
+
+        assertEquals(1, registry.getAllClients().size());
+        assertNotNull(registry.getDefaultClient());
+    }
+
+    @Test
+    void getSourceStatus_unreachableAdminApi_marksUnreachable() {
+        registry.addSource(new ThreeScaleSource(
+                "offline", "Offline", "http://127.0.0.1:1", "token", true));
+
+        Map<String, Object> status = registry.getSourceStatus("offline");
+
+        assertTrue((Boolean) status.get("configured"));
+        assertFalse((Boolean) status.get("reachable"));
     }
 }

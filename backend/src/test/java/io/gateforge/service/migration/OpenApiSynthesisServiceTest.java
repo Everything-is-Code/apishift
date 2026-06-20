@@ -64,4 +64,20 @@ class OpenApiSynthesisServiceTest {
         assertTrue(example.isArray());
         assertTrue(example.get(0).has("accountId"));
     }
+
+    @Test
+    void synthesizeFromMappingRules_postPatchDeleteMethods() throws Exception {
+        List<ThreeScaleProduct.MappingRule> rules = List.of(
+                new ThreeScaleProduct.MappingRule("POST", "/items", "hits", 1),
+                new ThreeScaleProduct.MappingRule("PATCH", "/items/{id}", "hits", 1),
+                new ThreeScaleProduct.MappingRule("DELETE", "/items/{id}", "hits", 1)
+        );
+
+        String spec = service.synthesizeFromMappingRules(MigrationFixtures.apiKeyProduct(), rules, "demo.apps.example.com");
+        JsonNode root = new ObjectMapper().readTree(spec);
+
+        assertTrue(root.get("paths").get("/items").has("post"));
+        assertTrue(root.get("paths").get("/items/{id}").has("patch"));
+        assertTrue(root.get("paths").get("/items/{id}").has("delete"));
+    }
 }

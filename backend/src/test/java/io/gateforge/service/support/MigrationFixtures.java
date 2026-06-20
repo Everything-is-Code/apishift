@@ -28,6 +28,25 @@ public final class MigrationFixtures {
                 List.of());
     }
 
+    public static ThreeScaleProduct otherApiKeyProduct() {
+        return new ThreeScaleProduct(
+                "other-api",
+                "default",
+                "other-api",
+                2L,
+                "Other API",
+                "hosted",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/other", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("other-backend", "/other")),
+                Map.of(),
+                "default",
+                "default",
+                "other-backend",
+                null,
+                List.of(),
+                List.of());
+    }
+
     public static ThreeScaleProduct oidcWithoutIssuer() {
         return new ThreeScaleProduct(
                 "demo-api",
@@ -39,6 +58,25 @@ public final class MigrationFixtures {
                 List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
                 List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
                 Map.of("type", "oidc"),
+                "default",
+                "default",
+                "api-backend",
+                null,
+                List.of(),
+                List.of());
+    }
+
+    public static ThreeScaleProduct oidcWithIssuer() {
+        return new ThreeScaleProduct(
+                "demo-api",
+                "default",
+                "demo-api",
+                1L,
+                "Demo API OIDC issuer",
+                "hosted",
+                List.of(new ThreeScaleProduct.MappingRule("GET", "/", "hits", 1)),
+                List.of(new ThreeScaleProduct.BackendUsage("api", "/")),
+                Map.of("type", "oidc", "issuerUrl", "https://issuer.example.com/realms/demo"),
                 "default",
                 "default",
                 "api-backend",
