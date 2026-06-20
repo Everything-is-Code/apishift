@@ -2,11 +2,13 @@ import {
   allFilteredSelected,
   allPlansSelected,
   consumerApiKeySecretCount,
+  extractErrorMessage,
   filterProductsByQuery,
   groupPrerequisites,
   hasOidcJwtAuth,
   isExportProduct,
   pageProducts,
+  productsLoadingMessage,
   selectedPlanIds,
   totalPages,
   toggleAllFiltered,
@@ -114,12 +116,85 @@ describe('migration-wizard.helpers', () => {
     expect(isExportProduct(mockProduct('x'))).toBe(false);
   });
 
+  it('filterProductsByQuery_matchesBackendNamespaceAndSystemName', () => {
+    const rows = [
+      {
+        product: {
+          ...mockProduct('demo-api'),
+          backendNamespace: 'billing',
+          systemName: 'billing_api',
+        },
+        selected: false,
+      },
+    ];
+    expect(filterProductsByQuery(rows, 'billing').length).toBe(1);
+    expect(filterProductsByQuery(rows, 'billing_api').length).toBe(1);
+  });
+
   it('validateExportFile_rejectsMissingOrNonZip', () => {
     expect(validateExportFile(null)).toContain('.zip');
     expect(
       validateExportFile(new File(['x'], 'archive.tar.gz', { type: 'application/gzip' })),
     ).toContain('.zip');
     expect(validateExportFile(new File(['x'], 'export.zip'))).toBeNull();
+  });
+
+  it('productsLoadingMessage_reflectsImportState', () => {
+    expect(productsLoadingMessage(true, 'live')).toContain('Importing');
+    expect(productsLoadingMessage(false, 'export')).toContain('imported');
+    expect(productsLoadingMessage(false, 'live')).toContain('cluster');
+  });
+
+  it('extractErrorMessage_readsStringBodyObjectOrFallback', () => {
+    expect(extractErrorMessage({ error: 'bad zip' })).toBe('bad zip');
+    expect(extractErrorMessage({ error: { message: 'server error' } })).toBe('server error');
+    expect(extractErrorMessage({ message: 'network' })).toBe('network');
+    expect(extractErrorMessage({})).toBe('Import failed');
+  });
+
+  it('consumerApiKeySecretCount_handlesNullPlan', () => {
+    expect(consumerApiKeySecretCount(null)).toBe(0);
+    expect(hasOidcJwtAuth(null)).toBe(false);
+  });
+
+  it('groupPrerequisites_returnsEmptyForMissingList', () => {
+    expect(groupPrerequisites(undefined)).toEqual([]);
+  });
+
+  it('allPlansSelected_falseWhenNoActivePlans', () => {
+    expect(allPlansSelected([], {})).toBe(false);
+  });
+
+  it('allFilteredSelected_falseForEmptyList', () => {
+    expect(allFilteredSelected([])).toBe(false);
+  });
+
+  it('hasOidcJwtAuth_falseWithoutIssuerUrl', () => {
+    const plan: MigrationPlan = {
+      id: 'p',
+      gatewayStrategy: 'shared',
+      sourceProducts: [],
+      resources: [{ kind: 'AuthPolicy', name: 'a', namespace: 'ns', yaml: 'mode: jwt' }],
+      aiAnalysis: '',
+      createdAt: '',
+    };
+    expect(hasOidcJwtAuth(plan)).toBe(false);
+  });
+
+  it('groupPrerequisites_usesCategoryFallbackLabel', () => {
+    const sections = groupPrerequisites([
+      {
+        id: 'custom',
+        category: 'custom-category',
+        title: 'Custom',
+        description: 'custom',
+        requiredByPlan: true,
+        optionalTier: false,
+        status: 'unknown',
+        triggeredByCount: 0,
+      },
+    ]);
+    expect(sections).toEqual([]);
   });
 
   it('planSelectionHelpers_trackSelectedIds', () => {
