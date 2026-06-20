@@ -26,6 +26,30 @@ public final class ReflectionTestSupport {
         }
     }
 
+    public static Object invoke(Object target, String methodName, Class<?>[] paramTypes, Object... args) {
+        try {
+            var method = findMethod(target.getClass(), methodName, paramTypes);
+            method.setAccessible(true);
+            return method.invoke(target, args);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(
+                    "Failed to invoke " + methodName + " on " + target.getClass().getName(), e);
+        }
+    }
+
+    private static java.lang.reflect.Method findMethod(Class<?> type, String methodName, Class<?>[] paramTypes)
+            throws NoSuchMethodException {
+        Class<?> current = type;
+        while (current != null) {
+            try {
+                return current.getDeclaredMethod(methodName, paramTypes);
+            } catch (NoSuchMethodException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchMethodException(methodName);
+    }
+
     private static Field findField(Class<?> type, String fieldName) throws NoSuchFieldException {
         Class<?> current = type;
         while (current != null) {

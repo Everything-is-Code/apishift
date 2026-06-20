@@ -98,7 +98,7 @@ public class DeveloperHubClient {
             try {
                 triggerScaffolderTemplate("gateforge-unregister-component", Map.of("componentName", compName));
             } catch (Exception e) {
-                LOG.warnf("Failed to unregister component %s: %s", compName, e.getMessage());
+                LOG.warn("Failed to unregister component " + compName, e);
             }
         }
     }
@@ -139,7 +139,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warnf("Failed to POST migration-event to Developer Hub: %s", e.getMessage());
+            LOG.warn("Failed to POST migration-event to Developer Hub", e);
         }
     }
 
@@ -170,7 +170,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warnf("Failed to register catalog entities: %s", e.getMessage());
+            LOG.warn("Failed to register catalog entities", e);
         }
     }
 
@@ -181,7 +181,7 @@ public class DeveloperHubClient {
                 unregister3ScaleEntity(toSystemName(productName), baseUrl);
             }
         } catch (Exception e) {
-            LOG.warnf("Failed to unregister 3scale entities: %s", e.getMessage());
+            LOG.warn("Failed to unregister 3scale entities", e);
         }
     }
 
@@ -226,7 +226,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warnf("Error unregistering 3scale entity '%s': %s", sysName, e.getMessage());
+            LOG.warn("Error unregistering 3scale entity '" + sysName + "'", e);
         }
     }
 
@@ -250,7 +250,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warnf("Error deleting location ref '%s': %s", locationRef, e.getMessage());
+            LOG.warn("Error deleting location ref '" + locationRef + "'", e);
         }
     }
 
@@ -263,7 +263,7 @@ public class DeveloperHubClient {
             HttpResponse<String> resp = httpClient.send(reqBuilder.DELETE().build(), HttpResponse.BodyHandlers.ofString());
             LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", uid, resp.statusCode());
         } catch (Exception e) {
-            LOG.warnf("Error deleting entity uid '%s': %s", uid, e.getMessage());
+            LOG.warn("Error deleting entity uid '" + uid + "'", e);
         }
     }
 

@@ -6,6 +6,7 @@ import io.gateforge.model.ThreeScaleSource;
 import io.gateforge.service.support.ExportMinimalFixture;
 import io.gateforge.service.support.ReflectionTestSupport;
 import io.gateforge.service.support.RemoteCacheStub;
+import io.gateforge.service.support.ReflectionTestSupport;
 import io.gateforge.service.support.StubThreeScaleAdminApiClient;
 import io.gateforge.service.support.ThreeScaleAdminApiFixtures;
 import io.gateforge.service.support.ThreeScaleServiceTestSupport;
@@ -241,5 +242,38 @@ class ThreeScaleServiceTest extends ThreeScaleServiceTestSupport {
 
         service.clearExportOverride();
         assertEquals(1, service.listProducts().size());
+    }
+
+    @Test
+    void listProducts_corruptCacheJson_loadsFromAdminApi() {
+        ObjectMapper mapper = new ObjectMapper();
+        StubThreeScaleAdminApiClient client = new StubThreeScaleAdminApiClient("source-a", mapper);
+        client.setServices(List.of(ThreeScaleAdminApiFixtures.demoService()));
+
+        RemoteCacheStub cache = RemoteCacheStub.create();
+        cache.put(PRODUCTS_CACHE, CACHE_KEY, "{not-json");
+        ThreeScaleService service = createService(
+                ThreeScaleTestRegistry.withStub("source-a", "Source A", client), cache);
+
+        List<ThreeScaleProduct> products = service.listProducts();
+
+        assertEquals(1, products.size());
+        assertEquals("demo-api", products.get(0).systemName());
+        assertEquals(1, client.servicesLoadCount());
+    }
+
+    @Test
+    void countCachedJsonArray_invalidJson_returnsNull() {
+        ObjectMapper mapper = new ObjectMapper();
+        StubThreeScaleAdminApiClient client = new StubThreeScaleAdminApiClient("source-a", mapper);
+        RemoteCacheStub cache = RemoteCacheStub.create();
+        cache.put(PRODUCTS_CACHE, CACHE_KEY, "[{invalid");
+        ThreeScaleService service = createService(
+                ThreeScaleTestRegistry.withStub("source-a", "Source A", client), cache);
+
+        Integer count = (Integer) ReflectionTestSupport.invoke(
+                service, "countCachedJsonArray", new Class<?>[] { String.class }, PRODUCTS_CACHE);
+
+        assertNull(count);
     }
 }

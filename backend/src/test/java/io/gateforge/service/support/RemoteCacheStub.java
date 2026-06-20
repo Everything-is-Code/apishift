@@ -36,6 +36,10 @@ public final class RemoteCacheStub {
         return get(cacheName, key) != null;
     }
 
+    public void put(String cacheName, String key, String value) {
+        stores.computeIfAbsent(cacheName, ignored -> new ConcurrentHashMap<>()).put(key, value);
+    }
+
     @SuppressWarnings("unchecked")
     private <K, V> RemoteCache<K, V> cacheFor(String cacheName) {
         Map<String, String> store = stores.computeIfAbsent(cacheName, ignored -> new ConcurrentHashMap<>());

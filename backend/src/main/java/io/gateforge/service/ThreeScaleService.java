@@ -132,7 +132,9 @@ public class ThreeScaleService {
                         return objectMapper.readValue(cached2, new TypeReference<List<ThreeScaleProduct>>() {});
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Data Grid cache re-read failed after lock, loading from source", e);
+            }
 
             long start = System.currentTimeMillis();
             List<ThreeScaleProduct> result = loadProducts();
@@ -246,7 +248,9 @@ public class ThreeScaleService {
                         return objectMapper.readValue(cached2, new TypeReference<List<Map<String, Object>>>() {});
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Data Grid cache re-read failed after lock, loading backends from source", e);
+            }
 
             long start = System.currentTimeMillis();
             List<Map<String, Object>> result = loadBackendsCombined();
@@ -419,8 +423,8 @@ public class ThreeScaleService {
             if (root.isArray()) {
                 return root.size();
             }
-        } catch (Exception ignored) {
-            // omit counts on parse/cache errors
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to count cached JSON array in cache " + cacheName, e);
         }
         return null;
     }
@@ -432,6 +436,7 @@ public class ThreeScaleService {
                     .inNamespace(namespace).withName(name).get();
             return resource != null ? mapCrdToProduct(resource) : null;
         } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to load product CRD " + namespace + "/" + name, e);
             return null;
         }
     }
@@ -708,7 +713,9 @@ public class ThreeScaleService {
                 String ns = parts.length > 1 ? parts[1] : "";
                 return new String[]{svcName, ns};
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Failed to parse backend endpoint URI: " + endpoint, e);
+        }
         return new String[]{"", ""};
     }
 

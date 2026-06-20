@@ -160,7 +160,9 @@ public class ClusterRegistry {
                         if (config.has("bearerToken")) {
                             token = config.get("bearerToken").asText();
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        LOG.warn("Failed to parse ArgoCD cluster config for '" + name + "'", e);
+                    }
                 }
 
                 String id = "argocd-" + (name != null ? name : UUID.randomUUID().toString().substring(0, 6));
