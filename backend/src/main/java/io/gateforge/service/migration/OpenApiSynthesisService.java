@@ -13,6 +13,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +30,8 @@ import java.util.Set;
 public class OpenApiSynthesisService {
 
     private static final Logger LOG = Logger.getLogger(OpenApiSynthesisService.class);
+
+    static final int MAX_EXTERNAL_YAML_CHARS = 2 * 1024 * 1024;
 
     private static final Map<String, Object> UNAUTHORIZED_RESPONSE = Map.of(
             "description", "Unauthorized",
@@ -72,9 +78,10 @@ public class OpenApiSynthesisService {
                 if (body.startsWith("{")) {
                     root = objectMapper.readTree(body);
                 } else {
-                    org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> map = yaml.load(body);
+                    Map<String, Object> map = parseExternalYaml(body);
+                    if (map == null) {
+                        continue;
+                    }
                     root = objectMapper.valueToTree(map);
                 }
 
@@ -111,9 +118,10 @@ public class OpenApiSynthesisService {
                 if (body.startsWith("{")) {
                     root = objectMapper.readTree(body);
                 } else {
-                    org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> map = yaml.load(body);
+                    Map<String, Object> map = parseExternalYaml(body);
+                    if (map == null) {
+                        continue;
+                    }
                     root = objectMapper.valueToTree(map);
                 }
 
@@ -154,6 +162,34 @@ public class OpenApiSynthesisService {
             }
         }
         return List.of();
+    }
+
+    Map<String, Object> parseExternalYaml(String body) {
+        if (body == null || body.isBlank()) {
+            return null;
+        }
+        if (body.length() > MAX_EXTERNAL_YAML_CHARS) {
+            LOG.debugf("Skipping external YAML over size limit (%d chars)", body.length());
+            return null;
+        }
+        try {
+            LoaderOptions loaderOptions = new LoaderOptions();
+            loaderOptions.setCodePointLimit(MAX_EXTERNAL_YAML_CHARS);
+            loaderOptions.setMaxAliasesForCollections(10);
+            loaderOptions.setNestingDepthLimit(20);
+            loaderOptions.setAllowRecursiveKeys(false);
+            Yaml yaml = new Yaml(new SafeConstructor(loaderOptions));
+            Object loaded = yaml.load(body);
+            if (loaded instanceof Map<?, ?> map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> result = (Map<String, Object>) map;
+                return result;
+            }
+            return null;
+        } catch (Exception e) {
+            LOG.debugf("Failed to parse external YAML: %s", e.getMessage());
+            return null;
+        }
     }
 
     public String synthesizeFromMappingRules(ThreeScaleProduct product,
