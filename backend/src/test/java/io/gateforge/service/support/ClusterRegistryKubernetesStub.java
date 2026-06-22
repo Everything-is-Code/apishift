@@ -113,6 +113,19 @@ public final class ClusterRegistryKubernetesStub {
         return secret;
     }
 
+    public static Secret argocdClusterSecretWithConfig(String name, String server, String configJson) {
+        Map<String, String> data = new HashMap<>();
+        data.put("name", encodeBase64(name));
+        data.put("server", encodeBase64(server));
+        if (configJson != null) {
+            data.put("config", encodeBase64(configJson));
+        }
+
+        Secret secret = new Secret();
+        secret.setData(data);
+        return secret;
+    }
+
     private static String encodeBase64(String value) {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }

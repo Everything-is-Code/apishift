@@ -1,6 +1,8 @@
 package io.gateforge.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gateforge.util.LogSanitizer;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.Config;
@@ -160,17 +162,20 @@ public class ClusterRegistry {
                         if (config.has("bearerToken")) {
                             token = config.get("bearerToken").asText();
                         }
-                    } catch (Exception ignored) {}
+                    } catch (JsonProcessingException e) {
+                        LOG.warnf(e, "Failed to parse ArgoCD cluster config for '%s'",
+                                LogSanitizer.sanitize(name));
+                    }
                 }
 
                 String id = "argocd-" + (name != null ? name : UUID.randomUUID().toString().substring(0, 6));
                 TargetCluster cluster = new TargetCluster(
                         id, "ArgoCD: " + name, server, token, "argocd-secret", false, true);
                 addCluster(cluster);
-                LOG.infof("Discovered ArgoCD cluster: %s -> %s", name, server);
+                LOG.infof("Discovered ArgoCD cluster: %s -> %s", LogSanitizer.sanitize(name), LogSanitizer.sanitize(server));
             }
         } catch (Exception e) {
-            LOG.warn("ArgoCD cluster discovery failed (this is expected if no ArgoCD present)", e);
+            LOG.warnf(e, "ArgoCD cluster discovery failed (this is expected if no ArgoCD present)");
         }
     }
 

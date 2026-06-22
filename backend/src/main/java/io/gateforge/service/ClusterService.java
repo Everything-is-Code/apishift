@@ -8,12 +8,15 @@ import io.gateforge.model.ProjectInfo;
 import io.gateforge.model.ThreeScaleProduct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ClusterService {
+
+    private static final Logger LOG = Logger.getLogger(ClusterService.class);
 
     @Inject
     KubernetesClient kubernetesClient;
@@ -64,7 +67,8 @@ public class ClusterService {
                     threeScaleNs.add(p.namespace());
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            LOG.debug("Failed to enrich namespaces from 3scale products", e);
         }
     }
 
@@ -95,7 +99,8 @@ public class ClusterService {
                 if (items != null) {
                     items.forEach(r -> namespaces.add(r.getMetadata().getNamespace()));
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                LOG.debugf(e, "Failed to collect namespaces for CRD %s/%s/%s", crd[0], crd[1], crd[2]);
             }
         }
         return namespaces;

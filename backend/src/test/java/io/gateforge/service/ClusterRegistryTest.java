@@ -180,4 +180,22 @@ class ClusterRegistryTest {
         assertNull(registry.getCluster("argocd-in-cluster"));
         assertEquals(1, registry.listClusters().size());
     }
+
+    @Test
+    void discoverArgoCD_malformedConfig_registersClusterWithEmptyToken() {
+        Secret secret = ClusterRegistryKubernetesStub.argocdClusterSecretWithConfig(
+                "lab", "https://api.remote.example:6443", "{not-json");
+        KubernetesClient localClient = ClusterRegistryKubernetesStub.create(new ClusterRegistryKubernetesStub.Options(
+                ClusterRegistryKubernetesStub.NamespaceBehavior.OK,
+                ClusterRegistryKubernetesStub.GatewayBehavior.OK,
+                List.of(secret)));
+        ClusterRegistry registry = ClusterRegistryTestSupport.create(localClient);
+
+        ClusterRegistryTestSupport.invokeArgoCDDiscovery(registry);
+
+        TargetCluster discovered = registry.getCluster("argocd-lab");
+        assertNotNull(discovered);
+        assertEquals("https://api.remote.example:6443", discovered.apiServerUrl());
+        assertEquals("", discovered.token());
+    }
 }

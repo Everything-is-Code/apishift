@@ -242,4 +242,22 @@ class ThreeScaleServiceTest extends ThreeScaleServiceTestSupport {
         service.clearExportOverride();
         assertEquals(1, service.listProducts().size());
     }
+
+    @Test
+    void listProducts_corruptCacheJson_loadsFromAdminApi() {
+        ObjectMapper mapper = new ObjectMapper();
+        StubThreeScaleAdminApiClient client = new StubThreeScaleAdminApiClient("source-a", mapper);
+        client.setServices(List.of(ThreeScaleAdminApiFixtures.demoService()));
+
+        RemoteCacheStub cache = RemoteCacheStub.create();
+        cache.put(PRODUCTS_CACHE, CACHE_KEY, "{not-json");
+        ThreeScaleService service = createService(
+                ThreeScaleTestRegistry.withStub("source-a", "Source A", client), cache);
+
+        List<ThreeScaleProduct> products = service.listProducts();
+
+        assertEquals(1, products.size());
+        assertEquals("demo-api", products.get(0).systemName());
+        assertEquals(1, client.servicesLoadCount());
+    }
 }
