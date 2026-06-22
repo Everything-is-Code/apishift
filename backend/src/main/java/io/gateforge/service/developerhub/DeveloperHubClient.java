@@ -2,6 +2,7 @@ package io.gateforge.service.developerhub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gateforge.model.MigrationPlan;
+import io.gateforge.util.LogSanitizer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -98,7 +99,7 @@ public class DeveloperHubClient {
             try {
                 triggerScaffolderTemplate("gateforge-unregister-component", Map.of("componentName", compName));
             } catch (Exception e) {
-                LOG.warn("Failed to unregister component " + compName, e);
+                LOG.warnf(e, "Failed to unregister component %s", LogSanitizer.sanitize(compName));
             }
         }
     }
@@ -139,7 +140,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Failed to POST migration-event to Developer Hub", e);
+            LOG.warnf(e, "Failed to POST migration-event to Developer Hub");
         }
     }
 
@@ -170,7 +171,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Failed to register catalog entities", e);
+            LOG.warnf(e, "Failed to register catalog entities");
         }
     }
 
@@ -181,7 +182,7 @@ public class DeveloperHubClient {
                 unregister3ScaleEntity(toSystemName(productName), baseUrl);
             }
         } catch (Exception e) {
-            LOG.warn("Failed to unregister 3scale entities", e);
+            LOG.warnf(e, "Failed to unregister 3scale entities");
         }
     }
 
@@ -226,7 +227,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Error unregistering 3scale entity '" + sysName + "'", e);
+            LOG.warnf(e, "Error unregistering 3scale entity '%s'", LogSanitizer.sanitize(sysName));
         }
     }
 
@@ -250,7 +251,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warn("Error deleting location ref '" + locationRef + "'", e);
+            LOG.warnf(e, "Error deleting location ref '%s'", LogSanitizer.sanitize(locationRef));
         }
     }
 
@@ -263,7 +264,7 @@ public class DeveloperHubClient {
             HttpResponse<String> resp = httpClient.send(reqBuilder.DELETE().build(), HttpResponse.BodyHandlers.ofString());
             LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", uid, resp.statusCode());
         } catch (Exception e) {
-            LOG.warn("Error deleting entity uid '" + uid + "'", e);
+            LOG.warnf(e, "Error deleting entity uid '%s'", LogSanitizer.sanitize(uid));
         }
     }
 
