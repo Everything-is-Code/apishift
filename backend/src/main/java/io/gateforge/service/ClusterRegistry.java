@@ -172,7 +172,7 @@ public class ClusterRegistry {
                 TargetCluster cluster = new TargetCluster(
                         id, "ArgoCD: " + name, server, token, "argocd-secret", false, true);
                 addCluster(cluster);
-                LOG.infof("Discovered ArgoCD cluster: %s -> %s", name, server);
+                LOG.infof("Discovered ArgoCD cluster: %s -> %s", LogSanitizer.sanitize(name), LogSanitizer.sanitize(server));
             }
         } catch (Exception e) {
             LOG.warnf(e, "ArgoCD cluster discovery failed (this is expected if no ArgoCD present)");

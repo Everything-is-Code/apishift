@@ -1,6 +1,5 @@
 package io.gateforge.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -133,7 +132,7 @@ public class ThreeScaleService {
                         return objectMapper.readValue(cached2, new TypeReference<List<ThreeScaleProduct>>() {});
                     }
                 }
-            } catch (JsonProcessingException e) {
+            } catch (Exception e) {
                 LOG.warnf(e, "Data Grid cache re-read failed after lock, loading from source");
             }
 
@@ -249,7 +248,7 @@ public class ThreeScaleService {
                         return objectMapper.readValue(cached2, new TypeReference<List<Map<String, Object>>>() {});
                     }
                 }
-            } catch (JsonProcessingException e) {
+            } catch (Exception e) {
                 LOG.warnf(e, "Data Grid cache re-read failed after lock, loading backends from source");
             }
 
@@ -424,7 +423,7 @@ public class ThreeScaleService {
             if (root.isArray()) {
                 return root.size();
             }
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             LOG.debugf(e, "Failed to count cached JSON array in cache %s", cacheName);
         }
         return null;

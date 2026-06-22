@@ -262,7 +262,7 @@ public class DeveloperHubClient {
                     .timeout(Duration.ofSeconds(15));
             addAuthHeader(reqBuilder);
             HttpResponse<String> resp = httpClient.send(reqBuilder.DELETE().build(), HttpResponse.BodyHandlers.ofString());
-            LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", uid, resp.statusCode());
+            LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", LogSanitizer.sanitize(uid), resp.statusCode());
         } catch (Exception e) {
             LOG.warnf(e, "Error deleting entity uid '%s'", LogSanitizer.sanitize(uid));
         }
