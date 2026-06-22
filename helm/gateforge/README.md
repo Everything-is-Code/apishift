@@ -83,6 +83,7 @@ See the root [README.md](../../README.md) for the full consolidated mapping and 
 | `connectivityLink.gatewayStrategy` | `shared` | Gateway strategy: shared / dual / dedicated |
 | `connectivityLink.gatewayClassName` | `istio` | Gateway class name |
 | `clusterDomain` | `apps.cluster.example.com` | Cluster apps domain for generated hostnames |
+| `cors.allowedOrigins` | `""` | Allowed browser origins (`CORS_ALLOWED_ORIGINS`); defaults to `https://<route.host>` when set |
 | `rbac.clusterAdmin` | `false` | Bind cluster-admin role to backend SA (dev only) |
 | `route.enabled` | `true` | Create OpenShift Route |
 | `route.host` | `""` | Route hostname (auto-generated if empty) |
@@ -107,6 +108,7 @@ Helm values below are rendered into the backend container environment and map to
 | `connectivityLink.gatewayStrategy` | `CL_GATEWAY_STRATEGY` | `gateforge.connectivity-link.gateway-strategy` |
 | `connectivityLink.gatewayClassName` | `CL_GATEWAY_CLASS` | `gateforge.connectivity-link.gateway-class-name` |
 | `clusterDomain` | `CLUSTER_DOMAIN` | `gateforge.cluster-domain` |
+| `cors.allowedOrigins` (or derived from `route.host`) | `CORS_ALLOWED_ORIGINS` | `quarkus.http.cors.origins` |
 | `developerHub.enabled` | `DEVELOPER_HUB_ENABLED` | `gateforge.developer-hub.enabled` |
 | `developerHub.url` | `DEVELOPER_HUB_URL` | `gateforge.developer-hub.url` |
 | `developerHub.scaffolderUrl` | `DEVHUB_SCAFFOLDER_URL` | `gateforge.developer-hub.scaffolder-url` |
