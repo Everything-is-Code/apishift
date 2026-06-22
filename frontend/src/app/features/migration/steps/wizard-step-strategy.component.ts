@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TargetClusterView } from '../../../core/api/models';
 
@@ -15,6 +15,7 @@ export interface GatewayStrategyOption {
   imports: [CommonModule],
   templateUrl: './wizard-step-strategy.component.html',
   styleUrls: ['../migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class WizardStepStrategyComponent {
   @Input({ required: true }) strategies!: GatewayStrategyOption[];

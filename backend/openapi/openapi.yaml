@@ -627,6 +627,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Analyze
       tags:
       - API Cast Resource
@@ -636,6 +639,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Discover All
       tags:
       - API Cast Resource
@@ -651,6 +657,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Discover By Namespace
       tags:
       - API Cast Resource
@@ -668,6 +677,11 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Bad Request
       summary: Map API Cast To Istio
       tags:
       - API Cast Resource
@@ -677,6 +691,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Map All
       tags:
       - API Cast Resource
@@ -707,6 +724,11 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Bad Request
       summary: Chat
       tags:
       - Chat Resource
@@ -716,6 +738,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Faq Status
       tags:
       - Chat Resource
@@ -738,6 +763,9 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema: {}
       summary: Warm Faq Cache
       tags:
       - Chat Resource
@@ -840,6 +868,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TargetClusterView"
+        "400":
+          description: Bad Request
       summary: Add Target Cluster
       tags:
       - Cluster Resource
@@ -976,6 +1006,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MigrationPlan"
+        "400":
+          description: Bad Request
       summary: Analyze
       tags:
       - Migration Resource
@@ -1058,6 +1090,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplyResult"
+        "400":
+          description: Bad Request
       summary: Apply Plan
       tags:
       - Migration Resource
@@ -1109,6 +1143,8 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
+        "400":
+          description: Bad Request
       summary: Confirm Registration
       tags:
       - Migration Resource
@@ -1202,6 +1238,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkRevertResult"
+        "400":
+          description: Bad Request
       summary: Revert Bulk
       tags:
       - Migration Resource
@@ -1302,6 +1340,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ThreeScaleSourceView"
+        "400":
+          description: Bad Request
       summary: Add Source
       tags:
       - Three Scale Resource

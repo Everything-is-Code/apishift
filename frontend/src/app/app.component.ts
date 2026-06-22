@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { appVersion } from '../environments/version';
 
@@ -99,7 +99,8 @@ import { appVersion } from '../environments/version';
       nav { width: 100%; overflow-x: auto; padding-top: 4px; }
       nav a { padding: 8px 12px; font-size: 0.82rem; white-space: nowrap; }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class AppComponent {
   readonly version = appVersion;

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -24,6 +24,7 @@ import { CommonModule } from '@angular/common';
     </nav>
   `,
   styleUrls: ['../migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class WizardStepNavComponent {
   @Input({ required: true }) step!: number;

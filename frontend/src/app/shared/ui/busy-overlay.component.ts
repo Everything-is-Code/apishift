@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -71,6 +71,7 @@ import { CommonModule } from '@angular/common';
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes fadeText { 0% { opacity: 0.5; } 100% { opacity: 1; } }
   `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BusyOverlayComponent {
   @Input({ required: true }) title!: string;

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -53,6 +53,7 @@ import { CommonModule } from '@angular/common';
     .loading-text { color: #6a6e73; font-size: 0.9rem; margin-top: 16px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class LoadingSkeletonComponent {
   @Input() message = '';

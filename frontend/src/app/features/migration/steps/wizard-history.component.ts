@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WizardHistoryActions, WizardHistoryState } from './wizard-review.types';
@@ -9,6 +9,7 @@ import { WizardHistoryActions, WizardHistoryState } from './wizard-review.types'
   imports: [CommonModule, FormsModule],
   templateUrl: './wizard-history.component.html',
   styleUrls: ['../migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class WizardHistoryComponent {
   @Input({ required: true }) s!: WizardHistoryState;

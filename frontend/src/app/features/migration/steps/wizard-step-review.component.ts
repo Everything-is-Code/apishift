@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StatusBadgeComponent } from '../../../shared/ui/status-badge.component';
@@ -10,6 +10,7 @@ import { WizardReviewActions, WizardReviewState } from './wizard-review.types';
   imports: [CommonModule, FormsModule, StatusBadgeComponent],
   templateUrl: './wizard-step-review.component.html',
   styleUrls: ['../migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class WizardStepReviewComponent {
   @Input({ required: true }) s!: WizardReviewState;
