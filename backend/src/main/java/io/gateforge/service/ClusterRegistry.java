@@ -6,6 +6,7 @@ import io.gateforge.util.LogSanitizer;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.gateforge.model.TargetCluster;
@@ -180,11 +181,12 @@ public class ClusterRegistry {
     }
 
     private KubernetesClient buildClient(TargetCluster cluster) {
-        Config config = new Config();
-        config.setMasterUrl(cluster.apiServerUrl());
-        config.setOauthToken(cluster.token());
-        config.setTrustCerts(!cluster.verifySsl());
-        config.setDisableHostnameVerification(!cluster.verifySsl());
+        Config config = new ConfigBuilder()
+                .withMasterUrl(cluster.apiServerUrl())
+                .withOauthToken(cluster.token())
+                .withTrustCerts(!cluster.verifySsl())
+                .withDisableHostnameVerification(!cluster.verifySsl())
+                .build();
         return new KubernetesClientBuilder().withConfig(config).build();
     }
 

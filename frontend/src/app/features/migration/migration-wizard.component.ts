@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -103,6 +103,7 @@ import { MigrationWizardStateService } from './migration-wizard.state.service';
     </div>
   `,
   styleUrls: ['./migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class MigrationWizardComponent implements OnInit {
   constructor(readonly wizard: MigrationWizardStateService) {}

@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -219,7 +219,8 @@ import { TargetCluster, TargetClusterView, ThreeScaleSource, ThreeScaleSourceVie
       .form-grid { grid-template-columns: 1fr; }
       .form-group.full { grid-column: auto; }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class SettingsComponent implements OnInit {
   sources: ThreeScaleSourceView[] = [];

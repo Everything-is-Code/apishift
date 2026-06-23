@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, SecurityContext, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, SecurityContext, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -369,7 +369,8 @@ import { ChatMessage } from '../../core/api/models';
       .sidebar { order: 2; }
       .chat-column { order: 1; }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class ChatComponent implements OnInit, AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer?: ElementRef<HTMLElement>;

@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuditApiService } from '../../core/api/audit-api.service';
 import { AuditEntry } from '../../core/api/models';
@@ -316,7 +316,8 @@ import { AuditEntry } from '../../core/api/models';
     @media (max-width: 600px) {
       .timeline-item { grid-template-columns: 20px 1fr; gap: 12px; }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class AuditLogComponent implements OnInit {
   entries: AuditEntry[] = [];

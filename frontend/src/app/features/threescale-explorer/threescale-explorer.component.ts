@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -506,7 +506,8 @@ type SourceTab = 'all' | 'crd' | 'admin-api';
     @media (max-width: 768px) {
       .product-card.expanded { grid-column: auto; }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class ThreeScaleExplorerComponent implements OnInit {
   products: ThreeScaleProduct[] = [];

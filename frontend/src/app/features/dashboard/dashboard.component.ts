@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -360,7 +360,8 @@ const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
       .hero-stats { grid-template-columns: repeat(2, 1fr); }
       .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class DashboardComponent implements OnInit {
   allProjects: ProjectInfo[] = [];

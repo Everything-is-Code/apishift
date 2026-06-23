@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -13,6 +13,7 @@ export type { ProductRow };
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './wizard-step-products.component.html',
   styleUrls: ['../migration-wizard.shared.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class WizardStepProductsComponent {
   @Input({ required: true }) products!: ProductRow[];

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type StatusBadgeVariant =
@@ -33,6 +33,7 @@ export type StatusBadgeVariant =
     .badge-success { background: #e6f5e0; color: #2d6b24; }
     .badge-warning { background: #fef3cd; color: #8a5500; }
   `],
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class StatusBadgeComponent {
   @Input({ required: true }) label!: string;
