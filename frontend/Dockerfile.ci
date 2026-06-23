@@ -2,7 +2,7 @@ FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS builder
 USER 0
 ARG APP_VERSION=dev
 WORKDIR /opt/app-root/src
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY . .
 RUN printf "export const appVersion = '%s';\n" "$APP_VERSION" > src/environments/version.ts
