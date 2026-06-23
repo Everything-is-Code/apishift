@@ -329,7 +329,7 @@ describe('MigrationWizardComponent prerequisites', () => {
       triggeredByCount: 1,
     },
     {
-      id: 'gateforge-cluster-api',
+      id: 'apishift-cluster-api',
       category: 'tool-config',
       title: 'Kubernetes API',
       description: 'Cluster connection',

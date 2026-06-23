@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Capture GateForge UI screenshots for docs/assets/screenshots/.
+ * Capture ApiShift UI screenshots for docs/assets/screenshots/.
  *
  * Prerequisites: Podman, podman-compose, curl, bash.
  *
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
 const OUT_DIR = path.join(ROOT, 'docs/assets/screenshots');
-const BASE_URL = process.env.GATEFORGE_UI_URL || 'http://localhost:4200';
+const BASE_URL = process.env.APISHIFT_UI_URL || 'http://localhost:4200';
 const SKIP_STACK = process.argv.includes('--skip-stack');
 
 function runShell(script) {
@@ -60,10 +60,10 @@ async function main() {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
-  await capture(page, 'dashboard.png', '/', 'Welcome to GateForge');
+  await capture(page, 'dashboard.png', '/', 'Welcome to ApiShift');
   await capture(page, 'threescale-explorer.png', '/threescale', '3scale');
   await capture(page, 'migration-wizard.png', '/migrate', 'Select products');
-  await capture(page, 'chat-assistant.png', '/chat', 'GateForge AI');
+  await capture(page, 'chat-assistant.png', '/chat', 'ApiShift AI');
   await capture(page, 'audit-log.png', '/audit', 'Audit log');
 
   await page.goto(`${BASE_URL}/migrate`, { waitUntil: 'networkidle', timeout: 120_000 });

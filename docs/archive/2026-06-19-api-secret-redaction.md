@@ -32,7 +32,7 @@ Stacked PRs merged to `main` with squash + `--admin` (PR #118 required admin byp
 
 ### Frontend contract (PR #119)
 
-- `npm run generate:api` — `schema.ts`, `gateforge.openapi.yaml` aligned with View schemas.
+- `npm run generate:api` — `schema.ts`, `ApiShift.openapi.yaml` aligned with View schemas.
 - `ThreeScaleApiService` / `ClusterApiService` — View types on responses; create payloads retain secrets.
 - Migration wizard and Settings list types migrated to View shapes.
 

@@ -1,8 +1,8 @@
-# Archive: GateForge Post-Hardening
+# Archive: ApiShift Post-Hardening
 
-**Change:** `gateforge-post-hardening`  
+**Change:** `ApiShift-post-hardening`  
 **Archived:** 2026-06-16  
-**SDD artifacts:** Engram `sdd/gateforge-post-hardening/*`  
+**SDD artifacts:** Engram `sdd/ApiShift-post-hardening/*`  
 **Status:** Complete (Waves A–E)
 
 ## Intent
@@ -13,18 +13,18 @@ After architecture hardening Phases 1–4, close remaining maintainability debt:
 
 | Wave | Focus | PRs merged | Issues |
 |------|--------|------------|--------|
-| A — docs | ARCHITECTURE, Helm env mapping, CHANGELOG, proxy, CONTRIBUTING | [#74](https://github.com/Everything-is-Code/gateforge/pull/74), [#76](https://github.com/Everything-is-Code/gateforge/pull/76), [#78](https://github.com/Everything-is-Code/gateforge/pull/78) | [#73](https://github.com/Everything-is-Code/gateforge/issues/73)–[#77](https://github.com/Everything-is-Code/gateforge/issues/77) |
-| B — contracts | Typed OpenAPI DTOs, typegen CI drift, facade migration | [#80](https://github.com/Everything-is-Code/gateforge/pull/80), [#82](https://github.com/Everything-is-Code/gateforge/pull/82), [#84](https://github.com/Everything-is-Code/gateforge/pull/84) | [#79](https://github.com/Everything-is-Code/gateforge/issues/79)–[#83](https://github.com/Everything-is-Code/gateforge/issues/83) |
-| C — backend | Apply service, endpoint resolver, OAS synthesis, warnings persistence | [#86](https://github.com/Everything-is-Code/gateforge/pull/86), [#88](https://github.com/Everything-is-Code/gateforge/pull/88), [#90](https://github.com/Everything-is-Code/gateforge/pull/90), [#92](https://github.com/Everything-is-Code/gateforge/pull/92) | [#85](https://github.com/Everything-is-Code/gateforge/issues/85)–[#91](https://github.com/Everything-is-Code/gateforge/issues/91) |
-| D — tests | `@QuarkusTest` migration lifecycle + generator unit tests | [#94](https://github.com/Everything-is-Code/gateforge/pull/94) | [#93](https://github.com/Everything-is-Code/gateforge/issues/93) |
-| E — frontend | Wizard state service, `shared/ui/` components, feature tests | [#96](https://github.com/Everything-is-Code/gateforge/pull/96) | [#95](https://github.com/Everything-is-Code/gateforge/issues/95) |
+| A — docs | ARCHITECTURE, Helm env mapping, CHANGELOG, proxy, CONTRIBUTING | [#74](https://github.com/Everything-is-Code/ApiShift/pull/74), [#76](https://github.com/Everything-is-Code/ApiShift/pull/76), [#78](https://github.com/Everything-is-Code/ApiShift/pull/78) | [#73](https://github.com/Everything-is-Code/ApiShift/issues/73)–[#77](https://github.com/Everything-is-Code/ApiShift/issues/77) |
+| B — contracts | Typed OpenAPI DTOs, typegen CI drift, facade migration | [#80](https://github.com/Everything-is-Code/ApiShift/pull/80), [#82](https://github.com/Everything-is-Code/ApiShift/pull/82), [#84](https://github.com/Everything-is-Code/ApiShift/pull/84) | [#79](https://github.com/Everything-is-Code/ApiShift/issues/79)–[#83](https://github.com/Everything-is-Code/ApiShift/issues/83) |
+| C — backend | Apply service, endpoint resolver, OAS synthesis, warnings persistence | [#86](https://github.com/Everything-is-Code/ApiShift/pull/86), [#88](https://github.com/Everything-is-Code/ApiShift/pull/88), [#90](https://github.com/Everything-is-Code/ApiShift/pull/90), [#92](https://github.com/Everything-is-Code/ApiShift/pull/92) | [#85](https://github.com/Everything-is-Code/ApiShift/issues/85)–[#91](https://github.com/Everything-is-Code/ApiShift/issues/91) |
+| D — tests | `@QuarkusTest` migration lifecycle + generator unit tests | [#94](https://github.com/Everything-is-Code/ApiShift/pull/94) | [#93](https://github.com/Everything-is-Code/ApiShift/issues/93) |
+| E — frontend | Wizard state service, `shared/ui/` components, feature tests | [#96](https://github.com/Everything-is-Code/ApiShift/pull/96) | [#95](https://github.com/Everything-is-Code/ApiShift/issues/95) |
 
 ## Outcomes by wave
 
 ### Wave A — documentation
 
 - `docs/ARCHITECTURE.md`: API contract workflow, completed hardening summary, port/adapter notes.
-- `helm/gateforge/README.md`: env mapping table, unwired values labeled, accurate defaults.
+- `helm/ApiShift/README.md`: env mapping table, unwired values labeled, accurate defaults.
 - `CHANGELOG.md`, `CONTRIBUTING.md`, `scripts/README.md`, frontend READMEs updated.
 - `values.schema.json` examples aligned with `ThreeScaleSource` field names.
 
@@ -71,7 +71,7 @@ After architecture hardening Phases 1–4, close remaining maintainability debt:
 
 ## Release
 
-Shipped as **[v0.3.0](https://github.com/Everything-is-Code/gateforge/releases/tag/v0.3.0)** on 2026-06-16. Full release audit trail: [docs/archive/2026-06-16-release-v0.3.0.md](2026-06-16-release-v0.3.0.md).
+Shipped as **[v0.3.0](https://github.com/Everything-is-Code/ApiShift/releases/tag/v0.3.0)** on 2026-06-16. Full release audit trail: [docs/archive/2026-06-16-release-v0.3.0.md](2026-06-16-release-v0.3.0.md).
 
 ## Follow-up (post-archive, optional)
 
@@ -84,8 +84,8 @@ Shipped as **[v0.3.0](https://github.com/Everything-is-Code/gateforge/releases/t
 
 | Artifact | Observation |
 |----------|-------------|
-| explore | #282 `sdd/explore/gateforge-post-hardening-maintainability` |
-| proposal | #283 `sdd/gateforge-post-hardening/proposal` |
-| spec | #284 `sdd/gateforge-post-hardening/spec` |
-| tasks (final) | #285 `sdd/gateforge-post-hardening/tasks` |
-| archive-report | `sdd/gateforge-post-hardening/archive-report` |
+| explore | #282 `sdd/explore/ApiShift-post-hardening-maintainability` |
+| proposal | #283 `sdd/ApiShift-post-hardening/proposal` |
+| spec | #284 `sdd/ApiShift-post-hardening/spec` |
+| tasks (final) | #285 `sdd/ApiShift-post-hardening/tasks` |
+| archive-report | `sdd/ApiShift-post-hardening/archive-report` |

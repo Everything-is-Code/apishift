@@ -15,11 +15,11 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render GateForge brand', () => {
+  it('should render ApiShift brand', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.brand-name')?.textContent).toContain('GateForge');
+    expect(compiled.querySelector('.brand-name')?.textContent).toContain('ApiShift');
   });
 
   it('should expose main navigation links', () => {

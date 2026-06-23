@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Propagate helm/gateforge/Chart.yaml version to dependent artifacts.
+# Propagate helm/apishift/Chart.yaml version to dependent artifacts.
 set -euo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
@@ -9,7 +9,7 @@ source "${ROOT}/scripts/lib/version.sh"
 echo "Syncing version ${VERSION} (${VERSION_V}) from Chart.yaml..."
 
 # Helm chart appVersion
-sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT}/helm/gateforge/Chart.yaml"
+sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" "${ROOT}/helm/apishift/Chart.yaml"
 
 # Maven artifact version (project root <version>, not dependency versions)
 sed -i "0,/<version>/{s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>/}" "${ROOT}/backend/pom.xml"
@@ -18,12 +18,12 @@ sed -i "0,/<version>/{s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>
 sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "${ROOT}/frontend/package.json"
 
 # Helm default image tags
-sed -i "s/tag: v[0-9.]*$/tag: ${VERSION_V}/" "${ROOT}/helm/gateforge/values.yaml"
+sed -i "s/tag: v[0-9.]*$/tag: ${VERSION_V}/" "${ROOT}/helm/apishift/values.yaml"
 
 # User-facing docs (version strings only — not historical chart entries in index.yaml)
 sed -i "s/>v[0-9.]*</>${VERSION_V}</g" "${ROOT}/docs/index.html"
 sed -i "s/NEW v[0-9.]*/NEW ${VERSION_V}/" "${ROOT}/docs/index.html"
-sed -i "s/GateForge v[0-9.]*/GateForge ${VERSION_V}/" "${ROOT}/docs/index.html"
+sed -i "s/ApiShift v[0-9.]*/ApiShift ${VERSION_V}/" "${ROOT}/docs/index.html"
 sed -i "s/<td>v[0-9.]*<\/td><td>Backend image tag<\/td>/<td>${VERSION_V}<\/td><td>Backend image tag<\/td>/" "${ROOT}/docs/index.html"
 sed -i "s/<td>v[0-9.]*<\/td><td>Frontend image tag<\/td>/<td>${VERSION_V}<\/td><td>Frontend image tag<\/td>/" "${ROOT}/docs/index.html"
 sed -i "s/targetRevision: \"[0-9.]*\"/targetRevision: \"${VERSION}\"/" "${ROOT}/docs/index.html"
@@ -34,7 +34,7 @@ sed -i "s/Phase 6: APICast Discovery and Migration (v[0-9.]*)/Phase 6: APICast D
 sed -i "s/| \`backend.image.tag\` | v[0-9.]* |/| \`backend.image.tag\` | ${VERSION_V} |/" "${ROOT}/README.md"
 sed -i "s/| \`frontend.image.tag\` | v[0-9.]* |/| \`frontend.image.tag\` | ${VERSION_V} |/" "${ROOT}/README.md"
 
-sed -i "s/| \`backend.image.tag\` | \`v[0-9.]*\` |/| \`backend.image.tag\` | \`${VERSION_V}\` |/" "${ROOT}/helm/gateforge/README.md"
-sed -i "s/| \`frontend.image.tag\` | \`v[0-9.]*\` |/| \`frontend.image.tag\` | \`${VERSION_V}\` |/" "${ROOT}/helm/gateforge/README.md"
+sed -i "s/| \`backend.image.tag\` | \`v[0-9.]*\` |/| \`backend.image.tag\` | \`${VERSION_V}\` |/" "${ROOT}/helm/apishift/README.md"
+sed -i "s/| \`frontend.image.tag\` | \`v[0-9.]*\` |/| \`frontend.image.tag\` | \`${VERSION_V}\` |/" "${ROOT}/helm/apishift/README.md"
 
 echo "Done. Review git diff before committing."

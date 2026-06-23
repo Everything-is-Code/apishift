@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Sourceable: exports VERSION (semver) and VERSION_V (v-prefixed) from helm/gateforge/Chart.yaml.
+# Sourceable: exports VERSION (semver) and VERSION_V (v-prefixed) from helm/apishift/Chart.yaml.
 set -euo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
-_CHART="${ROOT}/helm/gateforge/Chart.yaml"
+_CHART="${ROOT}/helm/apishift/Chart.yaml"
 if [[ ! -f "${_CHART}" ]]; then
 	die "Chart not found: ${_CHART}"
 fi

@@ -1,0 +1,25 @@
+apiVersion: v2
+name: apishift
+description: AI-powered 3scale to Red Hat Connectivity Link migration platform
+type: application
+version: 0.3.0
+appVersion: "0.3.0"
+icon: https://everything-is-code.github.io/apishift/assets/logo.svg
+home: https://everything-is-code.github.io/apishift/
+sources:
+  - https://github.com/Everything-is-Code/apishift
+maintainers:
+  - name: Maximiliano Pizarro
+    email: maximiliano.pizarro.5@gmail.com
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/operator: "false"
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://everything-is-code.github.io/apishift/
+    - name: Red Hat Connectivity Link
+      url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
+    - name: Kuadrant
+      url: https://docs.kuadrant.io/
+    - name: kuadrantctl
+      url: https://github.com/Kuadrant/kuadrantctl

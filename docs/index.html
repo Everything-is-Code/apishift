@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GateForge - 3scale to Connectivity Link Migration</title>
+  <title>ApiShift - 3scale to Connectivity Link Migration</title>
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,13 +241,13 @@
 <body>
 
   <section class="hero">
-    <img src="assets/logo.svg" alt="GateForge Logo">
-    <h1>GateForge</h1>
+    <img src="assets/logo.svg" alt="ApiShift Logo">
+    <h1>ApiShift</h1>
     <p class="hero-tagline">Migrate from 3scale to Connectivity Link with zero risk.<br>Automated, AI-powered, and fully reversible.</p>
     <div class="hero-flow">
       <span class="hero-flow-block">Red Hat 3scale</span>
       <span class="hero-flow-arrow">&rarr;</span>
-      <span class="hero-flow-block hero-flow-accent">GateForge</span>
+      <span class="hero-flow-block hero-flow-accent">ApiShift</span>
       <span class="hero-flow-arrow">&rarr;</span>
       <span class="hero-flow-block">Connectivity Link</span>
     </div>
@@ -261,7 +261,7 @@
       <span>Independent open-source project &mdash; not an official Red Hat product. APIs may change without notice.</span>
     </div>
     <div class="badges">
-      <a href="https://artifacthub.io/packages/search?repo=gateforge"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/gateforge" alt="Artifact Hub"></a>
+      <a href="https://artifacthub.io/packages/search?repo=ApiShift"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ApiShift" alt="Artifact Hub"></a>
       <a href="https://quay.io/repository/everythingascode/apishift-backend"><img src="https://img.shields.io/badge/quay.io-backend-blue" alt="Quay Backend"></a>
       <a href="https://quay.io/repository/everythingascode/apishift-frontend"><img src="https://img.shields.io/badge/quay.io-frontend-blue" alt="Quay Frontend"></a>
       <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License"></a>
@@ -271,7 +271,7 @@
 
   <nav class="topnav" id="topnav">
     <div class="container">
-      <a href="#" class="topnav-brand"><img src="assets/logo.svg" alt="">GateForge</a>
+      <a href="#" class="topnav-brand"><img src="assets/logo.svg" alt="">ApiShift</a>
       <div class="topnav-links">
         <a href="#" data-tab="features">Features</a>
         <a href="#" data-tab="getting-started">Getting Started</a>
@@ -287,7 +287,7 @@
     <div class="container">
       <h2>Core Capabilities</h2>
       <p style="color:#6a6e73; margin-bottom:20px; max-width:800px; line-height:1.7;">
-        Organizations running <strong>Red Hat 3scale API Management</strong> need a clear, automated path to <strong>Kubernetes-native API management</strong> via Red Hat Connectivity Link (Kuadrant). GateForge automates this migration end-to-end.
+        Organizations running <strong>Red Hat 3scale API Management</strong> need a clear, automated path to <strong>Kubernetes-native API management</strong> via Red Hat Connectivity Link (Kuadrant). ApiShift automates this migration end-to-end.
       </p>
       <div class="phase-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
         <div class="phase-card" style="border-left: 3px solid #2e7d32;">
@@ -373,7 +373,7 @@
   <section class="section" style="background:#f5f5f5;">
     <div class="container">
       <h2>Compatibility Matrix</h2>
-      <p style="color:#6a6e73; margin-bottom:16px;">GateForge has been tested with the following Red Hat product versions:</p>
+      <p style="color:#6a6e73; margin-bottom:16px;">ApiShift has been tested with the following Red Hat product versions:</p>
       <table class="compat-table">
         <thead>
           <tr><th>Product</th><th>Version</th><th>Status</th></tr>
@@ -393,7 +393,7 @@
           <tr><td>Red Hat Developer Hub</td><td>1.9.x</td><td><span class="compat-badge compat-tested">Tested</span></td></tr>
           <tr><td>3scale Plugin for Developer Hub</td><td>3.10.x (backstage-community-plugin-3scale-backend)</td><td><span class="compat-badge compat-tested">Tested</span></td></tr>
           <tr><td>kuadrantctl</td><td>0.10.x</td><td><span class="compat-badge compat-tested">Tested</span></td></tr>
-          <tr><td>GateForge DevHub Plugin</td><td>0.3.0 (<code>quay.io/everythingascode/apishift-devhub-plugin</code>)</td><td><span class="compat-badge compat-tested">Tested</span></td></tr>
+          <tr><td>ApiShift DevHub Plugin</td><td>0.3.0 (<code>quay.io/everythingascode/apishift-devhub-plugin</code>)</td><td><span class="compat-badge compat-tested">Tested</span></td></tr>
           <tr><td>OpenTelemetry Operator</td><td>0.x (Collector + Instrumentation)</td><td><span class="compat-badge compat-compatible">Compatible</span></td></tr>
           <tr><td>Grafana Operator</td><td>5.x</td><td><span class="compat-badge compat-compatible">Compatible</span></td></tr>
         </tbody>
@@ -463,19 +463,19 @@
       <h2>Architecture</h2>
 
       <div class="mermaid-wrapper unified-arch" onclick="openMermaidLightbox(this)">
-        <h3>GateForge &mdash; Unified Solution Architecture</h3>
+        <h3>ApiShift &mdash; Unified Solution Architecture</h3>
         <span class="zoom-hint-diagram">Click to enlarge</span>
         <pre class="mermaid">
 graph TB
   subgraph OCP["OpenShift Container Platform 4.20+"]
     direction TB
 
-    subgraph gf["GateForge Platform"]
+    subgraph gf["ApiShift Platform"]
       FE["Frontend\nAngular 19 + Red Hat Design System"]
       BE["Backend\nQuarkus 3.x / Java 17"]
       PG[("PostgreSQL 15\n+ Flyway Migrations")]
       DG["Red Hat Data Grid\nInfinispan 15.x\nHot Rod Protocol"]
-      DHPLUGIN["GateForge DevHub Plugin\nBackend + Frontend"]
+      DHPLUGIN["ApiShift DevHub Plugin\nBackend + Frontend"]
     end
 
     subgraph aieng["AI Engine"]
@@ -594,28 +594,28 @@ flowchart TD
       </div>
 
       <div class="mermaid-wrapper" onclick="openMermaidLightbox(this)">
-        <h3>Developer Hub &mdash; 3scale Auto-Discovery + GateForge Plugin</h3>
+        <h3>Developer Hub &mdash; 3scale Auto-Discovery + ApiShift Plugin</h3>
         <span class="zoom-hint-diagram">Click to enlarge</span>
         <pre class="mermaid">
 sequenceDiagram
   participant ThreeScale as 3scale Admin API
   participant Plugin3s as RHDH 3scale Plugin
   participant Catalog as RHDH Catalog
-  participant GateForge as GateForge Backend
+  participant ApiShift as ApiShift Backend
   participant Scaffolder as RHDH Scaffolder
   participant K8s as OpenShift Cluster
-  participant PluginGF as GateForge Frontend Plugin
+  participant PluginGF as ApiShift Frontend Plugin
   participant THANOS as Thanos Querier
 
   Plugin3s->>ThreeScale: Poll products (every 5 min)
   ThreeScale-->>Plugin3s: Product list
   Plugin3s->>Catalog: Create/update API entities
 
-  GateForge->>K8s: Apply Kuadrant resources
-  GateForge->>GateForge: Generate Component catalog-info.yaml
-  GateForge->>Scaffolder: POST /api/scaffolder/v2/tasks (gateforge-register-component)
-  Scaffolder->>Catalog: catalog:register (from GateForge URL)
-  Note over GateForge,Scaffolder: On timeout → error to user
+  ApiShift->>K8s: Apply Kuadrant resources
+  ApiShift->>ApiShift: Generate Component catalog-info.yaml
+  ApiShift->>Scaffolder: POST /api/scaffolder/v2/tasks (ApiShift-register-component)
+  Scaffolder->>Catalog: catalog:register (from ApiShift URL)
+  Note over ApiShift,Scaffolder: On timeout → error to user
 
   PluginGF->>K8s: Fetch policies (AuthPolicy, RateLimitPolicy, etc.)
   PluginGF->>PluginGF: Render Policy Topology tab
@@ -661,7 +661,7 @@ flowchart LR
   CacheCheck -->|No| LLM["Call LLM (30-60s)"]
   LLM --> Response[Return AI response]
   Startup[App Startup] --> WarmUp["Background: send FAQ prompts to LLM"]
-  WarmUp --> DataGrid["Store in Data Grid (gateforge-faq)"]
+  WarmUp --> DataGrid["Store in Data Grid (ApiShift-faq)"]
         </pre>
       </div>
 
@@ -674,7 +674,7 @@ sequenceDiagram
   participant Chat as ChatComponent
   participant Agent as MigrationAgent
   participant LLM as LiteLLM (deepseek-r1)
-  participant Tools as GateForgeTools
+  participant Tools as ApiShiftTools
   participant Svc as Backend Services
 
   U->>Chat: Ask question
@@ -694,7 +694,7 @@ sequenceDiagram
 
       <h2 style="margin-top: 40px;" id="policy-mapping">Policy Mapping &amp; Core Migration Engine</h2>
       <p style="color:#6a6e73; margin-bottom:20px; max-width:900px; line-height:1.7;">
-        The original GateForge capability — and still its core — is translating <strong>Red Hat 3scale API Management</strong>
+        The original ApiShift capability — and still its core — is translating <strong>Red Hat 3scale API Management</strong>
         configuration into <strong>Connectivity Link 1.3</strong> (Kuadrant) resources. Analysis always produces the full
         resource set; cluster readiness is validated separately before apply.
       </p>
@@ -725,7 +725,7 @@ sequenceDiagram
       <div class="policy-section">
         <h3>Consolidated mapping (3scale → RHCL 1.3)</h3>
         <table class="arch-table">
-          <thead><tr><th>3scale</th><th>RHCL 1.3</th><th>GateForge</th><th>Notes</th></tr></thead>
+          <thead><tr><th>3scale</th><th>RHCL 1.3</th><th>ApiShift</th><th>Notes</th></tr></thead>
           <tbody>
             <tr><td>Product / exposure</td><td>Gateway + HTTPRoute + Route</td><td><span class="compat-badge compat-tested">Generated</span></td><td>shared / dual / dedicated strategies</td></tr>
             <tr><td>Backend / mapping rules</td><td>HTTPRoute.rules + backendRefs</td><td><span class="compat-badge compat-tested">Generated</span></td><td>PathPrefix; max 16 rules consolidated</td></tr>
@@ -748,7 +748,7 @@ sequenceDiagram
       <div class="policy-section">
         <h3>3scale APIcast policies → RHCL 1.3</h3>
         <table class="arch-table">
-          <thead><tr><th>APIcast policy</th><th>RHCL 1.3</th><th>GateForge</th></tr></thead>
+          <thead><tr><th>APIcast policy</th><th>RHCL 1.3</th><th>ApiShift</th></tr></thead>
           <tbody>
             <tr><td>API Key</td><td>AuthPolicy apiKey + Secret</td><td>Generated</td></tr>
             <tr><td>OIDC (Bearer JWT)</td><td>AuthPolicy jwt.issuerUrl</td><td>Generated</td></tr>
@@ -770,7 +770,7 @@ sequenceDiagram
       <table class="arch-table">
         <thead><tr><th>3scale Object</th><th>Connectivity Link Resource</th><th>Implementation notes</th></tr></thead>
         <tbody>
-          <tr><td>Product</td><td>Gateway + HTTPRoute + AuthPolicy + RateLimitPolicy + <strong>APIProduct</strong> + Route</td><td>One resource bundle per selected product; labeled <code>gateforge.io/product</code></td></tr>
+          <tr><td>Product</td><td>Gateway + HTTPRoute + AuthPolicy + RateLimitPolicy + <strong>APIProduct</strong> + Route</td><td>One resource bundle per selected product; labeled <code>ApiShift.io/product</code></td></tr>
           <tr><td>Backend</td><td>HTTPRoute <code>backendRefs</code></td><td>Single-backend or multi-backend <code>PathPrefix</code> rules per usage path</td></tr>
           <tr><td>Mapping Rules</td><td>HTTPRoute rules</td><td>Regex <code>$</code> anchor removed; <code>{id}</code> params normalized; max 16 rules → prefix consolidation</td></tr>
           <tr><td>Application Plans</td><td><strong>PlanPolicy</strong> + RateLimitPolicy</td><td>Plan limits → <code>daily</code>/<code>monthly</code>/custom windows; global 100 req/60s baseline on HTTPRoute</td></tr>
@@ -787,7 +787,7 @@ sequenceDiagram
         <table class="arch-table">
           <thead><tr><th>Strategy</th><th>Gateway resources</th></tr></thead>
           <tbody>
-            <tr><td><code>shared</code> (default)</td><td>Single <code>gateforge-shared</code> Gateway for all products</td></tr>
+            <tr><td><code>shared</code> (default)</td><td>Single <code>ApiShift-shared</code> Gateway for all products</td></tr>
             <tr><td><code>dual</code></td><td>Separate internal and external Gateways</td></tr>
             <tr><td><code>dedicated</code></td><td>One Gateway per product (<code>{systemName}-gw</code>)</td></tr>
           </tbody>
@@ -907,8 +907,8 @@ rules:
       <div class="policy-section">
         <h3>E2E lab pipeline (M3)</h3>
         <p style="color:#4d4d4d; font-size:0.92rem; line-height:1.6; margin:8px 0 12px;">
-          Automated <strong>seed → export → visualize → GateForge analyze</strong> for lab validation.
-          Requires a local GateForge stack and optionally a
+          Automated <strong>seed → export → visualize → ApiShift analyze</strong> for lab validation.
+          Requires a local ApiShift stack and optionally a
           <a href="https://github.com/Everything-is-Code/3scaleextract">3scaleextract</a> checkout.
         </p>
         <div class="install-block" style="margin:12px 0;">
@@ -1050,12 +1050,12 @@ graph LR
       <div class="card-grid">
         <div class="card">
           <h3>Helm Installation</h3>
-          <p>Install GateForge on OpenShift with PostgreSQL persistence.</p>
+          <p>Install ApiShift on OpenShift with PostgreSQL persistence.</p>
           <div class="install-block">
             <span class="comment"># Add repo</span><br>
-            <span class="cmd">helm repo add gateforge \<br>&nbsp; https://everything-is-code.github.io/gateforge/</span><br><br>
+            <span class="cmd">helm repo add ApiShift \<br>&nbsp; https://everything-is-code.github.io/ApiShift/</span><br><br>
             <span class="comment"># Install with persistence</span><br>
-            <span class="cmd">helm install gateforge gateforge/gateforge \<br>
+            <span class="cmd">helm install ApiShift ApiShift/ApiShift \<br>
             &nbsp; --set ai.apiKey=YOUR_KEY \<br>
             &nbsp; --set threescale.adminApi.url=URL \<br>
             &nbsp; --set threescale.adminApi.accessToken=TOKEN</span>
@@ -1098,8 +1098,8 @@ graph LR
 
   <section class="section">
     <div class="container">
-      <h2>Using GateForge &mdash; AI Prompt Examples</h2>
-      <p style="color:#6a6e73; margin-bottom: 20px;">GateForge includes an AI-powered chat assistant. Here are some example prompts:</p>
+      <h2>Using ApiShift &mdash; AI Prompt Examples</h2>
+      <p style="color:#6a6e73; margin-bottom: 20px;">ApiShift includes an AI-powered chat assistant. Here are some example prompts:</p>
 
       <div class="card-grid">
         <div class="card">
@@ -1163,8 +1163,8 @@ graph LR
           <tr><td><code>targetClusters</code></td><td>""</td><td>JSON array of target clusters</td></tr>
           <tr><td><code>argocd.clusterDiscovery</code></td><td>false</td><td>Auto-discover clusters from ArgoCD</td></tr>
           <tr><td><code>postgresql.enabled</code></td><td>true</td><td>Deploy PostgreSQL</td></tr>
-          <tr><td><code>postgresql.username</code></td><td>gateforge</td><td>DB username</td></tr>
-          <tr><td><code>postgresql.password</code></td><td>gateforge</td><td>DB password</td></tr>
+          <tr><td><code>postgresql.username</code></td><td>ApiShift</td><td>DB username</td></tr>
+          <tr><td><code>postgresql.password</code></td><td>ApiShift</td><td>DB password</td></tr>
           <tr><td><code>connectivityLink.gatewayStrategy</code></td><td>shared</td><td>shared / dual / dedicated</td></tr>
           <tr><td><code>connectivityLink.gatewayClassName</code></td><td>istio</td><td>Gateway class</td></tr>
           <tr><td><code>rbac.clusterAdmin</code></td><td>false</td><td>Use cluster-admin vs least-privilege</td></tr>
@@ -1190,16 +1190,16 @@ graph LR
     <div class="container">
       <h2>Developer Hub Integration</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        GateForge integrates with <strong>Red Hat Developer Hub (RHDH) 1.9+</strong> through two OCI-packaged dynamic plugins and standard Software Templates. This section explains how to configure every piece.
+        ApiShift integrates with <strong>Red Hat Developer Hub (RHDH) 1.9+</strong> through two OCI-packaged dynamic plugins and standard Software Templates. This section explains how to configure every piece.
       </p>
 
       <h3>Overview</h3>
       <p style="color:#6a6e73; margin-bottom:16px;">
-        After a successful migration, the GateForge backend triggers a <strong>Software Template</strong> (<code>gateforge-register-component</code>) via the RHDH Scaffolder API. The Scaffolder fetches the generated <code>catalog-info.yaml</code> from the GateForge backend and registers a <code>Component</code> entity in the catalog. Two dynamic plugins add frontend tabs (Observability, Policy Topology, Component Editor) and a backend processor for annotation-based entity enrichment.
+        After a successful migration, the ApiShift backend triggers a <strong>Software Template</strong> (<code>ApiShift-register-component</code>) via the RHDH Scaffolder API. The Scaffolder fetches the generated <code>catalog-info.yaml</code> from the ApiShift backend and registers a <code>Component</code> entity in the catalog. Two dynamic plugins add frontend tabs (Observability, Policy Topology, Component Editor) and a backend processor for annotation-based entity enrichment.
       </p>
 
-      <h3>1. GateForge Helm values</h3>
-      <p style="color:#6a6e73; margin-bottom:8px;">Set these values in your GateForge Helm chart deployment:</p>
+      <h3>1. ApiShift Helm values</h3>
+      <p style="color:#6a6e73; margin-bottom:8px;">Set these values in your ApiShift Helm chart deployment:</p>
       <div class="install-block">
         <span class="cmd">developerHub:<br>
         &nbsp; enabled: true<br>
@@ -1218,14 +1218,14 @@ graph LR
       </table>
 
       <h3>2. RHDH <code>app-config-rhdh</code> ConfigMap</h3>
-      <p style="color:#6a6e73; margin-bottom:8px;">Add the GateForge frontend Route to <code>backend.reading.allow</code> so the Scaffolder can fetch <code>catalog-info.yaml</code>:</p>
+      <p style="color:#6a6e73; margin-bottom:8px;">Add the ApiShift frontend Route to <code>backend.reading.allow</code> so the Scaffolder can fetch <code>catalog-info.yaml</code>:</p>
       <div class="install-block">
         <span class="cmd">backend:<br>
         &nbsp; reading:<br>
         &nbsp;&nbsp; allow:<br>
         &nbsp;&nbsp;&nbsp; - host: github.com<br>
         &nbsp;&nbsp;&nbsp; - host: raw.githubusercontent.com<br>
-        &nbsp;&nbsp;&nbsp; - host: gateforge-gateforge.&lt;clusterDomain&gt;</span>
+        &nbsp;&nbsp;&nbsp; - host: ApiShift-ApiShift.&lt;clusterDomain&gt;</span>
       </div>
       <p style="color:#6a6e73; margin:12px 0 8px;">Register the Software Templates catalog in <code>catalog.locations</code>:</p>
       <div class="install-block">
@@ -1238,25 +1238,25 @@ graph LR
       </div>
 
       <h3>3. Dynamic plugin registration (<code>dynamic-plugins-rhdh</code>)</h3>
-      <p style="color:#6a6e73; margin-bottom:8px;">Add both GateForge plugins to the <code>dynamic-plugins-rhdh</code> ConfigMap:</p>
+      <p style="color:#6a6e73; margin-bottom:8px;">Add both ApiShift plugins to the <code>dynamic-plugins-rhdh</code> ConfigMap:</p>
       <div class="install-block">
         <span class="comment"># Backend plugin (entity processor)</span><br>
-        <span class="cmd">- package: oci://quay.io/everythingascode/apishift-devhub-plugin:0.3.0!gateforge-backstage-plugin-catalog-backend-module-gateforge<br>
+        <span class="cmd">- package: oci://quay.io/everythingascode/apishift-devhub-plugin:0.3.0!ApiShift-backstage-plugin-catalog-backend-module-ApiShift<br>
         &nbsp; disabled: false</span><br><br>
         <span class="comment"># Frontend plugin (Observability, Topology, Editor tabs)</span><br>
-        <span class="cmd">- package: oci://quay.io/everythingascode/apishift-devhub-frontend-plugin:0.3.0!gateforge-backstage-plugin-gateforge-frontend<br>
+        <span class="cmd">- package: oci://quay.io/everythingascode/apishift-devhub-frontend-plugin:0.3.0!ApiShift-backstage-plugin-ApiShift-frontend<br>
         &nbsp; disabled: false<br>
         &nbsp; pluginConfig:<br>
         &nbsp;&nbsp; dynamicPlugins:<br>
         &nbsp;&nbsp;&nbsp; frontend:<br>
-        &nbsp;&nbsp;&nbsp;&nbsp; gateforge.backstage-plugin-gateforge-frontend:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp; ApiShift.backstage-plugin-ApiShift-frontend:<br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mountPoints:<br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - mountPoint: entity.page.observability/cards<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: GateForgeObservabilityTab<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: ApiShiftObservabilityTab<br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - mountPoint: entity.page.topology/cards<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: GateForgeTopologyTab<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: ApiShiftTopologyTab<br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - mountPoint: entity.page.component/cards<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: GateForgeComponentEditorTab</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; importName: ApiShiftComponentEditorTab</span>
       </div>
 
       <h3>4. RBAC permissions</h3>
@@ -1273,12 +1273,12 @@ graph LR
       </div>
 
       <h3>5. Software Templates</h3>
-      <p style="color:#6a6e73; margin-bottom:8px;">Two templates are included in the GateForge repository:</p>
+      <p style="color:#6a6e73; margin-bottom:8px;">Two templates are included in the ApiShift repository:</p>
       <table class="arch-table">
         <thead><tr><th>Template</th><th>Purpose</th><th>Trigger</th></tr></thead>
         <tbody>
-          <tr><td><code>gateforge-register-component</code></td><td>Registers a Component in the catalog using <code>catalog:register</code> action. Fetches catalog-info.yaml from the GateForge backend.</td><td>Automatic (backend calls Scaffolder API after migration apply)</td></tr>
-          <tr><td><code>gateforge-unregister-component</code></td><td>Removes a Component from the catalog using <code>catalog:unregister</code> action.</td><td>Automatic (backend calls Scaffolder API on plan revert)</td></tr>
+          <tr><td><code>ApiShift-register-component</code></td><td>Registers a Component in the catalog using <code>catalog:register</code> action. Fetches catalog-info.yaml from the ApiShift backend.</td><td>Automatic (backend calls Scaffolder API after migration apply)</td></tr>
+          <tr><td><code>ApiShift-unregister-component</code></td><td>Removes a Component from the catalog using <code>catalog:unregister</code> action.</td><td>Automatic (backend calls Scaffolder API on plan revert)</td></tr>
         </tbody>
       </table>
 
@@ -1288,8 +1288,8 @@ graph LR
         <pre class="mermaid">
 sequenceDiagram
   participant User as Platform Admin
-  participant FE as GateForge Frontend
-  participant BE as GateForge Backend
+  participant FE as ApiShift Frontend
+  participant BE as ApiShift Backend
   participant SCF as RHDH Scaffolder
   participant CAT as RHDH Catalog
   participant K8s as OpenShift
@@ -1301,7 +1301,7 @@ sequenceDiagram
   User->>FE: Review/edit Component YAML
   User->>FE: Click "Register in Developer Hub"
   FE->>BE: POST /api/migration/plans/{id}/confirm-registration
-  BE->>SCF: POST /api/scaffolder/v2/tasks (gateforge-register-component)
+  BE->>SCF: POST /api/scaffolder/v2/tasks (ApiShift-register-component)
   SCF->>BE: GET /api/migration/plans/{id}/catalog-info/{product}
   BE-->>SCF: catalog-info.yaml (Component definition)
   SCF->>CAT: catalog:register
@@ -1319,25 +1319,25 @@ sequenceDiagram
     <div class="container">
       <h2>ArgoCD Deployment</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        GateForge can be deployed through ArgoCD using the Helm chart from the GitHub Pages repository. Two deployment topologies are supported.
+        ApiShift can be deployed through ArgoCD using the Helm chart from the GitHub Pages repository. Two deployment topologies are supported.
       </p>
 
       <h3>Single-Cluster (Standalone)</h3>
       <p style="color:#6a6e73; margin-bottom:8px;">
-        The simplest setup: GateForge and all target resources run on the same OpenShift cluster. Create a single ArgoCD <code>Application</code> pointing at the Helm chart.
+        The simplest setup: ApiShift and all target resources run on the same OpenShift cluster. Create a single ArgoCD <code>Application</code> pointing at the Helm chart.
       </p>
       <div class="install-block">
         <span class="comment"># ArgoCD Application manifest</span><br>
         <span class="cmd">apiVersion: argoproj.io/v1alpha1<br>
         kind: Application<br>
         metadata:<br>
-        &nbsp; name: gateforge<br>
+        &nbsp; name: ApiShift<br>
         &nbsp; namespace: openshift-gitops<br>
         spec:<br>
         &nbsp; project: default<br>
         &nbsp; source:<br>
-        &nbsp;&nbsp; repoURL: https://everything-is-code.github.io/gateforge/<br>
-        &nbsp;&nbsp; chart: gateforge<br>
+        &nbsp;&nbsp; repoURL: https://everything-is-code.github.io/ApiShift/<br>
+        &nbsp;&nbsp; chart: ApiShift<br>
         &nbsp;&nbsp; targetRevision: "0.3.0"<br>
         &nbsp;&nbsp; helm:<br>
         &nbsp;&nbsp;&nbsp; values: |<br>
@@ -1355,7 +1355,7 @@ sequenceDiagram
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; scaffolderToken: BACKEND_SECRET_VALUE<br>
         &nbsp; destination:<br>
         &nbsp;&nbsp; server: https://kubernetes.default.svc<br>
-        &nbsp;&nbsp; namespace: gateforge<br>
+        &nbsp;&nbsp; namespace: ApiShift<br>
         &nbsp; syncPolicy:<br>
         &nbsp;&nbsp; automated:<br>
         &nbsp;&nbsp;&nbsp; selfHeal: true<br>
@@ -1364,10 +1364,10 @@ sequenceDiagram
 
       <h3>Hub-Spoke (Multi-Cluster)</h3>
       <p style="color:#6a6e73; margin-bottom:8px;">
-        In a hub-spoke topology, GateForge runs on the <strong>hub cluster</strong> and migrates APIs to one or more <strong>spoke clusters</strong>. The hub holds the PostgreSQL database, Data Grid cache, and serves the UI. Spoke clusters only need Connectivity Link (Kuadrant) installed.
+        In a hub-spoke topology, ApiShift runs on the <strong>hub cluster</strong> and migrates APIs to one or more <strong>spoke clusters</strong>. The hub holds the PostgreSQL database, Data Grid cache, and serves the UI. Spoke clusters only need Connectivity Link (Kuadrant) installed.
       </p>
       <div class="install-block">
-        <span class="comment"># Hub cluster — GateForge with multi-cluster config</span><br>
+        <span class="comment"># Hub cluster — ApiShift with multi-cluster config</span><br>
         <span class="cmd">clusterDomain: apps.hub.example.com<br>
         argocd:<br>
         &nbsp; clusterDiscovery: true<br>
@@ -1403,7 +1403,7 @@ sequenceDiagram
 flowchart TB
   subgraph HubCluster["Hub Cluster (OpenShift)"]
     ARGO["ArgoCD\n(openshift-gitops)"]
-    GF["GateForge\n(Helm chart)"]
+    GF["ApiShift\n(Helm chart)"]
     RHDH["Developer Hub\n(dynamic plugins)"]
     PG[("PostgreSQL")]
   end
@@ -1433,10 +1433,10 @@ flowchart TB
 
       <h3>ArgoCD tips</h3>
       <ul style="color:#6a6e73; margin:12px 0 0 20px; line-height:1.7;">
-        <li><strong>selfHeal: true</strong> ensures GateForge resources stay in sync with the chart.</li>
+        <li><strong>selfHeal: true</strong> ensures ApiShift resources stay in sync with the chart.</li>
         <li>Use <code>ignoreDifferences</code> for fields managed by OpenShift (e.g. Route status, Service cluster IPs).</li>
         <li>To force a re-sync after updating the Helm chart at the same version, annotate the Application: <code>argocd.argoproj.io/refresh=hard</code>.</li>
-        <li>With <code>argocd.clusterDiscovery: true</code>, GateForge reads cluster secrets from the <code>openshift-gitops</code> namespace. The ServiceAccount needs <code>get/list</code> on Secrets in that namespace.</li>
+        <li>With <code>argocd.clusterDiscovery: true</code>, ApiShift reads cluster secrets from the <code>openshift-gitops</code> namespace. The ServiceAccount needs <code>get/list</code> on Secrets in that namespace.</li>
       </ul>
     </div>
   </section>
@@ -1447,7 +1447,7 @@ flowchart TB
     <div class="container">
       <h2>Installation Guide</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        Deploy GateForge on OpenShift or run it locally for development. Ensure prerequisites are satisfied before installing the Helm chart.
+        Deploy ApiShift on OpenShift or run it locally for development. Ensure prerequisites are satisfied before installing the Helm chart.
       </p>
 
       <h3>Prerequisites</h3>
@@ -1461,10 +1461,10 @@ flowchart TB
 
       <h3>Quick start with Helm</h3>
       <div class="install-block">
-        <span class="comment"># Add the GateForge chart repository</span><br>
-        <span class="cmd">helm repo add gateforge https://everything-is-code.github.io/gateforge/</span><br><br>
+        <span class="comment"># Add the ApiShift chart repository</span><br>
+        <span class="cmd">helm repo add ApiShift https://everything-is-code.github.io/ApiShift/</span><br><br>
         <span class="comment"># Install with required values</span><br>
-        <span class="cmd">helm install gateforge gateforge/gateforge \<br>
+        <span class="cmd">helm install ApiShift ApiShift/ApiShift \<br>
         &nbsp; --set ai.apiKey=YOUR_KEY \<br>
         &nbsp; --set threescale.adminApi.url=https://3scale-admin.example.com \<br>
         &nbsp; --set threescale.adminApi.accessToken=TOKEN \<br>
@@ -1479,7 +1479,7 @@ flowchart TB
 
       <h3>Verify the deployment</h3>
       <ul style="color:#6a6e73; margin:12px 0 0 20px; line-height:1.7;">
-        <li>Backend health: <code>GET /q/health</code> on the GateForge backend route or Service port</li>
+        <li>Backend health: <code>GET /q/health</code> on the ApiShift backend route or Service port</li>
         <li>Frontend UI: served on port <strong>4200</strong> when running the dev stack locally</li>
       </ul>
     </div>
@@ -1523,7 +1523,7 @@ flowchart TB
         &nbsp;&nbsp; accessToken: TOKEN<br>
         clusterDomain: apps.cluster.example.com<br>
         connectivityLink:<br>
-        &nbsp; targetNamespace: gateforge-migrations<br>
+        &nbsp; targetNamespace: ApiShift-migrations<br>
         &nbsp; gatewayStrategy: shared<br>
         developerHub:<br>
         &nbsp; enabled: true<br>
@@ -1538,7 +1538,7 @@ flowchart TB
     <div class="container">
       <h2>Configuration: Multi-Tenant</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        Multi-tenant (hub-spoke) deployments connect GateForge to <strong>multiple 3scale sources</strong> and <strong>multiple target clusters</strong>. The hub cluster runs GateForge with PostgreSQL persistence and Data Grid; audit and plan data can be federated across spokes.
+        Multi-tenant (hub-spoke) deployments connect ApiShift to <strong>multiple 3scale sources</strong> and <strong>multiple target clusters</strong>. The hub cluster runs ApiShift with PostgreSQL persistence and Data Grid; audit and plan data can be federated across spokes.
       </p>
 
       <h3>Multiple 3scale sources</h3>
@@ -1553,7 +1553,7 @@ flowchart TB
 
       <h3>Argo CD cluster discovery</h3>
       <p style="color:#6a6e73; margin-bottom:12px;">
-        With <code>argocd.clusterDiscovery: true</code>, GateForge discovers Argo CD cluster secrets and surfaces them as selectable targets without hard-coding kubeconfigs in values.
+        With <code>argocd.clusterDiscovery: true</code>, ApiShift discovers Argo CD cluster secrets and surfaces them as selectable targets without hard-coding kubeconfigs in values.
       </p>
 
       <h3>Persistence and audit</h3>
@@ -1567,7 +1567,7 @@ flowchart TB
         <pre class="mermaid">
 flowchart TB
   subgraph Hub["Hub cluster"]
-    GF["GateForge\n(Backend + Frontend)"]
+    GF["ApiShift\n(Backend + Frontend)"]
     PG[("PostgreSQL\nplans + audit")]
     DG["Red Hat Data Grid\nFAQ + product cache"]
   end
@@ -1607,7 +1607,7 @@ flowchart TB
     <div class="container">
       <h2>AI Model Configuration</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        GateForge talks to <strong>any OpenAI-compatible endpoint</strong> through LiteLLM (or a compatible proxy). The default chart model name (<code>deepseek-r1-distill-qwen-14b</code>) is a sensible starting point but is <strong>not mandatory</strong>—point <code>ai.endpoint</code> and <code>ai.model</code> at whatever serving stack you run.
+        ApiShift talks to <strong>any OpenAI-compatible endpoint</strong> through LiteLLM (or a compatible proxy). The default chart model name (<code>deepseek-r1-distill-qwen-14b</code>) is a sensible starting point but is <strong>not mandatory</strong>—point <code>ai.endpoint</code> and <code>ai.model</code> at whatever serving stack you run.
       </p>
 
       <h3>Configuration properties</h3>
@@ -1696,7 +1696,7 @@ flowchart LR
     <div class="container">
       <h2>kuadrantctl Primitives</h2>
       <p style="color:#6a6e73; margin-bottom:16px; max-width:800px;">
-        GateForge shells out to <strong>kuadrantctl</strong> for OpenAPI-driven generation. The table below lists the commands the platform uses or relates to; the migration pipeline primarily relies on HTTPRoute generation, with policies often produced in Java.
+        ApiShift shells out to <strong>kuadrantctl</strong> for OpenAPI-driven generation. The table below lists the commands the platform uses or relates to; the migration pipeline primarily relies on HTTPRoute generation, with policies often produced in Java.
       </p>
 
       <table class="arch-table">
@@ -1735,7 +1735,7 @@ flowchart TD
         <h3>Important notes</h3>
         <ul style="color:#6a6e73; margin:0 0 0 20px; line-height:1.7;">
           <li>Only <strong>HTTPRoute generation</strong> via kuadrantctl is on the main migration path; <strong>AuthPolicy</strong> and <strong>RateLimitPolicy</strong> are typically <strong>built in Java</strong> for consistency with your cluster defaults.</li>
-          <li>Gateway API limits HTTPRoute matches to <strong>16 rules</strong>; GateForge consolidates excess rules into prefix-style matches when needed.</li>
+          <li>Gateway API limits HTTPRoute matches to <strong>16 rules</strong>; ApiShift consolidates excess rules into prefix-style matches when needed.</li>
           <li>If kuadrantctl exits with an error, the backend <strong>falls back</strong> to improved Java-based generation so migrations can continue.</li>
         </ul>
       </div>
@@ -1767,18 +1767,18 @@ flowchart TD
         <a href="#" data-tab="architecture">Architecture &amp; API</a>
         <a href="#" data-tab="configuration">Configuration</a>
         <a href="#" data-tab="devhub-integration">Developer Hub</a>
-        <a href="https://github.com/Everything-is-Code/gateforge">GitHub</a>
+        <a href="https://github.com/Everything-is-Code/ApiShift">GitHub</a>
         <a href="https://quay.io/repository/everythingascode/apishift-backend">Quay.io</a>
         <a href="https://docs.redhat.com/en/documentation/red_hat_connectivity_link">Connectivity Link</a>
         <a href="https://docs.kuadrant.io/">Kuadrant</a>
       </div>
       <p style="color:#a0a0a0; font-size:0.82rem; margin:16px 0 8px; max-width:700px; line-height:1.5;">
-        <strong>GateForge</strong> is an independent open-source project licensed under Apache 2.0.
+        <strong>ApiShift</strong> is an independent open-source project licensed under Apache 2.0.
         It is <strong>not</strong> an official Red Hat product. It integrates with Red Hat 3scale,
         Red Hat Connectivity Link, and Red Hat Developer Hub but is maintained independently.
         No commercial support or SLAs are offered at this time.
       </p>
-      <p class="copy">GateForge v0.3.0 &copy; 2026 Maximiliano Pizarro &mdash; <a href="LICENSE" style="color:#73bcf7;">Apache 2.0 License</a></p>
+      <p class="copy">ApiShift v0.3.0 &copy; 2026 Maximiliano Pizarro &mdash; <a href="LICENSE" style="color:#73bcf7;">Apache 2.0 License</a></p>
     </div>
   </footer>
 

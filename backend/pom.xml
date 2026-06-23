@@ -3,8 +3,8 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.gateforge</groupId>
-    <artifactId>gateforge-backend</artifactId>
+    <groupId>io.apishift</groupId>
+    <artifactId>apishift-backend</artifactId>
     <version>0.3.0</version>
 
     <properties>
@@ -197,14 +197,14 @@
                 <version>${jacoco.version}</version>
                 <configuration>
                     <excludes>
-                        <exclude>io/gateforge/ai/**</exclude>
-                        <exclude>io/gateforge/mcp/**</exclude>
-                        <exclude>io/gateforge/entity/**</exclude>
-                        <exclude>io/gateforge/model/**</exclude>
-                        <exclude>io/gateforge/GateForgeApplication</exclude>
-                        <exclude>io/gateforge/resource/ChatResource*</exclude>
-                        <exclude>io/gateforge/resource/HubResource*</exclude>
-                        <exclude>io/gateforge/service/developerhub/**</exclude>
+                        <exclude>io/apishift/ai/**</exclude>
+                        <exclude>io/apishift/mcp/**</exclude>
+                        <exclude>io/apishift/entity/**</exclude>
+                        <exclude>io/apishift/model/**</exclude>
+                        <exclude>io/apishift/ApiShiftApplication</exclude>
+                        <exclude>io/apishift/resource/ChatResource*</exclude>
+                        <exclude>io/apishift/resource/HubResource*</exclude>
+                        <exclude>io/apishift/service/developerhub/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>

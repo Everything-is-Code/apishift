@@ -1,0 +1,17 @@
+{{- if .Values.datagrid.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apishift.datagrid" . }}
+  labels:
+    {{- include "apishift.datagridLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11222
+      targetPort: hotrod
+      protocol: TCP
+      name: hotrod
+  selector:
+    {{- include "apishift.datagridSelectorLabels" . | nindent 4 }}
+{{- end }}

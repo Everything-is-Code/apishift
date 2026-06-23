@@ -11,7 +11,7 @@ const mockEntry: AuditEntry = {
   resourceKind: 'Gateway',
   resourceName: 'shared-gw',
   namespace: 'apps',
-  performedBy: 'gateforge',
+  performedBy: 'apishift',
   targetClusterId: 'local',
   yamlBefore: '',
   yamlAfter: 'kind: Gateway',

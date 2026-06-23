@@ -111,7 +111,7 @@ jobs:
           version: v3.17.3
 
       - name: Package Helm chart
-        run: helm package helm/gateforge --destination docs/
+        run: helm package helm/apishift --destination docs/
 
       - name: Update Helm repo index
         run: |

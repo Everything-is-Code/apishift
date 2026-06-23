@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apishift.fullname" . }}-frontend
+  labels:
+    app: apishift-frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/name: apishift-frontend
+    app.openshift.io/runtime: nginx
+    {{- include "apishift.labels" . | nindent 4 }}
+  annotations:
+    app.openshift.io/runtime: nginx
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ include "apishift.fullname" . }}-backend"}]'
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: apishift-frontend
+  template:
+    metadata:
+      labels:
+        app: apishift-frontend
+        app.openshift.io/runtime: nginx
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

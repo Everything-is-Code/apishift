@@ -1,4 +1,4 @@
-# Contributing to GateForge
+# Contributing to ApiShift
 
 Thank you for your interest in contributing.
 
@@ -9,12 +9,12 @@ Follow the RHCL program **[Language policy](https://github.com/Everything-is-Cod
 ## Reporting issues
 
 - Use the project’s GitHub **Issues** tab to report bugs, request features, or ask questions.
-- Include steps to reproduce, expected vs. actual behavior, and versions (GateForge, OpenShift, 3scale, etc.) when reporting bugs.
+- Include steps to reproduce, expected vs. actual behavior, and versions (ApiShift, OpenShift, 3scale, etc.) when reporting bugs.
 - Search existing issues before opening a new one to avoid duplicates.
 
 ## How to contribute
 
-Follow the RHCL program **[Git conventions and PR workflow](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#git-conventions)** (feature branches from `main`, PR required, English commit messages). GateForge specifics:
+Follow the RHCL program **[Git conventions and PR workflow](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#git-conventions)** (feature branches from `main`, PR required, English commit messages). ApiShift specifics:
 
 1. Branch names: `feature/GF-<issue>-short-desc` or `fix/GF-<issue>-short-desc` (link the GitHub issue when one exists).
 2. Open a **pull request** using this repo’s [PR template](.github/pull_request_template.md); include a concrete test plan.
@@ -52,7 +52,7 @@ When adding or changing a REST endpoint or response DTO:
 
 1. Update Java types / OpenAPI annotations in `backend/`.
 2. Run `npm run generate:api` from `frontend/` (or `./scripts/ci/generate-frontend-api-types.sh` from repo root).
-3. Commit `backend/openapi/*`, `frontend/openapi/gateforge.openapi.yaml`, and `frontend/src/app/core/api/generated/schema.ts`.
+3. Commit `backend/openapi/*`, `frontend/openapi/ApiShift.openapi.yaml`, and `frontend/src/app/core/api/generated/schema.ts`.
 4. Migrate affected facades in `frontend/src/app/core/api/` to generated types when schemas are stable.
 5. Ensure backend and frontend CI are green.
 

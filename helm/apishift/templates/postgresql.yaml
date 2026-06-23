@@ -1,0 +1,76 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apishift.fullname" . }}-postgresql
+  labels:
+    app: apishift-postgresql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/name: apishift-postgresql
+    app.openshift.io/runtime: postgresql
+    {{- include "apishift.labels" . | nindent 4 }}
+  annotations:
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apishift-postgresql
+  template:
+    metadata:
+      labels:
+        app: apishift-postgresql
+        app.openshift.io/runtime: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: registry.redhat.io/rhel9/postgresql-15:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRESQL_USER
+              value: {{ .Values.postgresql.username | default "apishift" | quote }}
+            - name: POSTGRESQL_PASSWORD
+              value: {{ .Values.postgresql.password | default "apishift" | quote }}
+            - name: POSTGRESQL_DATABASE
+              value: "apishift"
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/pgsql/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "apishift"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "apishift"]
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apishift.fullname" . }}-postgresql
+  labels:
+    app: apishift-postgresql
+    {{- include "apishift.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: apishift-postgresql
+{{- end }}

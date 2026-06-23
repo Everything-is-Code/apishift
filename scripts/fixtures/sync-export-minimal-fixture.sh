@@ -11,7 +11,7 @@ DEST="${ROOT}/backend/src/test/resources/fixtures"
 ARTIFACT="export-minimal-1.0.tar.gz"
 
 if [[ -z "${SOURCE_REPO}" || ! -f "${SOURCE_REPO}/testdata/${ARTIFACT}" ]]; then
-	die "3scaleextract testdata not found. Set THREESCALEEXTRACT_ROOT or clone beside gateforge."
+	die "3scaleextract testdata not found. Set THREESCALEEXTRACT_ROOT or clone beside apishift."
 fi
 
 mkdir -p "${DEST}"

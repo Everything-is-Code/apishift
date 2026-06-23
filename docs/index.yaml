@@ -1,11 +1,11 @@
 apiVersion: v1
 entries:
-  gateforge:
+  apishift:
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -18,23 +18,23 @@ entries:
     created: "2026-06-16T18:25:58.494015869Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 00d8bfd7b425c8c0a49eecaca4f96bcbfae1a9eb27f5804501aaa092eb441527
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/Everything-is-Code/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.3.0.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.3.0.tgz
     version: 0.3.0
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -47,23 +47,23 @@ entries:
     created: "2026-06-16T18:25:58.492634274Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 7ec169c360e07f7679ff8687264e84c51363431df6e8b25413dc45cd2832d277
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/Everything-is-Code/gateforge
+    - https://github.com/Everything-is-Code/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.2.0.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.2.0.tgz
     version: 0.2.0
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -76,23 +76,23 @@ entries:
     created: "2026-06-16T18:25:58.491913197Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 3c795ee511d25895a283977e7e3251ac6586bd1ab0afdc59d0f7019ab43bab28
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/maximilianoPizarro/gateforge
+    - https://github.com/maximilianoPizarro/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.1.9.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.1.9.tgz
     version: 0.1.9
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -105,23 +105,23 @@ entries:
     created: "2026-06-16T18:25:58.491239991Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: bed00890095db1deb66d1fa9504c1708a467117ca8b5da24b3103fe3509ff6cb
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/maximilianoPizarro/gateforge
+    - https://github.com/maximilianoPizarro/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.1.8.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.1.8.tgz
     version: 0.1.8
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -134,23 +134,23 @@ entries:
     created: "2026-06-16T18:25:58.490510491Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 5978d6f94b13846222258e153de380ddc678979d3df70801433e0e52039d3f45
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/maximilianoPizarro/gateforge
+    - https://github.com/maximilianoPizarro/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.1.7.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.1.7.tgz
     version: 0.1.7
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -163,23 +163,23 @@ entries:
     created: "2026-06-16T18:25:58.489758848Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 808480655aa6ee5e0cbd64bc743f5a39e596798bdbb7d469639f93d5fd57784b
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/maximilianoPizarro/gateforge
+    - https://github.com/maximilianoPizarro/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.1.6.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.1.6.tgz
     version: 0.1.6
   - annotations:
       artifacthub.io/license: Apache-2.0
       artifacthub.io/links: |
         - name: Documentation
-          url: https://everything-is-code.github.io/gateforge/
+          url: https://everything-is-code.github.io/apishift/
         - name: Red Hat Connectivity Link
           url: https://docs.redhat.com/en/documentation/red_hat_connectivity_link
         - name: Kuadrant
@@ -192,16 +192,16 @@ entries:
     created: "2026-06-16T18:25:58.489303064Z"
     description: AI-powered 3scale to Red Hat Connectivity Link migration platform
     digest: 3e27c76150b88accaa0418444454733ff457f632084f7b3fded6ef98c4b598a1
-    home: https://everything-is-code.github.io/gateforge/
-    icon: https://everything-is-code.github.io/gateforge/assets/logo.svg
+    home: https://everything-is-code.github.io/apishift/
+    icon: https://everything-is-code.github.io/apishift/assets/logo.svg
     maintainers:
     - email: maximiliano.pizarro.5@gmail.com
       name: Maximiliano Pizarro
-    name: gateforge
+    name: apishift
     sources:
-    - https://github.com/maximilianoPizarro/gateforge
+    - https://github.com/maximilianoPizarro/ApiShift
     type: application
     urls:
-    - https://everything-is-code.github.io/gateforge/gateforge-0.1.4.tgz
+    - https://everything-is-code.github.io/apishift/apishift-0.1.4.tgz
     version: 0.1.4
 generated: "2026-06-16T18:25:58.488626462Z"

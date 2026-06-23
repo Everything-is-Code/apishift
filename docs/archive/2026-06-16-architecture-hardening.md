@@ -1,8 +1,8 @@
-# Archive: GateForge Architecture Hardening
+# Archive: ApiShift Architecture Hardening
 
-**Change:** `gateforge-architecture-hardening`  
+**Change:** `ApiShift-architecture-hardening`  
 **Archived:** 2026-06-16  
-**SDD artifacts:** Engram `sdd/gateforge-architecture-hardening/*`  
+**SDD artifacts:** Engram `sdd/ApiShift-architecture-hardening/*`  
 **Status:** Complete (Phases 1–4)
 
 ## Intent
@@ -13,10 +13,10 @@ Improve long-term maintainability after team takeover without rewriting working 
 
 | Phase | Focus | PRs merged | Issues |
 |-------|--------|------------|--------|
-| 1 — project structure | Script taxonomy, `ARCHITECTURE.md`, docs | [#50](https://github.com/Everything-is-Code/gateforge/pull/50), [#52](https://github.com/Everything-is-Code/gateforge/pull/52) | [#49](https://github.com/Everything-is-Code/gateforge/issues/49), [#51](https://github.com/Everything-is-Code/gateforge/issues/51) |
-| 2 — backend layering | DevHub client, generators, repos, ExceptionMapper, REST smoke | [#54](https://github.com/Everything-is-Code/gateforge/pull/54)–[#60](https://github.com/Everything-is-Code/gateforge/pull/60) | [#53](https://github.com/Everything-is-Code/gateforge/issues/53)–[#59](https://github.com/Everything-is-Code/gateforge/issues/59) |
-| 3 — frontend modules | `core/shared/features`, API facades, wizard steps | [#62](https://github.com/Everything-is-Code/gateforge/pull/62), [#64](https://github.com/Everything-is-Code/gateforge/pull/64), [#66](https://github.com/Everything-is-Code/gateforge/pull/66) | [#61](https://github.com/Everything-is-Code/gateforge/issues/61)–[#65](https://github.com/Everything-is-Code/gateforge/issues/65) |
-| 4 — contracts & E2E | 3scale port, OpenAPI typegen, optional E2E workflow | [#68](https://github.com/Everything-is-Code/gateforge/pull/68), [#70](https://github.com/Everything-is-Code/gateforge/pull/70), [#72](https://github.com/Everything-is-Code/gateforge/pull/72) | [#67](https://github.com/Everything-is-Code/gateforge/issues/67), [#69](https://github.com/Everything-is-Code/gateforge/issues/69), [#71](https://github.com/Everything-is-Code/gateforge/issues/71) |
+| 1 — project structure | Script taxonomy, `ARCHITECTURE.md`, docs | [#50](https://github.com/Everything-is-Code/ApiShift/pull/50), [#52](https://github.com/Everything-is-Code/ApiShift/pull/52) | [#49](https://github.com/Everything-is-Code/ApiShift/issues/49), [#51](https://github.com/Everything-is-Code/ApiShift/issues/51) |
+| 2 — backend layering | DevHub client, generators, repos, ExceptionMapper, REST smoke | [#54](https://github.com/Everything-is-Code/ApiShift/pull/54)–[#60](https://github.com/Everything-is-Code/ApiShift/pull/60) | [#53](https://github.com/Everything-is-Code/ApiShift/issues/53)–[#59](https://github.com/Everything-is-Code/ApiShift/issues/59) |
+| 3 — frontend modules | `core/shared/features`, API facades, wizard steps | [#62](https://github.com/Everything-is-Code/ApiShift/pull/62), [#64](https://github.com/Everything-is-Code/ApiShift/pull/64), [#66](https://github.com/Everything-is-Code/ApiShift/pull/66) | [#61](https://github.com/Everything-is-Code/ApiShift/issues/61)–[#65](https://github.com/Everything-is-Code/ApiShift/issues/65) |
+| 4 — contracts & E2E | 3scale port, OpenAPI typegen, optional E2E workflow | [#68](https://github.com/Everything-is-Code/ApiShift/pull/68), [#70](https://github.com/Everything-is-Code/ApiShift/pull/70), [#72](https://github.com/Everything-is-Code/ApiShift/pull/72) | [#67](https://github.com/Everything-is-Code/ApiShift/issues/67), [#69](https://github.com/Everything-is-Code/ApiShift/issues/69), [#71](https://github.com/Everything-is-Code/ApiShift/issues/71) |
 
 ## Outcomes by capability
 
@@ -72,5 +72,5 @@ Improve long-term maintainability after team takeover without rewriting working 
 |----------|-------------|
 | proposal | #269 |
 | spec | #270 |
-| tasks (final) | `sdd/gateforge-architecture-hardening/tasks` (updated on archive) |
-| archive-report | `sdd/gateforge-architecture-hardening/archive-report` |
+| tasks (final) | `sdd/ApiShift-architecture-hardening/tasks` (updated on archive) |
+| archive-report | `sdd/ApiShift-architecture-hardening/archive-report` |
