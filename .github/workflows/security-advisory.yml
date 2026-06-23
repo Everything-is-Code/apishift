@@ -71,7 +71,7 @@ jobs:
         if: ${{ steps.codeql_init.outcome == 'success' }}
         uses: actions/setup-java@v5
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
           cache: maven
           cache-dependency-path: backend/pom.xml
