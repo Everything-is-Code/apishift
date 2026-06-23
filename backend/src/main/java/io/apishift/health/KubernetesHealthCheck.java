@@ -1,4 +1,4 @@
-package io.gateforge.health;
+package io.apishift.health;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.enterprise.context.ApplicationScoped;

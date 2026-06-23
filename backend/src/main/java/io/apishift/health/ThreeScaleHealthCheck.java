@@ -1,7 +1,7 @@
-package io.gateforge.health;
+package io.apishift.health;
 
-import io.gateforge.service.ThreeScaleSourceRegistry;
-import io.gateforge.port.threescale.ThreeScaleAdminPort;
+import io.apishift.service.ThreeScaleSourceRegistry;
+import io.apishift.port.threescale.ThreeScaleAdminPort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheck;
