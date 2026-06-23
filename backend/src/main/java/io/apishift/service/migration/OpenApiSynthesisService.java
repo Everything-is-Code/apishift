@@ -6,7 +6,7 @@ import io.apishift.model.ThreeScaleProduct;
 import io.apishift.service.generator.HttpRouteResourceGenerator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,8 +28,6 @@ import java.util.Set;
  */
 @ApplicationScoped
 public class OpenApiSynthesisService {
-
-    private static final Logger LOG = Logger.getLogger(OpenApiSynthesisService.class);
 
     static final int MAX_EXTERNAL_YAML_CHARS = 2 * 1024 * 1024;
 
@@ -89,7 +87,7 @@ public class OpenApiSynthesisService {
                     return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
                 }
             } catch (Exception e) {
-                LOG.debugf("OpenAPI fetch failed for %s%s: %s", baseUrl, suffix, e.getMessage());
+                Log.debugf("OpenAPI fetch failed for %s%s: %s", baseUrl, suffix, e.getMessage());
             }
         }
         return null;
@@ -158,7 +156,7 @@ public class OpenApiSynthesisService {
                 }
 
             } catch (Exception e) {
-                LOG.debugf("OpenAPI fetch failed for %s: %s", baseUrl + suffix, e.getMessage());
+                Log.debugf("OpenAPI fetch failed for %s: %s", baseUrl + suffix, e.getMessage());
             }
         }
         return List.of();
@@ -169,7 +167,7 @@ public class OpenApiSynthesisService {
             return null;
         }
         if (body.length() > MAX_EXTERNAL_YAML_CHARS) {
-            LOG.debugf("Skipping external YAML over size limit (%d chars)", body.length());
+            Log.debugf("Skipping external YAML over size limit (%d chars)", body.length());
             return null;
         }
         try {
@@ -187,7 +185,7 @@ public class OpenApiSynthesisService {
             }
             return null;
         } catch (Exception e) {
-            LOG.debugf("Failed to parse external YAML: %s", e.getMessage());
+            Log.debugf("Failed to parse external YAML: %s", e.getMessage());
             return null;
         }
     }
@@ -231,7 +229,7 @@ public class OpenApiSynthesisService {
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(spec);
         } catch (Exception e) {
-            LOG.warnf("Failed to serialize synthetic OAS for %s", product.systemName());
+            Log.warnf("Failed to serialize synthetic OAS for %s", product.systemName());
             return null;
         }
     }

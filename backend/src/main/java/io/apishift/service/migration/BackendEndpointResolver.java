@@ -4,7 +4,7 @@ import io.apishift.port.threescale.ThreeScaleAdminPort;
 import io.apishift.service.ThreeScaleSourceRegistry;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -16,8 +16,6 @@ import java.util.Map;
  */
 @ApplicationScoped
 public class BackendEndpointResolver {
-
-    private static final Logger LOG = Logger.getLogger(BackendEndpointResolver.class);
 
     @Inject
     ThreeScaleSourceRegistry sourceRegistry;
@@ -71,7 +69,7 @@ public class BackendEndpointResolver {
                     }
                 }
             } catch (Exception e) {
-                LOG.warnf("Failed to resolve backend endpoints for source %s", client.getSourceId());
+                Log.warnf("Failed to resolve backend endpoints for source %s", client.getSourceId());
             }
         }
         return new BackendIndex(byId, byName);
@@ -101,7 +99,7 @@ public class BackendEndpointResolver {
                 }
             }
         } catch (Exception e) {
-            LOG.debugf("Failed to extract namespace from %s", endpoint);
+            Log.debugf("Failed to extract namespace from %s", endpoint);
         }
         return null;
     }

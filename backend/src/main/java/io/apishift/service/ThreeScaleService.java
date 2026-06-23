@@ -10,7 +10,6 @@ import io.apishift.model.ThreeScaleProduct;
 import io.apishift.port.threescale.ThreeScaleAdminPort;
 import io.apishift.service.export.ExportParseResult;
 import io.apishift.service.export.ThreeScaleExportParser;
-import io.apishift.util.LogSanitizer;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -19,7 +18,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.commons.configuration.StringConfiguration;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.time.Instant;
 import java.nio.file.Path;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class ThreeScaleService {
 
-    private static final Logger LOG = Logger.getLogger(ThreeScaleService.class);
     private static final String PRODUCTS_CACHE = "threescale-products";
     private static final String BACKENDS_CACHE = "threescale-backends";
     private static final String CACHE_KEY = "all";
@@ -78,13 +76,13 @@ public class ThreeScaleService {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             try {
-                LOG.info("Warming up 3scale product cache in background...");
+                Log.info("Warming up 3scale product cache in background...");
                 List<ThreeScaleProduct> products = listProducts();
-                LOG.info("Cache warm-up complete: %d products loaded".formatted(products.size()));
+                Log.infof("Cache warm-up complete: %d products loaded", products.size());
                 List<Map<String, Object>> backends = listBackendsCombined();
-                LOG.info("Cache warm-up complete: %d backends loaded".formatted(backends.size()));
+                Log.infof("Cache warm-up complete: %d backends loaded", backends.size());
             } catch (Exception e) {
-                LOG.warnf(e, "Cache warm-up failed, first request will populate cache");
+                Log.warnf(e, "Cache warm-up failed, first request will populate cache");
             }
         });
         executor.shutdown();
@@ -113,12 +111,12 @@ public class ThreeScaleService {
             if (cache != null) {
                 String cached = cache.get(CACHE_KEY);
                 if (cached != null) {
-                    LOG.info("Products served from Data Grid cache");
+                    Log.info("Products served from Data Grid cache");
                     return objectMapper.readValue(cached, new TypeReference<List<ThreeScaleProduct>>() {});
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Data Grid cache read failed, loading from source");
+            Log.warnf(e, "Data Grid cache read failed, loading from source");
         }
 
         productsLock.lock();
@@ -128,27 +126,27 @@ public class ThreeScaleService {
                 if (cache2 != null) {
                     String cached2 = cache2.get(CACHE_KEY);
                     if (cached2 != null) {
-                        LOG.info("Products served from Data Grid cache (after lock)");
+                        Log.info("Products served from Data Grid cache (after lock)");
                         return objectMapper.readValue(cached2, new TypeReference<List<ThreeScaleProduct>>() {});
                     }
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Data Grid cache re-read failed after lock, loading from source");
+                Log.warnf(e, "Data Grid cache re-read failed after lock, loading from source");
             }
 
             long start = System.currentTimeMillis();
             List<ThreeScaleProduct> result = loadProducts();
             long elapsed = System.currentTimeMillis() - start;
-            LOG.info("Loaded %d products in %dms from source".formatted(result.size(), elapsed));
+            Log.infof("Loaded %d products in %dms from source", result.size(), elapsed);
 
             try {
                 RemoteCache<String, String> cache = getOrCreateCache(PRODUCTS_CACHE);
                 if (cache != null) {
                     cache.put(CACHE_KEY, objectMapper.writeValueAsString(result), cacheTtlSeconds, TimeUnit.SECONDS);
-                    LOG.info("Products cached in Data Grid (TTL %ds)".formatted(cacheTtlSeconds));
+                    Log.infof("Products cached in Data Grid (TTL %ds)", cacheTtlSeconds);
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Data Grid cache write failed");
+                Log.warnf(e, "Data Grid cache write failed");
             }
 
             return result;
@@ -229,12 +227,12 @@ public class ThreeScaleService {
             if (cache != null) {
                 String cached = cache.get(CACHE_KEY);
                 if (cached != null) {
-                    LOG.info("Backends served from Data Grid cache");
+                    Log.info("Backends served from Data Grid cache");
                     return objectMapper.readValue(cached, new TypeReference<List<Map<String, Object>>>() {});
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Data Grid cache read failed for backends, loading from source");
+            Log.warnf(e, "Data Grid cache read failed for backends, loading from source");
         }
 
         backendsLock.lock();
@@ -244,27 +242,27 @@ public class ThreeScaleService {
                 if (cache2 != null) {
                     String cached2 = cache2.get(CACHE_KEY);
                     if (cached2 != null) {
-                        LOG.info("Backends served from Data Grid cache (after lock)");
+                        Log.info("Backends served from Data Grid cache (after lock)");
                         return objectMapper.readValue(cached2, new TypeReference<List<Map<String, Object>>>() {});
                     }
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Data Grid cache re-read failed after lock, loading backends from source");
+                Log.warnf(e, "Data Grid cache re-read failed after lock, loading backends from source");
             }
 
             long start = System.currentTimeMillis();
             List<Map<String, Object>> result = loadBackendsCombined();
             long elapsed = System.currentTimeMillis() - start;
-            LOG.info("Loaded %d backends in %dms from source".formatted(result.size(), elapsed));
+            Log.infof("Loaded %d backends in %dms from source", result.size(), elapsed);
 
             try {
                 RemoteCache<String, String> cache = getOrCreateCache(BACKENDS_CACHE);
                 if (cache != null) {
                     cache.put(CACHE_KEY, objectMapper.writeValueAsString(result), cacheTtlSeconds, TimeUnit.SECONDS);
-                    LOG.info("Backends cached in Data Grid (TTL %ds)".formatted(cacheTtlSeconds));
+                    Log.infof("Backends cached in Data Grid (TTL %ds)", cacheTtlSeconds);
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Data Grid cache write failed for backends");
+                Log.warnf(e, "Data Grid cache write failed for backends");
             }
 
             return result;
@@ -291,7 +289,7 @@ public class ThreeScaleService {
                     backends.add(b);
                 }
             } catch (Exception e) {
-                LOG.debugf(e, "CRD backend discovery failed");
+                Log.debugf(e, "CRD backend discovery failed");
             }
         }
 
@@ -313,7 +311,7 @@ public class ThreeScaleService {
                     backends.add(b);
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Admin API backend discovery failed for source %s", client.getSourceId());
+                Log.warnf(e, "Admin API backend discovery failed for source %s", client.getSourceId());
             }
         }
 
@@ -356,9 +354,9 @@ public class ThreeScaleService {
             if (backendsCache != null) {
                 backendsCache.remove(CACHE_KEY);
             }
-            LOG.info("Evicted 3scale discovery caches");
+            Log.info("Evicted 3scale discovery caches");
         } catch (Exception e) {
-            LOG.warnf(e, "Failed to evict 3scale discovery cache");
+            Log.warnf(e, "Failed to evict 3scale discovery cache");
         }
     }
 
@@ -370,7 +368,7 @@ public class ThreeScaleService {
         ExportParseResult result = exportParser.parse(exportRoot);
         evictDiscoveryCache();
         this.exportOverride = List.copyOf(result.products());
-        LOG.info("Loaded %d product(s) from export at %s".formatted(result.products().size(), exportRoot));
+        Log.infof("Loaded %d product(s) from export at %s", result.products().size(), exportRoot);
         return result;
     }
 
@@ -424,7 +422,7 @@ public class ThreeScaleService {
                 return root.size();
             }
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to count cached JSON array in cache %s", cacheName);
+            Log.debugf(e, "Failed to count cached JSON array in cache %s", cacheName);
         }
         return null;
     }
@@ -436,8 +434,8 @@ public class ThreeScaleService {
                     .inNamespace(namespace).withName(name).get();
             return resource != null ? mapCrdToProduct(resource) : null;
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to load product CRD %s/%s",
-                    LogSanitizer.sanitize(namespace), LogSanitizer.sanitize(name));
+            Log.debugf(e, "Failed to load product CRD %s/%s",
+                    namespace, name);
             return null;
         }
     }
@@ -452,7 +450,7 @@ public class ThreeScaleService {
                 products.add(mapCrdToProduct(item));
             }
         } catch (Exception e) {
-            LOG.debugf(e, "CRD product discovery failed");
+            Log.debugf(e, "CRD product discovery failed");
         }
         return products;
     }
@@ -506,7 +504,7 @@ public class ThreeScaleService {
                         ));
                     }
                 } catch (Exception e) {
-                    LOG.debugf(e, "Failed to fetch mapping rules for service %d", serviceId);
+                    Log.debugf(e, "Failed to fetch mapping rules for service %d", serviceId);
                 }
 
                 List<ThreeScaleProduct.BackendUsage> backendUsages = new ArrayList<>();
@@ -520,7 +518,7 @@ public class ThreeScaleService {
                         ));
                     }
                 } catch (Exception e) {
-                    LOG.debugf(e, "Failed to fetch backend usages for service %d", serviceId);
+                    Log.debugf(e, "Failed to fetch backend usages for service %d", serviceId);
                 }
 
                 Map<String, Object> auth = new LinkedHashMap<>();
@@ -528,7 +526,7 @@ public class ThreeScaleService {
                     Map<String, Object> proxy = client.getServiceProxy(serviceId);
                     ThreeScaleAuthMode.enrichAuthFromProxy(auth, proxy);
                 } catch (Exception e) {
-                    LOG.debugf(e, "Failed to fetch proxy for service %d", serviceId);
+                    Log.debugf(e, "Failed to fetch proxy for service %d", serviceId);
                 }
                 ThreeScaleAuthMode.markOidcFromBackendVersion(auth,
                         String.valueOf(svc.getOrDefault("backend_version", "")));
@@ -546,7 +544,7 @@ public class ThreeScaleService {
                 ));
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Admin API product discovery failed for source %s", client.getSourceId());
+            Log.warnf(e, "Admin API product discovery failed for source %s", client.getSourceId());
         }
         return products;
     }
@@ -575,7 +573,7 @@ public class ThreeScaleService {
             Map<String, Object> proxy = client.getServiceProxy(product.serviceId());
             ThreeScaleAuthMode.enrichAuthFromProxy(auth, proxy);
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to refresh proxy auth for service %d", product.serviceId());
+            Log.debugf(e, "Failed to refresh proxy auth for service %d", product.serviceId());
         }
 
         List<ThreeScaleProduct.ApplicationPlan> plans = product.applicationPlans();
@@ -583,9 +581,9 @@ public class ThreeScaleService {
             plans = loadApplicationPlansForService(client, product.serviceId());
         }
         List<ThreeScaleProduct.Application> apps = loadApplicationsForService(client, product.serviceId(), plans);
-        LOG.info("Refreshed %d application(s) for product %s (service %d, auth %s) from Admin API"
-                .formatted(apps.size(), product.systemName(), product.serviceId(),
-                        ThreeScaleAuthMode.fromAuthMap(auth).name()));
+        Log.infof("Refreshed %d application(s) for product %s (service %d, auth %s) from Admin API",
+                apps.size(), product.systemName(), product.serviceId(),
+                ThreeScaleAuthMode.fromAuthMap(auth).name());
 
         return new ThreeScaleProduct(
                 product.name(), product.namespace(), product.systemName(), product.serviceId(),
@@ -615,12 +613,12 @@ public class ThreeScaleService {
                                 toLong(rl.getOrDefault("value", 0))));
                     }
                 } catch (Exception e) {
-                    LOG.debugf(e, "Failed to fetch limits for plan %d", planId);
+                    Log.debugf(e, "Failed to fetch limits for plan %d", planId);
                 }
                 appPlans.add(new ThreeScaleProduct.ApplicationPlan(planId, planName, planSysName, planState, limits));
             }
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to fetch application plans for service %d", serviceId);
+            Log.debugf(e, "Failed to fetch application plans for service %d", serviceId);
         }
         return appPlans;
     }
@@ -655,7 +653,7 @@ public class ThreeScaleService {
                         applicationId, applicationKey, redirectUrl));
             }
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to fetch applications for service %d", serviceId);
+            Log.debugf(e, "Failed to fetch applications for service %d", serviceId);
         }
         return apps;
     }
@@ -682,7 +680,7 @@ public class ThreeScaleService {
                     if (id > 0) map.put("backend-" + id, svcInfo);
                 }
             } catch (Exception e) {
-                LOG.warnf(e, "Failed to resolve backend endpoints for source %s", client.getSourceId());
+                Log.warnf(e, "Failed to resolve backend endpoints for source %s", client.getSourceId());
             }
         }
         return map;
@@ -715,7 +713,7 @@ public class ThreeScaleService {
                 return new String[]{svcName, ns};
             }
         } catch (IllegalArgumentException e) {
-            LOG.debugf(e, "Failed to parse backend endpoint URI: %s", LogSanitizer.sanitize(endpoint));
+            Log.debugf(e, "Failed to parse backend endpoint URI: %s", endpoint);
         }
         return new String[]{"", ""};
     }

@@ -16,7 +16,7 @@ import io.apishift.service.export.ImportExportResponse;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -28,8 +28,6 @@ import java.util.*;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class MigrationResource {
-
-    private static final Logger LOG = Logger.getLogger(MigrationResource.class);
 
     @Inject
     MigrationService migrationService;
@@ -109,7 +107,7 @@ public class MigrationResource {
             if (excluded.contains(idx)) {
                 results.add(new ResourceResult(res.kind(), res.name(), res.namespace(), true, "Skipped"));
                 skipped++;
-                LOG.infof("Skipped %s/%s (excluded by user)", res.kind(), res.name());
+                Log.infof("Skipped %s/%s (excluded by user)", res.kind(), res.name());
                 continue;
             }
             String effectiveYaml = overrides.getOrDefault(String.valueOf(idx), res.yaml());
@@ -123,11 +121,11 @@ public class MigrationResource {
                         Instant.now(), "APPLY", res.kind(), res.name(), res.namespace(),
                         null, effectiveYaml, "ApiShift Migration Wizard", clusterId
                 ));
-                LOG.infof("Applied %s/%s to namespace %s on cluster %s", res.kind(), res.name(), res.namespace(), clusterId);
+                Log.infof("Applied %s/%s to namespace %s on cluster %s", res.kind(), res.name(), res.namespace(), clusterId);
             } catch (Exception e) {
                 results.add(new ResourceResult(res.kind(), res.name(), res.namespace(), false, e.getMessage()));
                 failed++;
-                LOG.warnf("Failed to apply %s/%s on cluster %s: %s", res.kind(), res.name(), clusterId, e.getMessage());
+                Log.warnf("Failed to apply %s/%s on cluster %s: %s", res.kind(), res.name(), clusterId, e.getMessage());
             }
         }
 
@@ -176,7 +174,7 @@ public class MigrationResource {
                         Instant.now(), "REVERT", res.kind(), res.name(), res.namespace(),
                         res.yaml(), null, "ApiShift Migration Wizard", clusterId
                 ));
-                LOG.infof("Reverted %s/%s from namespace %s on cluster %s", res.kind(), res.name(), res.namespace(), clusterId);
+                Log.infof("Reverted %s/%s from namespace %s on cluster %s", res.kind(), res.name(), res.namespace(), clusterId);
             } catch (Exception e) {
                 String msg = e.getMessage();
                 if (msg != null && msg.contains("NotFound")) {
@@ -185,7 +183,7 @@ public class MigrationResource {
                 } else {
                     results.add(new ResourceResult(res.kind(), res.name(), res.namespace(), false, msg));
                     failed++;
-                    LOG.warnf("Failed to revert %s/%s on cluster %s: %s", res.kind(), res.name(), clusterId, msg);
+                    Log.warnf("Failed to revert %s/%s on cluster %s: %s", res.kind(), res.name(), clusterId, msg);
                 }
             }
         }
@@ -230,9 +228,9 @@ public class MigrationResource {
                     if ("Gateway".equals(res.kind())) {
                         try {
                             clusterResourceApplyService.deleteResource(client, res.yaml(), res.namespace());
-                            LOG.infof("Deleted shared Gateway %s on cluster %s", res.name(), clusterId);
+                            Log.infof("Deleted shared Gateway %s on cluster %s", res.name(), clusterId);
                         } catch (Exception e) {
-                            LOG.warnf("Failed to delete Gateway %s on cluster %s: %s", res.name(), clusterId, e.getMessage());
+                            Log.warnf("Failed to delete Gateway %s on cluster %s: %s", res.name(), clusterId, e.getMessage());
                         }
                     }
                 }

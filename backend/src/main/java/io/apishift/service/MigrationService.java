@@ -20,7 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.time.Instant;
 import java.util.*;
@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MigrationService {
-
-    private static final Logger LOG = Logger.getLogger(MigrationService.class);
 
     @Inject
     ThreeScaleService threeScaleService;
@@ -176,13 +174,13 @@ public class MigrationService {
                         patchedHttp = consolidateHttpRouteRules(patchedHttp, ctx.backendSvcName, consolidationWarnings);
                         resources.add(new MigrationPlan.GeneratedResource("HTTPRoute", routeName, ns, patchedHttp));
                         usedKuadrantctl = true;
-                        LOG.infof("kuadrantctl generated HTTPRoute for %s:\n%s", sysName, patchedHttp);
+                        Log.infof("kuadrantctl generated HTTPRoute for %s:\n%s", sysName, patchedHttp);
                     }
                 } catch (Exception e) {
-                    LOG.warnf("kuadrantctl HTTPRoute failed for %s: %s", sysName, e.getMessage());
+                    Log.warnf("kuadrantctl HTTPRoute failed for %s: %s", sysName, e.getMessage());
                 }
             } else if (multiBackend) {
-                LOG.infof("Product %s has %d backends, skipping kuadrantctl for multi-backend HTTPRoute",
+                Log.infof("Product %s has %d backends, skipping kuadrantctl for multi-backend HTTPRoute",
                         sysName, ctx.resolvedBackends.size());
             }
 
@@ -302,7 +300,7 @@ public class MigrationService {
 
                 String fullOas = openApiSynthesisService.fetchFullSpec(endpoint);
                 if (fullOas != null) {
-                    LOG.infof("Fetched real OpenAPI spec from %s for product %s", endpoint, product.systemName());
+                    Log.infof("Fetched real OpenAPI spec from %s for product %s", endpoint, product.systemName());
                     primaryOas = fullOas;
                     hasRealOas = true;
                 } else {
@@ -360,7 +358,7 @@ public class MigrationService {
 
         if (ruleCount <= 16) return yaml;
 
-        LOG.infof("HTTPRoute has %d rules (max 16), consolidating to prefix-based rules", ruleCount);
+        Log.infof("HTTPRoute has %d rules (max 16), consolidating to prefix-based rules", ruleCount);
 
         int rulesStart = yaml.indexOf("\n  rules:\n");
         if (rulesStart < 0) return yaml;
@@ -392,7 +390,7 @@ public class MigrationService {
         warnings.add("HTTPRoute has " + ruleCount + " rules (max 16), consolidated to " + prefixes.size()
                 + " prefix-based rules: " + prefixes);
 
-        LOG.infof("Consolidated %d rules into %d prefix-based rules: %s", ruleCount, prefixes.size(), prefixes);
+        Log.infof("Consolidated %d rules into %d prefix-based rules: %s", ruleCount, prefixes.size(), prefixes);
 
         StringBuilder rules = new StringBuilder();
         for (String prefix : prefixes) {
@@ -445,7 +443,7 @@ public class MigrationService {
             }
             return analysis != null ? analysis : "AI verification unavailable";
         } catch (Exception e) {
-            LOG.warnf("AI verification failed: %s", e.getMessage());
+            Log.warnf("AI verification failed: %s", e.getMessage());
             return "AI verification skipped: " + e.getMessage();
         }
     }
@@ -486,7 +484,7 @@ public class MigrationService {
         try {
             return clusterReadinessService.enrich(merged, targetClusterId);
         } catch (Exception e) {
-            LOG.warn("Prerequisite enrichment failed; returning unknown statuses", e);
+            Log.warnf(e, "Prerequisite enrichment failed; returning unknown statuses");
             return merged.stream().map(p -> p.withStatus("unknown")).toList();
         }
     }
