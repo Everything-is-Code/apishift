@@ -8,7 +8,7 @@ import org.eclipse.microprofile.openapi.annotations.info.Info;
 @OpenAPIDefinition(
         info = @Info(
                 title = "ApiShift API",
-                version = "0.2.0",
+                version = "0.3.0",
                 description = "3scale to Connectivity Link migration console REST API"))
 public class ApiShiftOpenApi {
 }

@@ -356,7 +356,7 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 - **Bug fixes**: ObservabilityTab null guard for metrics, ComponentEditorTab broadened ApiShift detection
 
 ### Phase 7: Offline integration (M2)
-- **Export parser** (`io.ApiShift.service.export`) — `threescale-export` schema 1.0 → `ThreeScaleProduct` without Admin API
+- **Export parser** (`io.apishift.service.export`) — `threescale-export` schema 1.0 → `ThreeScaleProduct` without Admin API
 - **Import API** — `POST /api/migration/import-export` (multipart `.zip`, max 50 MB default)
 - **Wizard upload** — **Import offline export** product source in Migration Wizard step 1
 - **Shared fixture** — `export-minimal-1.0.tar.gz` from [3scaleextract](https://github.com/Everything-is-Code/3scaleextract); ApiShift tests verify SHA256 and extract via `ExportMinimalFixture`

@@ -51,7 +51,7 @@ public class ToolConfigPrerequisiteChecker {
             result.add(toolConfig(
                     "apishift-cluster-domain",
                     "Cluster domain",
-                    "Set ApiShift.cluster-domain (CLUSTER_DOMAIN) to your cluster ingress domain before applying Routes and test URLs.",
+                    "Set apishift.cluster-domain (CLUSTER_DOMAIN) to your cluster ingress domain before applying Routes and test URLs.",
                     "unknown"));
         }
 

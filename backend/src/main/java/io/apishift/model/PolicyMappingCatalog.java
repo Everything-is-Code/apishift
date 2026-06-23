@@ -144,7 +144,7 @@ public final class PolicyMappingCatalog {
                         "extensions.kuadrant.io/v1alpha1",
                         Layer.EXTENSION,
                         ImplementationStatus.GENERATED,
-                        "When ApiShift.observability.enabled=true"),
+                        "When apishift.observability.enabled=true"),
                 new ConsolidatedMapping(
                         "OAuth browser flow",
                         "OIDCPolicy",
@@ -158,7 +158,7 @@ public final class PolicyMappingCatalog {
                         "devportal.kuadrant.io/v1alpha1",
                         Layer.PORTAL,
                         ImplementationStatus.PARTIAL,
-                        "Generated only when ApiShift.developer-hub.enabled=true"),
+                        "Generated only when apishift.developer-hub.enabled=true"),
                 new ConsolidatedMapping(
                         "Custom Lua policies",
                         "EnvoyFilter / WASM Extension SDK",

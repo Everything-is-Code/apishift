@@ -22,7 +22,7 @@ public class PrerequisiteCatalogService {
             Map.entry("gateway-api", new PrerequisiteDef(
                     "gateway-api", "connectivity",
                     "Gateway API",
-                    "Gateway API CRDs and a GatewayClass matching ApiShift.connectivity-link.gateway-class-name.",
+                    "Gateway API CRDs and a GatewayClass matching apishift.connectivity-link.gateway-class-name.",
                     false,
                     "https://gateway-api.sigs.k8s.io/")),
             Map.entry("rhcl-core", new PrerequisiteDef(

@@ -198,7 +198,7 @@ public class MigrationService {
                 resources.add(buildApiProduct(sysName, ns, routeName, productReady));
             } else {
                 consolidationWarnings.add(
-                        "Product '%s': APIProduct skipped — enable ApiShift.developer-hub.enabled for Developer Portal catalog tier."
+                        "Product '%s': APIProduct skipped — enable apishift.developer-hub.enabled for Developer Portal catalog tier."
                                 .formatted(sysName));
             }
 
