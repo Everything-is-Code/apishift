@@ -24,8 +24,9 @@ class CorsConfigTest {
     void cors_blockedOrigin_rejectsRequest() {
         given()
                 .header("Origin", "https://evil.example.com")
+                .header("Access-Control-Request-Method", "GET")
                 .when()
-                .get("/api/cluster/features")
+                .options("/api/cluster/features")
                 .then()
                 .statusCode(403);
     }
