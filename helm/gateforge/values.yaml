@@ -111,6 +111,11 @@ observability:
   grafanaDashboard:
     enabled: false
 
+cors:
+  # Comma-separated browser origins allowed to call the backend API directly.
+  # When empty, Helm uses https://<route.host> if route.host is set, else http://localhost:4200
+  allowedOrigins: ""
+
 route:
   enabled: true
   host: ""
