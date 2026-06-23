@@ -18,7 +18,7 @@ const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
       <div class="container">
         <div class="hero-content">
           <div class="hero-text">
-            <h1>Welcome to GateForge</h1>
+            <h1>Welcome to ApiShift</h1>
             <p>AI-powered migration from <strong>Red Hat 3scale</strong> to <strong>Connectivity Link (Kuadrant)</strong> on OpenShift</p>
             <div class="hero-actions">
               <a routerLink="/chat" class="btn btn-primary">Start AI Chat</a>
@@ -183,8 +183,8 @@ const SYSTEM_PREFIXES = ['openshift-', 'kube-', 'default', 'openshift'];
             <strong>Gateway API</strong>
             <p>HTTPRoute, Gateway, GatewayClass specification</p>
           </a>
-          <a href="https://everything-is-code.github.io/gateforge/" target="_blank" class="link-card">
-            <strong>GateForge Docs</strong>
+          <a href="https://everything-is-code.github.io/apishift/" target="_blank" class="link-card">
+            <strong>ApiShift Docs</strong>
             <p>Installation, usage examples, architecture</p>
           </a>
         </div>

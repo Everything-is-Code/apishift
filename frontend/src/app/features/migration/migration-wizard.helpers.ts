@@ -22,7 +22,7 @@ export const PREREQUISITE_CATEGORY_LABELS: Record<string, string> = {
   extension: 'Extensions',
   portal: 'Portal',
   platform: 'Platform',
-  'tool-config': 'GateForge configuration',
+  'tool-config': 'ApiShift configuration',
 };
 
 export const GATEWAY_STRATEGIES = [

@@ -1,5 +1,5 @@
 {
-  "name": "gateforge-scripts-docs",
+  "name": "apishift-scripts-docs",
   "private": true,
   "type": "module",
   "scripts": {

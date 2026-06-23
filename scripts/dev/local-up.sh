@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start GateForge locally with Podman Compose.
+# Start ApiShift locally with Podman Compose.
 set -euo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
@@ -15,7 +15,7 @@ if ! command -v podman-compose >/dev/null 2>&1; then
 	die "podman-compose is required. Install podman-compose or use: podman compose"
 fi
 
-echo "Building and starting GateForge (podman-compose)..."
+echo "Building and starting ApiShift (podman-compose)..."
 podman-compose --env-file .env up -d --build "$@"
 
 echo ""
@@ -27,12 +27,12 @@ for i in $(seq 1 40); do
 	fi
 	sleep 3
 	if [[ "$i" -eq 40 ]]; then
-		die "Backend not ready yet — check: podman logs gateforge-backend"
+		die "Backend not ready yet — check: podman logs apishift-backend"
 	fi
 done
 
 echo ""
-echo "GateForge URLs:"
+echo "ApiShift URLs:"
 echo "  UI:      http://localhost:4200"
 echo "  API:     http://localhost:8080/api"
 echo "  Health:  http://localhost:8080/q/health/ready"

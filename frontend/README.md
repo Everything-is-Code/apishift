@@ -1,6 +1,6 @@
-# GateForge frontend
+# ApiShift frontend
 
-Angular 19 SPA for the GateForge migration console. Served by Nginx in production; `ng serve` during local development.
+Angular 19 SPA for the ApiShift migration console. Served by Nginx in production; `ng serve` during local development.
 
 ## Prerequisites
 

@@ -715,7 +715,7 @@ export interface components {
         ApicastPolicyMapping: {
             apicastPolicy?: string;
             rhclTarget?: string;
-            gateforgeStatus?: components["schemas"]["ImplementationStatus"];
+            apishiftStatus?: components["schemas"]["ImplementationStatus"];
             notes?: string;
         };
         Application: {
@@ -805,7 +805,7 @@ export interface components {
             rhclTarget?: string;
             apiGroup?: string;
             layer?: components["schemas"]["Layer"];
-            gateforgeStatus?: components["schemas"]["ImplementationStatus"];
+            apishiftStatus?: components["schemas"]["ImplementationStatus"];
             notes?: string;
         };
         /** @description Red Hat Developer Hub integration */

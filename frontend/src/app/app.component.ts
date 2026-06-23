@@ -17,7 +17,7 @@ import { appVersion } from '../environments/version';
             <circle cx="100" cy="105" r="10" fill="white"/>
             <circle cx="100" cy="105" r="5" fill="#ee0000"/>
           </svg>
-          <span class="brand-name">GateForge</span>
+          <span class="brand-name">ApiShift</span>
         </a>
         <nav>
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
@@ -43,10 +43,10 @@ import { appVersion } from '../environments/version';
             <a href="https://github.com/Kuadrant/kuadrantctl" target="_blank">kuadrantctl</a>
             <a href="https://docs.redhat.com/en/documentation/red_hat_3scale_api_management" target="_blank">3scale Docs</a>
             <a href="https://gateway-api.sigs.k8s.io/" target="_blank">Gateway API</a>
-            <a href="https://everything-is-code.github.io/gateforge/" target="_blank">GateForge Docs</a>
-            <a href="https://github.com/Everything-is-Code/gateforge" target="_blank">GitHub</a>
+            <a href="https://everything-is-code.github.io/apishift/" target="_blank">ApiShift Docs</a>
+            <a href="https://github.com/Everything-is-Code/apishift" target="_blank">GitHub</a>
           </div>
-          <p class="copyright">GateForge v{{ version }} &copy; 2026 Maximiliano Pizarro &mdash; Apache 2.0 License</p>
+          <p class="copyright">ApiShift v{{ version }} &copy; 2026 Maximiliano Pizarro &mdash; Apache 2.0 License</p>
         </div>
       </div>
     </footer>

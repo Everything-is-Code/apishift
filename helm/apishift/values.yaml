@@ -1,0 +1,123 @@
+global:
+  clusterDomain: apps.cluster.example.com
+
+backend:
+  image:
+    repository: quay.io/everythingascode/apishift-backend
+    tag: v0.3.0
+    pullPolicy: Always
+  replicas: 1
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+frontend:
+  image:
+    repository: quay.io/everythingascode/apishift-frontend
+    tag: v0.3.0
+    pullPolicy: Always
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+ai:
+  enabled: true
+  endpoint: https://litellm-prod.apps.maas.redhatworkshops.io/v1
+  model: deepseek-r1-distill-qwen-14b
+  # existingSecret: name of a pre-created Secret containing AI_API_KEY (not managed by Helm)
+  # If not set, defaults to <release>-ai-secret
+  existingSecret: ""
+  temperature: "0.3"
+  maxTokens: "4096"
+  timeout: "600s"
+
+threescale:
+  adminApi:
+    enabled: true
+    url: ""
+    accessToken: ""
+  crdDiscovery:
+    enabled: true
+    namespace: ""
+  sources: ""
+
+clusterDomain: apps.cluster.example.com
+
+developerHub:
+  enabled: false
+  url: ""
+  scaffolderUrl: ""
+  scaffolderToken: ""
+  componentSuffix: "-product"
+
+connectivityLink:
+  targetNamespace: kuadrant-system
+  gatewayStrategy: shared
+  gatewayClassName: istio
+
+kuadrantctl:
+  enabled: true
+
+targetClusters: ""
+argocd:
+  clusterDiscovery: false
+
+postgresql:
+  enabled: true
+  url: ""
+  username: apishift
+  password: apishift
+
+rbac:
+  clusterAdmin: false
+
+datagrid:
+  enabled: true
+  image:
+    repository: registry.redhat.io/datagrid/datagrid-8-rhel9
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  credentials:
+    username: developer
+    password: changeme
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  jgroups:
+    port: 7800
+  persistence:
+    enabled: false
+    size: 1Gi
+
+observability:
+  enabled: false
+  otelCollectorEndpoint: "http://otel-collector.openshift-opentelemetry.svc:4317"
+  serviceMonitor:
+    enabled: false
+  grafanaDashboard:
+    enabled: false
+
+cors:
+  # Comma-separated browser origins allowed to call the backend API directly.
+  # When empty, Helm uses https://<route.host> if route.host is set, else http://localhost:4200
+  allowedOrigins: ""
+
+route:
+  enabled: true
+  host: ""
+  tls:
+    termination: edge

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# M3 E2E lab: 3scaleextract seed → export → visualize → GateForge analyze.
-# Requires a reachable 3scale Admin API for seed/export; GateForge for analyze.
+# M3 E2E lab: 3scaleextract seed → export → visualize → ApiShift analyze.
+# Requires a reachable 3scale Admin API for seed/export; ApiShift for analyze.
 #
 # Usage:
 #   export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
@@ -10,7 +10,7 @@
 #   E2E_MODE=offline|live|auto|fixture   (default: auto)
 #   E2E_SKIP_SEED=1                      reuse existing export directory
 #   THREESCALEEXTRACT_ROOT=../3scaleextract
-#   GATEFORGE_API_URL=http://localhost:8080/api
+#   APISHIFT_API_URL=http://localhost:8080/api
 #   THREESCALE_OUTPUT_DIR=./export
 set -euo pipefail
 # shellcheck source=scripts/lib/common.sh
@@ -22,7 +22,7 @@ EXTRACT_ROOT="${THREESCALEEXTRACT_ROOT:-}"
 if [[ -z "${EXTRACT_ROOT}" ]]; then
 	EXTRACT_ROOT="$(cd "${ROOT}/../3scaleextract" 2>/dev/null && pwd || true)"
 fi
-GATEFORGE_API="${GATEFORGE_API_URL:-http://localhost:8080/api}"
+APISHIFT_API="${APISHIFT_API_URL:-http://localhost:8080/api}"
 OUTPUT_DIR="${THREESCALE_OUTPUT_DIR:-${EXTRACT_ROOT}/export}"
 REPORT_DIR="${THREESCALE_REPORT_DIR:-${EXTRACT_ROOT}/report}"
 MODE="${E2E_MODE:-auto}"
@@ -50,8 +50,8 @@ load_extract_env() {
 	fi
 }
 
-gateforge_ready() {
-	curl -sf "${GATEFORGE_API%/api}/q/health/ready" >/dev/null 2>&1
+apishift_ready() {
+	curl -sf "${APISHIFT_API%/api}/q/health/ready" >/dev/null 2>&1
 }
 
 run_seed_export() {
@@ -124,9 +124,9 @@ zip_export() {
 
 import_export_offline() {
 	zip_export
-	step "POST ${GATEFORGE_API}/migration/import-export"
+	step "POST ${APISHIFT_API}/migration/import-export"
 	local response
-	response="$(curl -sf -X POST "${GATEFORGE_API}/migration/import-export" -F "file=@${ZIP_FILE}")"
+	response="$(curl -sf -X POST "${APISHIFT_API}/migration/import-export" -F "file=@${ZIP_FILE}")"
 	echo "${response}" | jq -e '.importMode == "export-v1"' >/dev/null
 	local imported
 	imported="$(echo "${response}" | jq -r '.productCount')"
@@ -134,16 +134,16 @@ import_export_offline() {
 }
 
 refresh_live_products() {
-	step "POST ${GATEFORGE_API}/threescale/refresh"
-	curl -sf -X POST "${GATEFORGE_API}/threescale/refresh" -H 'Content-Type: application/json' -d '{}' >/dev/null
+	step "POST ${APISHIFT_API}/threescale/refresh"
+	curl -sf -X POST "${APISHIFT_API}/threescale/refresh" -H 'Content-Type: application/json' -d '{}' >/dev/null
 }
 
 analyze_products() {
 	local products_json
 	products_json="$(printf '%s\n' "${PRODUCT_NAMES[@]}" | jq -R . | jq -s .)"
-	step "POST ${GATEFORGE_API}/migration/analyze (${#PRODUCT_NAMES[@]} products)"
+	step "POST ${APISHIFT_API}/migration/analyze (${#PRODUCT_NAMES[@]} products)"
 	local plan
-	plan="$(curl -sf -X POST "${GATEFORGE_API}/migration/analyze" \
+	plan="$(curl -sf -X POST "${APISHIFT_API}/migration/analyze" \
 		-H 'Content-Type: application/json' \
 		-d "{\"gatewayStrategy\":\"shared\",\"products\":${products_json},\"targetClusterId\":\"local\"}")"
 
@@ -183,10 +183,10 @@ resolve_mode() {
 		offline) echo "offline" ;;
 		live) echo "live" ;;
 		auto)
-			if gateforge_ready; then
+			if apishift_ready; then
 				echo "offline"
 			else
-				die "GateForge not ready at ${GATEFORGE_API}; start ./scripts/dev/local-up.sh or set E2E_MODE=fixture"
+				die "ApiShift not ready at ${APISHIFT_API}; start ./scripts/dev/local-up.sh or set E2E_MODE=fixture"
 			fi
 			;;
 		*) die "unknown E2E_MODE=${MODE} (use auto|offline|live|fixture)" ;;
@@ -204,7 +204,7 @@ main() {
 	case "${resolved}" in
 		fixture)
 			prepare_fixture_export
-			gateforge_ready || die "GateForge required for analyze; start ./scripts/dev/local-up.sh"
+			apishift_ready || die "ApiShift required for analyze; start ./scripts/dev/local-up.sh"
 			import_export_offline
 			;;
 		*)
@@ -213,7 +213,7 @@ main() {
 			run_seed_export
 			verify_export_manifest
 			run_visualize
-			gateforge_ready || die "GateForge not ready at ${GATEFORGE_API}"
+			apishift_ready || die "ApiShift not ready at ${APISHIFT_API}"
 			if [[ "${resolved}" == "live" ]]; then
 				refresh_live_products
 			else

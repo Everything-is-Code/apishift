@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="GateForge Logo" width="120">
+  <img src="docs/assets/logo.svg" alt="ApiShift Logo" width="120">
 </p>
 
-# GateForge - 3scale to Connectivity Link Migration
+# ApiShift - 3scale to Connectivity Link Migration
 
 **Language:** Documentation and contributions are **English only**. Program policy: [rhcl-ai AGENTS.md — Language policy](https://github.com/Everything-is-Code/rhcl-ai/blob/main/AGENTS.md#language-policy).
 
-[![Build](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml/badge.svg)](https://github.com/Everything-is-Code/gateforge/actions/workflows/build-push-quay.yml)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/gateforge)](https://artifacthub.io/packages/search?repo=gateforge)
+[![Build](https://github.com/Everything-is-Code/ApiShift/actions/workflows/build-push-quay.yml/badge.svg)](https://github.com/Everything-is-Code/ApiShift/actions/workflows/build-push-quay.yml)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ApiShift)](https://artifacthub.io/packages/search?repo=ApiShift)
 [![Quay.io Backend](https://img.shields.io/badge/quay.io-backend-blue)](https://quay.io/repository/everythingascode/apishift-backend)
 [![Quay.io Frontend](https://img.shields.io/badge/quay.io-frontend-blue)](https://quay.io/repository/everythingascode/apishift-frontend)
 [![OpenShift](https://img.shields.io/badge/OpenShift-4.21-red)](https://docs.openshift.com/)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://everything-is-code.github.io/gateforge/)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://everything-is-code.github.io/ApiShift/)
 
 AI-powered migration platform for transitioning from **Red Hat 3scale API Management** to **Red Hat Connectivity Link** (Kuadrant) on OpenShift. Built with **Quarkus** (backend), **Angular** (frontend), **PostgreSQL** (persistence), and **LangChain4j** (AI).
 
@@ -19,7 +19,7 @@ AI-powered migration platform for transitioning from **Red Hat 3scale API Manage
 
 ### About this project
 
-> **GateForge** is an independent open-source project licensed under Apache 2.0. It is **not** an official Red Hat product. It integrates with Red Hat 3scale, Red Hat Connectivity Link, and Red Hat Developer Hub but is maintained independently. No commercial support or SLAs are offered at this time.
+> **ApiShift** is an independent open-source project licensed under Apache 2.0. It is **not** an official Red Hat product. It integrates with Red Hat 3scale, Red Hat Connectivity Link, and Red Hat Developer Hub but is maintained independently. No commercial support or SLAs are offered at this time.
 
 ---
 
@@ -36,7 +36,7 @@ See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for module boundaries, data
 | **AI** | LangChain4j, deepseek-r1-distill-qwen-14b | Migration analysis, resource generation, chat assistant |
 | **MCP Servers** | 3scale, Connectivity Link, Kubernetes | Tool calling for AI agent via Model Context Protocol |
 | **Migration** | Fabric8 K8s Client | Generate HTTPRoute, AuthPolicy, RateLimitPolicy from 3scale configs |
-| **Developer Hub** | GateForge Plugin (backend + frontend) | Observability tabs, Policy Topology, Component editing, catalog enrichment |
+| **Developer Hub** | ApiShift Plugin (backend + frontend) | Observability tabs, Policy Topology, Component editing, catalog enrichment |
 | **Packaging** | Helm Chart, Podman Compose | OpenShift deployment + local development |
 
 **Containers:** Backend uses `registry.access.redhat.com/ubi9/openjdk-17`. Frontend uses `registry.access.redhat.com/ubi9/nginx-124`. PostgreSQL uses `registry.redhat.io/rhel9/postgresql-15`.
@@ -45,7 +45,7 @@ See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for module boundaries, data
 
 ## Policy Mapping & Core Migration Engine
 
-GateForge's foundation is an automated **3scale → Connectivity Link (Kuadrant) translation engine**. Analysis always generates the full resource set; cluster readiness is checked separately at apply time (see [Migration prerequisites](#migration-prerequisites)).
+ApiShift's foundation is an automated **3scale → Connectivity Link (Kuadrant) translation engine**. Analysis always generates the full resource set; cluster readiness is checked separately at apply time (see [Migration prerequisites](#migration-prerequisites)).
 
 Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapping catalog (same source as this documentation).
 
@@ -63,7 +63,7 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 
 ### Consolidated mapping (3scale → RHCL 1.3)
 
-| 3scale | RHCL 1.3 | GateForge today |
+| 3scale | RHCL 1.3 | ApiShift today |
 |--------|----------|-----------------|
 | Product / exposure | Gateway + HTTPRoute + Route | Generated |
 | Backend / mapping rules | HTTPRoute.rules + backendRefs | Generated |
@@ -82,7 +82,7 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 
 ### 3scale APIcast policies → RHCL 1.3
 
-| APIcast policy | RHCL 1.3 target | GateForge |
+| APIcast policy | RHCL 1.3 target | ApiShift |
 |----------------|-----------------|-----------|
 | API Key | AuthPolicy apiKey + Secret | Generated |
 | OIDC (Bearer JWT) | AuthPolicy jwt.issuerUrl | Generated |
@@ -115,7 +115,7 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 
 | Strategy | Behavior |
 |----------|----------|
-| **shared** (default) | One `gateforge-shared` Gateway for all products |
+| **shared** (default) | One `ApiShift-shared` Gateway for all products |
 | **dual** | Separate internal and external Gateways |
 | **dedicated** | One Gateway per product (`{systemName}-gw`) |
 
@@ -151,7 +151,7 @@ Reference API: `GET /api/migration/policy-mapping` returns the consolidated mapp
 
 ### Generated resources & apply order
 
-Per product, GateForge may emit (in apply order):
+Per product, ApiShift may emit (in apply order):
 
 `Gateway` → `HTTPRoute` → `APIProduct` (when Developer Hub enabled) → `PlanPolicy` → `Secret`(s) → `AuthPolicy` → `RateLimitPolicy` → `TelemetryPolicy` → `Route`
 
@@ -188,7 +188,7 @@ Use `GET /api/cluster/readiness?planId={id}` to probe CRD/install status on the 
 
 ### Offline integration (M2)
 
-**Status:** complete (issues [#14](https://github.com/Everything-is-Code/gateforge/issues/14), [#16](https://github.com/Everything-is-Code/gateforge/issues/16), [#18](https://github.com/Everything-is-Code/gateforge/issues/18), [#19](https://github.com/Everything-is-Code/gateforge/issues/19)).
+**Status:** complete (issues [#14](https://github.com/Everything-is-Code/ApiShift/issues/14), [#16](https://github.com/Everything-is-Code/ApiShift/issues/16), [#18](https://github.com/Everything-is-Code/ApiShift/issues/18), [#19](https://github.com/Everything-is-Code/ApiShift/issues/19)).
 
 Analyze and plan migrations **without live 3scale Admin API access** by importing a `threescale-export` archive produced by [3scaleextract](https://github.com/Everything-is-Code/3scaleextract). The same analyze/apply pipeline runs after import; only product discovery changes.
 
@@ -200,7 +200,7 @@ flowchart LR
         Tar[export-minimal-1.0.tar.gz]
         Seed --> Export --> Tar
     end
-    subgraph gateforge [GateForge]
+    subgraph ApiShift [ApiShift]
         Zip[Zip export directory]
         API[POST /api/migration/import-export]
         Products[GET /api/threescale/products]
@@ -209,7 +209,7 @@ flowchart LR
         Zip --> API --> Products --> Analyze --> Apply
     end
     Export -.->|manual zip| Zip
-    Tar -.->|tests only| gateforge
+    Tar -.->|tests only| ApiShift
 ```
 
 #### Cross-repo contract
@@ -217,9 +217,9 @@ flowchart LR
 | Artifact | Owner | Purpose |
 |----------|-------|---------|
 | `threescale-export` directory (schema **1.0**) | 3scaleextract | Canonical offline export layout (`manifest.json`, `products/`, `backends/`, `applications/`) |
-| `export-minimal-1.0.tar.gz` | [3scaleextract `testdata/`](https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata) | Versioned fixture for visualize tests and GateForge import tests |
-| `POST /api/migration/import-export` | GateForge | Accepts `.zip` only (v1); loads products into memory for analyze |
-| Migration Wizard **Import offline export** | GateForge UI | Upload `.zip` in step 1, then continue wizard |
+| `export-minimal-1.0.tar.gz` | [3scaleextract `testdata/`](https://github.com/Everything-is-Code/3scaleextract/tree/main/testdata) | Versioned fixture for visualize tests and ApiShift import tests |
+| `POST /api/migration/import-export` | ApiShift | Accepts `.zip` only (v1); loads products into memory for analyze |
+| Migration Wizard **Import offline export** | ApiShift UI | Upload `.zip` in step 1, then continue wizard |
 
 Imported products are tagged with `source` containing `export-v1` and `sourceCluster: offline`. `POST /api/threescale/refresh` is skipped for export-backed products during analyze.
 
@@ -240,7 +240,7 @@ The import parser accepts **schema 1.0** exports from live `threescale-export` r
 
    Or use the published minimal fixture: download and unzip [export-minimal-1.0.tar.gz](https://github.com/Everything-is-Code/3scaleextract/raw/main/testdata/export-minimal-1.0.tar.gz).
 
-2. **Package** as `.zip` (GateForge API expects zip, not tar.gz):
+2. **Package** as `.zip` (ApiShift API expects zip, not tar.gz):
 
    ```bash
    cd export && zip -r ../threescale-export.zip .
@@ -263,7 +263,7 @@ The import parser accepts **schema 1.0** exports from live `threescale-export` r
 
 #### Test fixture maintenance
 
-GateForge tests consume the 3scaleextract tarball (not a vendored directory tree):
+ApiShift tests consume the 3scaleextract tarball (not a vendored directory tree):
 
 ```bash
 ./scripts/fixtures/sync-export-minimal-fixture.sh   # THREESCALEEXTRACT_ROOT or ../3scaleextract
@@ -275,16 +275,16 @@ See [3scaleextract testdata/README.md](https://github.com/Everything-is-Code/3sc
 
 ### E2E lab pipeline (M3)
 
-Automated **seed → export → visualize → GateForge analyze** for lab validation ([rhcl-ai #2](https://github.com/Everything-is-Code/rhcl-ai/issues/2)):
+Automated **seed → export → visualize → ApiShift analyze** for lab validation ([rhcl-ai #2](https://github.com/Everything-is-Code/rhcl-ai/issues/2)):
 
 ```bash
-# Terminal 1 — GateForge stack
+# Terminal 1 — ApiShift stack
 cp .env.example .env   # THREESCALE_*, AI_*, optional THREESCALEEXTRACT_ROOT
 ./scripts/dev/local-up.sh
 
 # Terminal 2 — full lab E2E (requires 3scale Admin API + 3scaleextract checkout)
 export THREESCALE_ADMIN_URL=... THREESCALE_ACCESS_TOKEN=...
-export THREESCALEEXTRACT_ROOT=../3scaleextract   # optional if repo is beside gateforge
+export THREESCALEEXTRACT_ROOT=../3scaleextract   # optional if repo is beside ApiShift
 ./scripts/e2e/seed-export-analyze.sh
 
 # Smoke without live 3scale (fixture tarball + offline import only)
@@ -293,7 +293,7 @@ E2E_MODE=fixture ./scripts/e2e/seed-export-analyze.sh
 
 | `E2E_MODE` | Behavior |
 |------------|----------|
-| `auto` (default) | Seed/export/visualize when 3scale creds set; **offline** import + analyze via GateForge API |
+| `auto` (default) | Seed/export/visualize when 3scale creds set; **offline** import + analyze via ApiShift API |
 | `live` | Same seed/export/visualize; `POST /api/threescale/refresh` instead of zip import |
 | `offline` | Explicit offline import path |
 | `fixture` | Skip seed; use vendored `export-minimal` tarball (2-product smoke) |
@@ -338,12 +338,12 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 - **Verification** — AI reviews generated resources post-generation for correctness
 
 ### Phase 5: Developer Hub Integration
-- **Software Template Registration**: Components registered via standard RHDH Software Templates (`gateforge-register-component` / `gateforge-unregister-component`)
+- **Software Template Registration**: Components registered via standard RHDH Software Templates (`ApiShift-register-component` / `ApiShift-unregister-component`)
 - **Observability Tab**: Prometheus/Thanos metrics embedded in RHDH entity pages (request rate, error rate, latency percentiles)
 - **Policy Topology Tab**: Kuadrant policy DAG visualization (Gateway → HTTPRoute → policies → APIProduct → APIKey)
 - **Component Editor**: Inline editing for platformadmin (no repo required) — annotations, tags, description
 - **Pre-registration Editing**: Edit Component definition before catalog registration
-- **Catalog Enrichment**: `GateForgeKuadrantProcessor` enriches 3scale API entities with `kuadrant.io/*` annotations
+- **Catalog Enrichment**: `ApiShiftKuadrantProcessor` enriches 3scale API entities with `kuadrant.io/*` annotations
 
 ### Phase 6: APICast Discovery and Migration (v0.3.0)
 - **APIManager CRD scanning**: Discovers `APIManager` resources cluster-wide via Fabric8 client
@@ -353,13 +353,13 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 - **Multi-tenant support**: Detects tenant configurations within APIManager CRDs
 - **4 test scenarios** in GitOps with Microcks-backed mocks (API Key, OIDC, Multi-Tenant, Custom Policies+TLS)
 - **3scale entity deregistration**: Post-migration unregistration of 3scale-discovered entities to prevent catalog conflicts
-- **Bug fixes**: ObservabilityTab null guard for metrics, ComponentEditorTab broadened GateForge detection
+- **Bug fixes**: ObservabilityTab null guard for metrics, ComponentEditorTab broadened ApiShift detection
 
 ### Phase 7: Offline integration (M2)
-- **Export parser** (`io.gateforge.service.export`) — `threescale-export` schema 1.0 → `ThreeScaleProduct` without Admin API
+- **Export parser** (`io.ApiShift.service.export`) — `threescale-export` schema 1.0 → `ThreeScaleProduct` without Admin API
 - **Import API** — `POST /api/migration/import-export` (multipart `.zip`, max 50 MB default)
 - **Wizard upload** — **Import offline export** product source in Migration Wizard step 1
-- **Shared fixture** — `export-minimal-1.0.tar.gz` from [3scaleextract](https://github.com/Everything-is-Code/3scaleextract); GateForge tests verify SHA256 and extract via `ExportMinimalFixture`
+- **Shared fixture** — `export-minimal-1.0.tar.gz` from [3scaleextract](https://github.com/Everything-is-Code/3scaleextract); ApiShift tests verify SHA256 and extract via `ExportMinimalFixture`
 
 ### Phase 3: Hub-Spoke Architecture
 - **PostgreSQL persistence** for migration plans and audit entries (replaces in-memory storage)
@@ -375,7 +375,7 @@ Or use the **Capture screenshots** GitHub Actions workflow (`workflow_dispatch`)
 ```mermaid
 sequenceDiagram
     actor User
-    participant API as GateForge API
+    participant API as ApiShift API
     participant Svc as APICastDiscoveryService
     participant K8s as Kubernetes API
 
@@ -495,7 +495,7 @@ podman-compose down -v         # stop and delete DB volume
 | API | http://localhost:8080/api |
 | Health | http://localhost:8080/q/health/ready |
 | 3scale status | http://localhost:8080/api/threescale/status |
-| PostgreSQL | localhost:5432 (`gateforge` / `gateforge`) |
+| PostgreSQL | localhost:5432 (`ApiShift` / `ApiShift`) |
 
 **Discovery-only mode (default in compose):** `THREESCALE_CRD_DISCOVERY=false` and `APICAST_DISCOVERY=false` — enough to explore 3scale products/backends via Admin API and run migration **analysis** without Kuadrant or cluster write access. Set both to `true` in `.env` plus `KUBE_*` for CRD/APICast inventory (read-only RBAC is sufficient; cluster-admin is not required).
 
@@ -511,8 +511,8 @@ See [.env.example](.env.example) for all variables.
 ### Helm Chart (OpenShift)
 
 ```bash
-helm repo add gateforge https://everything-is-code.github.io/gateforge/
-helm install gateforge gateforge/gateforge \
+helm repo add ApiShift https://everything-is-code.github.io/ApiShift/
+helm install ApiShift ApiShift/ApiShift \
   --set ai.apiKey=YOUR_KEY \
   --set threescale.adminApi.url=https://3scale-admin.apps.example.com \
   --set threescale.adminApi.accessToken=YOUR_TOKEN \
@@ -524,7 +524,7 @@ helm install gateforge gateforge/gateforge \
 Pass additional 3scale sources as a JSON array:
 
 ```bash
-helm install gateforge gateforge/gateforge \
+helm install ApiShift ApiShift/ApiShift \
   --set threescale.sources='[{"id":"prod","label":"Production 3scale","adminUrl":"https://3scale-admin.prod.example.com","accessToken":"TOKEN","enabled":true}]'
 ```
 
@@ -533,7 +533,7 @@ helm install gateforge gateforge/gateforge \
 Add target clusters or enable ArgoCD discovery:
 
 ```bash
-helm install gateforge gateforge/gateforge \
+helm install ApiShift ApiShift/ApiShift \
   --set argocd.clusterDiscovery=true \
   --set targetClusters='[{"id":"staging","label":"Staging Cluster","apiServerUrl":"https://api.staging.example.com:6443","token":"TOKEN","authType":"token","verifySsl":false,"enabled":true}]'
 ```
@@ -627,8 +627,8 @@ helm install gateforge gateforge/gateforge \
 | `targetClusters` | "" | JSON array of target clusters |
 | `argocd.clusterDiscovery` | false | Auto-discover clusters from ArgoCD secrets |
 | `postgresql.enabled` | true | Deploy PostgreSQL for persistence |
-| `postgresql.username` | gateforge | Database username |
-| `postgresql.password` | gateforge | Database password |
+| `postgresql.username` | ApiShift | Database username |
+| `postgresql.password` | ApiShift | Database password |
 | `connectivityLink.gatewayStrategy` | shared | shared / dual / dedicated |
 | `connectivityLink.gatewayClassName` | istio | Gateway class |
 | `rbac.clusterAdmin` | false | Use cluster-admin (dev only) vs least-privilege |
@@ -636,7 +636,7 @@ helm install gateforge gateforge/gateforge \
 | `developerHub.scaffolderToken` | "" | Bearer token for Scaffolder API authentication |
 | `route.enabled` | true | Create OpenShift Route |
 
-**Helm vs local compose defaults:** The chart does not template `THREESCALE_CRD_DISCOVERY` or `APICAST_DISCOVERY`; the application defaults both to **`true`** on OpenShift. Local [podman-compose.yml](podman-compose.yml) / [`.env.example`](.env.example) default both to **`false`** for Admin-API-only discovery. See [helm/gateforge/README.md](helm/gateforge/README.md#values-documented-but-not-wired-in-the-chart) for the full env mapping.
+**Helm vs local compose defaults:** The chart does not template `THREESCALE_CRD_DISCOVERY` or `APICAST_DISCOVERY`; the application defaults both to **`true`** on OpenShift. Local [podman-compose.yml](podman-compose.yml) / [`.env.example`](.env.example) default both to **`false`** for Admin-API-only discovery. See [helm/ApiShift/README.md](helm/ApiShift/README.md#values-documented-but-not-wired-in-the-chart) for the full env mapping.
 
 For module layout and API contracts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and the [architecture hardening archive](docs/archive/2026-06-16-architecture-hardening.md).
 

@@ -1,4 +1,4 @@
-# GateForge local stack — Podman Compose
+# ApiShift local stack — Podman Compose
 # Quick start: cp .env.example .env  (fill secrets)  &&  ./scripts/dev/local-up.sh
 # Discovery-only mode (no Kuadrant): uses 3scale Admin API; K8s/CRD/APICast off by default.
 
@@ -7,25 +7,25 @@ version: "3.8"
 services:
   postgresql:
     image: docker.io/library/postgres:15-alpine
-    container_name: gateforge-postgresql
+    container_name: apishift-postgresql
     restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: gateforge
-      POSTGRES_PASSWORD: gateforge
-      POSTGRES_DB: gateforge
+      POSTGRES_USER: apishift
+      POSTGRES_PASSWORD: apishift
+      POSTGRES_DB: apishift
     volumes:
-      - gateforge-pgdata:/var/lib/postgresql/data
+      - apishift-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gateforge -d gateforge"]
+      test: ["CMD-SHELL", "pg_isready -U apishift -d apishift"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   datagrid:
     image: quay.io/infinispan/server:15.0
-    container_name: gateforge-datagrid
+    container_name: apishift-datagrid
     restart: unless-stopped
     ports:
       - "11222:11222"
@@ -43,7 +43,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.jvm
-    container_name: gateforge-backend
+    container_name: apishift-backend
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -65,9 +65,9 @@ services:
       ARGOCD_CLUSTER_DISCOVERY: ${ARGOCD_CLUSTER_DISCOVERY:-false}
       CLUSTER_DOMAIN: ${CLUSTER_DOMAIN:-apps.cluster.example.com}
       # PostgreSQL (compose service)
-      DATASOURCE_URL: jdbc:postgresql://postgresql:5432/gateforge
-      DATASOURCE_USERNAME: gateforge
-      DATASOURCE_PASSWORD: gateforge
+      DATASOURCE_URL: jdbc:postgresql://postgresql:5432/apishift
+      DATASOURCE_USERNAME: apishift
+      DATASOURCE_PASSWORD: apishift
       # Infinispan cache (compose service)
       DATAGRID_HOST: datagrid
       DATAGRID_PORT: "11222"
@@ -92,7 +92,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.ci
-    container_name: gateforge-frontend
+    container_name: apishift-frontend
     restart: unless-stopped
     ports:
       - "4200:8080"
@@ -101,4 +101,4 @@ services:
         condition: service_healthy
 
 volumes:
-  gateforge-pgdata:
+  apishift-pgdata:

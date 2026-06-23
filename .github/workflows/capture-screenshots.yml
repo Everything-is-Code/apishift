@@ -40,6 +40,6 @@ jobs:
       - name: Upload screenshot artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: gateforge-screenshots
+          name: apishift-screenshots
           path: docs/assets/screenshots/*.png
           if-no-files-found: error

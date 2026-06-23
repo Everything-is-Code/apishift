@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sourceable helpers for GateForge shell scripts. Do not execute directly.
+# Sourceable helpers for ApiShift shell scripts. Do not execute directly.
 set -euo pipefail
 
 # Repo root: scripts/lib -> scripts -> repo root

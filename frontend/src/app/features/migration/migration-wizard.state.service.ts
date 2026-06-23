@@ -609,7 +609,7 @@ export class MigrationWizardStateService {
   async downloadAllYaml(): Promise<void> {
     if (!this.plan) return;
     const zip = new JSZip();
-    const folder = zip.folder(`gateforge-plan-${this.plan.id}`);
+    const folder = zip.folder(`apishift-plan-${this.plan.id}`);
     if (!folder) return;
 
     const kindOrder: Record<string, number> = {
@@ -653,7 +653,7 @@ export class MigrationWizardStateService {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `gateforge-plan-${this.plan.id}.zip`;
+    a.download = `apishift-plan-${this.plan.id}.zip`;
     a.click();
     URL.revokeObjectURL(url);
   }

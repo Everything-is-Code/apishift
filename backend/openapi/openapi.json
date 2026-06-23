@@ -28,7 +28,7 @@
           "rhclTarget" : {
             "type" : "string"
           },
-          "gateforgeStatus" : {
+          "apishiftStatus" : {
             "$ref" : "#/components/schemas/ImplementationStatus"
           },
           "notes" : {
@@ -285,7 +285,7 @@
           "layer" : {
             "$ref" : "#/components/schemas/Layer"
           },
-          "gateforgeStatus" : {
+          "apishiftStatus" : {
             "$ref" : "#/components/schemas/ImplementationStatus"
           },
           "notes" : {
@@ -2033,7 +2033,7 @@
     }
   },
   "info" : {
-    "title" : "GateForge API",
+    "title" : "ApiShift API",
     "version" : "0.3.0",
     "description" : "3scale to Connectivity Link migration console REST API"
   },

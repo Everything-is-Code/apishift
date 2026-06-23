@@ -1,6 +1,6 @@
-# GateForge architecture
+# ApiShift architecture
 
-GateForge is a monorepo that migrates **Red Hat 3scale API Management** configurations to **Red Hat Connectivity Link** (Kuadrant) resources on OpenShift. This document maps modules, runtime boundaries, and data flows so contributors can navigate the codebase without reading every large class first.
+ApiShift is a monorepo that migrates **Red Hat 3scale API Management** configurations to **Red Hat Connectivity Link** (Kuadrant) resources on OpenShift. This document maps modules, runtime boundaries, and data flows so contributors can navigate the codebase without reading every large class first.
 
 **Quick path for new contributors**
 
@@ -15,15 +15,15 @@ GateForge is a monorepo that migrates **Red Hat 3scale API Management** configur
 
 | Path | Role | Runtime |
 |------|------|---------|
-| `backend/` | Quarkus REST API, migration engine, AI agent, MCP tools | JVM container (`gateforge-backend`) |
-| `frontend/` | Angular SPA (dashboard, explorer, wizard, chat, audit) | Nginx container (`gateforge-frontend`) |
-| `gateforge-devhub-plugin/` | RHDH backend module — catalog ingestion, migration webhooks | Dynamic plugin sidecar |
-| `gateforge-devhub-frontend/` | RHDH frontend plugin — topology, component editor tabs | Dynamic plugin bundle |
-| `helm/gateforge/` | OpenShift deployment (backend, frontend, PostgreSQL, Data Grid) | Helm release |
+| `backend/` | Quarkus REST API, migration engine, AI agent, MCP tools | JVM container (`ApiShift-backend`) |
+| `frontend/` | Angular SPA (dashboard, explorer, wizard, chat, audit) | Nginx container (`ApiShift-frontend`) |
+| `ApiShift-devhub-plugin/` | RHDH backend module — catalog ingestion, migration webhooks | Dynamic plugin sidecar |
+| `ApiShift-devhub-frontend/` | RHDH frontend plugin — topology, component editor tabs | Dynamic plugin bundle |
+| `helm/ApiShift/` | OpenShift deployment (backend, frontend, PostgreSQL, Data Grid) | Helm release |
 | `scripts/` | Dev, CI, E2E, fixtures, release automation | Host shell / CI |
 | `docs/` | GitHub Pages site, screenshots, this file | Published static site |
 
-**Version source of truth:** `helm/gateforge/Chart.yaml` (`version` / `appVersion`). Propagate with `./scripts/release/sync-versions.sh`.
+**Version source of truth:** `helm/ApiShift/Chart.yaml` (`version` / `appVersion`). Propagate with `./scripts/release/sync-versions.sh`.
 
 ---
 
@@ -71,7 +71,7 @@ flowchart LR
 
 ---
 
-## Backend (`backend/src/main/java/io/gateforge`)
+## Backend (`backend/src/main/java/io/ApiShift`)
 
 Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 
@@ -154,8 +154,8 @@ Angular 19 standalone components. Layout uses `core/`, `shared/`, and `features/
 
 | Package | Type | Integration |
 |---------|------|-------------|
-| `gateforge-devhub-plugin` | Backstage backend module | Catalog processor, HTTP router for GateForge events |
-| `gateforge-devhub-frontend` | Dynamic frontend plugin | Entity tabs (topology, component editor) |
+| `ApiShift-devhub-plugin` | Backstage backend module | Catalog processor, HTTP router for ApiShift events |
+| `ApiShift-devhub-frontend` | Dynamic frontend plugin | Entity tabs (topology, component editor) |
 
 Packaged as OCI images for RHDH dynamic plugin mounting. Version synced with the Helm chart via `scripts/release/sync-versions.sh`.
 
@@ -182,7 +182,7 @@ REST shapes are exported from the Quarkus build and synced to the frontend:
 ```text
 backend (SmallRye OpenAPI)
   → backend/openapi/openapi.yaml          # emitted by OpenApiBuildTest / mvn test
-  → frontend/openapi/gateforge.openapi.yaml
+  → frontend/openapi/ApiShift.openapi.yaml
   → frontend/src/app/core/api/generated/schema.ts   # openapi-typescript
 ```
 
@@ -200,13 +200,13 @@ Hand-written DTOs in `frontend/src/app/core/api/models/` are being migrated to g
 
 **Local:** `podman-compose.yml` — backend, frontend, PostgreSQL, optional Data Grid. Requires `.env` from `.env.example`.
 
-**OpenShift:** `helm/gateforge/` chart — configurable image tags, secrets, routes, Data Grid StatefulSet. Published to GitHub Pages Helm repo on release.
+**OpenShift:** `helm/ApiShift/` chart — configurable image tags, secrets, routes, Data Grid StatefulSet. Published to GitHub Pages Helm repo on release.
 
 ---
 
 ## Architecture hardening (complete)
 
-Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged to `main`. Full audit trail: [docs/archive/2026-06-16-architecture-hardening.md](archive/2026-06-16-architecture-hardening.md).
+Phases 1–4 of the **ApiShift-architecture-hardening** initiative are merged to `main`. Full audit trail: [docs/archive/2026-06-16-architecture-hardening.md](archive/2026-06-16-architecture-hardening.md).
 
 | Phase | Result |
 |-------|--------|
@@ -217,7 +217,7 @@ Phases 1–4 of the **gateforge-architecture-hardening** initiative are merged t
 
 ## Post-hardening (complete)
 
-Waves A–E of **gateforge-post-hardening** are merged to `main`. Full audit trail: [docs/archive/2026-06-16-post-hardening.md](archive/2026-06-16-post-hardening.md).
+Waves A–E of **ApiShift-post-hardening** are merged to `main`. Full audit trail: [docs/archive/2026-06-16-post-hardening.md](archive/2026-06-16-post-hardening.md).
 
 | Wave | Result |
 |------|--------|
@@ -236,4 +236,4 @@ For future structural work, prefer stacked PRs under ~400 changed lines and avoi
 - [README.md](../README.md) — product overview, policy mapping tables, quick start
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — branch workflow, CI, local dev
 - [scripts/README.md](../scripts/README.md) — automation index
-- [helm/gateforge/README.md](../helm/gateforge/README.md) — chart values and install
+- [helm/ApiShift/README.md](../helm/ApiShift/README.md) — chart values and install

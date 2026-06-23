@@ -14,12 +14,12 @@ if [[ ! -f "${SRC}" ]]; then
 fi
 DEST_DIR="${ROOT}/frontend/openapi"
 mkdir -p "${DEST_DIR}"
-cp "${SRC}" "${DEST_DIR}/gateforge.openapi.yaml"
+cp "${SRC}" "${DEST_DIR}/apishift.openapi.yaml"
 
-step "Generating TypeScript types from ${DEST_DIR}/gateforge.openapi.yaml"
+step "Generating TypeScript types from ${DEST_DIR}/apishift.openapi.yaml"
 (
   cd "${ROOT}/frontend"
-  npx --yes openapi-typescript@7 openapi/gateforge.openapi.yaml -o src/app/core/api/generated/schema.ts
+  npx --yes openapi-typescript@7 openapi/apishift.openapi.yaml -o src/app/core/api/generated/schema.ts
 )
 
 step "Done: frontend/src/app/core/api/generated/schema.ts"

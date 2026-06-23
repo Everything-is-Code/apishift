@@ -1,4 +1,4 @@
--- GateForge v0.1.8 - Initial schema
+-- ApiShift v0.1.8 - Initial schema
 -- Manages migration plans, generated resources, and audit trail
 
 CREATE TABLE IF NOT EXISTS migration_plans (

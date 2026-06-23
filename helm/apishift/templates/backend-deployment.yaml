@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "apishift.fullname" . }}-backend
+  labels:
+    app: apishift-backend
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/name: apishift-backend
+    app.openshift.io/runtime: quarkus
+    {{- include "apishift.labels" . | nindent 4 }}
+  annotations:
+    app.openshift.io/runtime: quarkus
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ include "apishift.fullname" . }}-postgresql"}{{- if .Values.datagrid.enabled }},{"apiVersion":"apps/v1","kind":"StatefulSet","name":"{{ include "apishift.datagrid" . }}"}{{- end }}]'
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: apishift-backend
+  template:
+    metadata:
+      labels:
+        app: apishift-backend
+        app.openshift.io/runtime: quarkus
+    spec:
+      serviceAccountName: {{ include "apishift.fullname" . }}-backend
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: AI_ENDPOINT
+              value: {{ .Values.ai.endpoint | quote }}
+            - name: AI_MODEL
+              value: {{ .Values.ai.model | quote }}
+            - name: AI_TIMEOUT
+              value: {{ .Values.ai.timeout | quote }}
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ai.existingSecret | default (printf "%s-ai-secret" (include "apishift.fullname" .)) }}
+                  key: AI_API_KEY
+            - name: THREESCALE_ADMIN_URL
+              value: {{ .Values.threescale.adminApi.url | quote }}
+            - name: THREESCALE_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "apishift.fullname" . }}-config
+                  key: THREESCALE_ACCESS_TOKEN
+            - name: CL_TARGET_NAMESPACE
+              value: {{ .Values.connectivityLink.targetNamespace | quote }}
+            - name: CL_GATEWAY_STRATEGY
+              value: {{ .Values.connectivityLink.gatewayStrategy | quote }}
+            - name: CL_GATEWAY_CLASS
+              value: {{ .Values.connectivityLink.gatewayClassName | quote }}
+            - name: CLUSTER_DOMAIN
+              value: {{ .Values.clusterDomain | quote }}
+            {{- if .Values.cors.allowedOrigins }}
+            - name: CORS_ALLOWED_ORIGINS
+              value: {{ .Values.cors.allowedOrigins | quote }}
+            {{- else if .Values.route.host }}
+            - name: CORS_ALLOWED_ORIGINS
+              value: {{ printf "https://%s" .Values.route.host | quote }}
+            {{- else }}
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:4200"
+            {{- end }}
+            - name: DEVELOPER_HUB_ENABLED
+              value: {{ .Values.developerHub.enabled | default false | quote }}
+            - name: DEVELOPER_HUB_URL
+              value: {{ .Values.developerHub.url | default "" | quote }}
+            - name: DEVHUB_SCAFFOLDER_URL
+              value: {{ .Values.developerHub.scaffolderUrl | default "" | quote }}
+            - name: DEVHUB_SCAFFOLDER_TOKEN
+              value: {{ .Values.developerHub.scaffolderToken | default "" | quote }}
+            - name: DEVHUB_COMPONENT_SUFFIX
+              value: {{ .Values.developerHub.componentSuffix | default "-product" | quote }}
+            - name: THREESCALE_SOURCES
+              value: {{ .Values.threescale.sources | default "" | quote }}
+            - name: TARGET_CLUSTERS
+              value: {{ .Values.targetClusters | default "" | quote }}
+            - name: ARGOCD_CLUSTER_DISCOVERY
+              value: {{ .Values.argocd.clusterDiscovery | default false | quote }}
+            - name: DATASOURCE_URL
+              value: {{ .Values.postgresql.url | default "jdbc:postgresql://apishift-postgresql:5432/apishift" | quote }}
+            - name: DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "apishift.fullname" . }}-config
+                  key: DATASOURCE_USERNAME
+            - name: DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "apishift.fullname" . }}-config
+                  key: DATASOURCE_PASSWORD
+            - name: OBSERVABILITY_ENABLED
+              value: {{ .Values.observability.enabled | default false | quote }}
+            {{- if .Values.observability.enabled }}
+            - name: OTEL_ENABLED
+              value: "true"
+            - name: OTEL_ENDPOINT
+              value: {{ .Values.observability.otelCollectorEndpoint | quote }}
+            {{- end }}
+            {{- if .Values.datagrid.enabled }}
+            - name: DATAGRID_HOST
+              value: {{ include "apishift.datagrid" . }}
+            - name: DATAGRID_PORT
+              value: "11222"
+            - name: DATAGRID_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "apishift.datagrid" . }}-secret
+                  key: DATAGRID_USERNAME
+            - name: DATAGRID_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "apishift.datagrid" . }}-secret
+                  key: DATAGRID_PASSWORD
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
