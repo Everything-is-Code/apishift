@@ -13,7 +13,7 @@ public class KuadrantCtlService {
 
     private static final Logger LOG = Logger.getLogger(KuadrantCtlService.class);
 
-    @ConfigProperty(name = "ApiShift.kuadrantctl.path", defaultValue = "/usr/local/bin/kuadrantctl")
+    @ConfigProperty(name = "apishift.kuadrantctl.path", defaultValue = "/usr/local/bin/kuadrantctl")
     String kuadrantctlPath;
 
     public String generateHttpRoute(String oasContent) {

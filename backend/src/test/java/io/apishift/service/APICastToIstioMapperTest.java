@@ -114,7 +114,7 @@ class APICastToIstioMapperTest {
         String yaml = resources.get(0).yaml();
         assertTrue(yaml.contains("gatewayClassName: istio"));
         assertTrue(yaml.contains("hostname: \"*.apps.example.com\""));
-        assertTrue(yaml.contains("ApiShift.io/original-replicas: \"2\""));
+        assertTrue(yaml.contains("apishift.io/original-replicas: \"2\""));
     }
 
     @Test

@@ -30,10 +30,10 @@ public class ClusterResource {
     @Inject
     ClusterReadinessService clusterReadinessService;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.enabled", defaultValue = "false")
+    @ConfigProperty(name = "apishift.developer-hub.enabled", defaultValue = "false")
     boolean developerHubEnabled;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.url", defaultValue = "none")
+    @ConfigProperty(name = "apishift.developer-hub.url", defaultValue = "none")
     String developerHubUrl;
 
     @GET

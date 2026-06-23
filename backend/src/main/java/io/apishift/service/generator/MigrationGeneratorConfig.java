@@ -6,13 +6,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class MigrationGeneratorConfig {
 
-    @ConfigProperty(name = "ApiShift.connectivity-link.gateway-class-name", defaultValue = "istio")
+    @ConfigProperty(name = "apishift.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
 
-    @ConfigProperty(name = "ApiShift.connectivity-link.target-namespace", defaultValue = "kuadrant-system")
+    @ConfigProperty(name = "apishift.connectivity-link.target-namespace", defaultValue = "kuadrant-system")
     String gatewayNamespace;
 
-    @ConfigProperty(name = "ApiShift.cluster-domain", defaultValue = "apps.cluster.example.com")
+    @ConfigProperty(name = "apishift.cluster-domain", defaultValue = "apps.cluster.example.com")
     String clusterDomain;
 
     public String gatewayClassName() {

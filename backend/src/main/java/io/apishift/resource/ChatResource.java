@@ -55,7 +55,7 @@ public class ChatResource {
     RemoteCacheManager cacheManager;
 
     @Inject
-    ApiShiftMetrics ApiShiftMetrics;
+    ApiShiftMetrics apiShiftMetrics;
 
     private RemoteCache<String, String> getOrCreateFaqCache() {
         RemoteCache<String, String> cache = cacheManager.getCache(FAQ_CACHE);
@@ -115,7 +115,7 @@ public class ChatResource {
                 String cached = faqCache.get(normalized);
                 if (cached != null) {
                     LOG.infof("FAQ cache hit for: %s", userMessage.content());
-                    ApiShiftMetrics.recordChatRequest("cached");
+                    apiShiftMetrics.recordChatRequest("cached");
                     return Response.ok(new ChatMessage("assistant", cached, true)).build();
                 }
             }
@@ -123,7 +123,7 @@ public class ChatResource {
             String contextEnriched = buildContextMessage(userMessage.content());
             String response = migrationAgent.chat(contextEnriched);
             response = cleanThinkingBlocks(response);
-            ApiShiftMetrics.recordChatRequest("llm");
+            apiShiftMetrics.recordChatRequest("llm");
             return Response.ok(new ChatMessage("assistant", response, false)).build();
         } catch (Exception e) {
             LOG.error("AI chat failed", e);

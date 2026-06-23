@@ -84,7 +84,7 @@ public class PlanPolicyResourceGenerator {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    "ApiShift.io/product": "%s"
+                    "apishift.io/product": "%s"
                 spec:
                   targetRef:
                     group: gateway.networking.k8s.io

@@ -23,7 +23,7 @@ public class ExportImportService {
     @Inject
     ThreeScaleService threeScaleService;
 
-    @ConfigProperty(name = "ApiShift.export.max-upload-mb", defaultValue = "50")
+    @ConfigProperty(name = "apishift.export.max-upload-mb", defaultValue = "50")
     long maxUploadMb;
 
     public ImportExportResponse importUpload(FileUpload upload) {

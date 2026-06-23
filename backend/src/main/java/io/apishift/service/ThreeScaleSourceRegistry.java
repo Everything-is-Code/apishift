@@ -17,13 +17,13 @@ public class ThreeScaleSourceRegistry {
 
     private static final Logger LOG = Logger.getLogger(ThreeScaleSourceRegistry.class);
 
-    @ConfigProperty(name = "ApiShift.threescale.admin-url", defaultValue = "http://localhost")
+    @ConfigProperty(name = "apishift.threescale.admin-url", defaultValue = "http://localhost")
     String defaultAdminUrl;
 
-    @ConfigProperty(name = "ApiShift.threescale.access-token", defaultValue = "none")
+    @ConfigProperty(name = "apishift.threescale.access-token", defaultValue = "none")
     String defaultAccessToken;
 
-    @ConfigProperty(name = "ApiShift.threescale.sources")
+    @ConfigProperty(name = "apishift.threescale.sources")
     Optional<String> sourcesJson;
 
     @Inject

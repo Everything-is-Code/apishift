@@ -15,10 +15,10 @@ public class APICastToIstioMapper {
 
     private static final Logger LOG = Logger.getLogger(APICastToIstioMapper.class);
 
-    @ConfigProperty(name = "ApiShift.cluster-domain", defaultValue = "apps.cluster.example.com")
+    @ConfigProperty(name = "apishift.cluster-domain", defaultValue = "apps.cluster.example.com")
     String clusterDomain;
 
-    @ConfigProperty(name = "ApiShift.connectivity-link.gateway-class-name", defaultValue = "istio")
+    @ConfigProperty(name = "apishift.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
 
     public List<MigrationPlan.GeneratedResource> mapAPICastToIstio(APICastConfig config) {
@@ -72,9 +72,9 @@ public class APICastToIstioMapper {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    ApiShift.io/source: apicast
+                    apishift.io/source: apicast
                   annotations:
-                    ApiShift.io/original-replicas: "%d"
+                    apishift.io/original-replicas: "%d"
                 spec:
                   gatewayClassName: %s
                   listeners:
@@ -101,7 +101,7 @@ public class APICastToIstioMapper {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    ApiShift.io/source: apicast
+                    apishift.io/source: apicast
                 spec:
                   workloadSelector:
                     labels:
@@ -135,7 +135,7 @@ public class APICastToIstioMapper {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    ApiShift.io/source: apicast
+                    apishift.io/source: apicast
                 spec:
                   host: "*"
                   trafficPolicy:
@@ -156,7 +156,7 @@ public class APICastToIstioMapper {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    ApiShift.io/source: apicast
+                    apishift.io/source: apicast
                 spec:
                   tracing:
                     - providers:
@@ -177,7 +177,7 @@ public class APICastToIstioMapper {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    ApiShift.io/source: apicast
+                    apishift.io/source: apicast
                 spec:
                   hosts:
                     - "*.%s.svc.cluster.local"

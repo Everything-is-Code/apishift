@@ -78,7 +78,7 @@ public class HttpRouteResourceGenerator {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    "ApiShift.io/product": "%s"
+                    "apishift.io/product": "%s"
                 spec:
                   hostnames:
                     - %s

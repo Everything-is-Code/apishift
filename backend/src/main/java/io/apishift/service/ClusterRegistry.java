@@ -30,10 +30,10 @@ public class ClusterRegistry {
     @Inject
     ObjectMapper objectMapper;
 
-    @ConfigProperty(name = "ApiShift.target-clusters")
+    @ConfigProperty(name = "apishift.target-clusters")
     Optional<String> clustersJson;
 
-    @ConfigProperty(name = "ApiShift.argocd.cluster-discovery", defaultValue = "false")
+    @ConfigProperty(name = "apishift.argocd.cluster-discovery", defaultValue = "false")
     boolean argocdDiscovery;
 
     private final Map<String, KubernetesClient> clients = new ConcurrentHashMap<>();

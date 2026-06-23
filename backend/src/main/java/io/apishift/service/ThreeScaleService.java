@@ -68,10 +68,10 @@ public class ThreeScaleService {
 
     private volatile List<ThreeScaleProduct> exportOverride;
 
-    @ConfigProperty(name = "ApiShift.threescale.crd-discovery", defaultValue = "true")
+    @ConfigProperty(name = "apishift.threescale.crd-discovery", defaultValue = "true")
     boolean crdDiscoveryEnabled;
 
-    @ConfigProperty(name = "ApiShift.cache.ttl-seconds", defaultValue = "3600")
+    @ConfigProperty(name = "apishift.cache.ttl-seconds", defaultValue = "3600")
     long cacheTtlSeconds;
 
     void onStartup(@Observes StartupEvent ev) {

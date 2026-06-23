@@ -38,7 +38,7 @@ public class MigrationResource {
     ClusterRegistry clusterRegistry;
 
     @Inject
-    ApiShiftMetrics ApiShiftMetrics;
+    ApiShiftMetrics apiShiftMetrics;
 
     @Inject
     ExportImportService exportImportService;
@@ -135,7 +135,7 @@ public class MigrationResource {
 
         for (MigrationPlan.GeneratedResource res : resources) {
             if (!"Gateway".equals(res.kind()) && !excluded.contains(resources.indexOf(res))) {
-                ApiShiftMetrics.recordMigration(res.name(), failed == 0 ? "applied" : "partial");
+                apiShiftMetrics.recordMigration(res.name(), failed == 0 ? "applied" : "partial");
             }
         }
 

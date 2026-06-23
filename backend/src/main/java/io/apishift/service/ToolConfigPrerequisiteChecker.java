@@ -18,7 +18,7 @@ public class ToolConfigPrerequisiteChecker {
     @Inject
     ClusterRegistry clusterRegistry;
 
-    @ConfigProperty(name = "ApiShift.cluster-domain", defaultValue = DEFAULT_CLUSTER_DOMAIN)
+    @ConfigProperty(name = "apishift.cluster-domain", defaultValue = DEFAULT_CLUSTER_DOMAIN)
     String clusterDomain;
 
     public List<MigrationPrerequisite> fromConfig(String targetClusterId) {

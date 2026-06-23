@@ -82,25 +82,25 @@ public class MigrationService {
     @Inject
     OpenApiSynthesisService openApiSynthesisService;
 
-    @ConfigProperty(name = "ApiShift.connectivity-link.gateway-class-name", defaultValue = "istio")
+    @ConfigProperty(name = "apishift.connectivity-link.gateway-class-name", defaultValue = "istio")
     String gatewayClassName;
 
-    @ConfigProperty(name = "ApiShift.connectivity-link.target-namespace", defaultValue = "kuadrant-system")
+    @ConfigProperty(name = "apishift.connectivity-link.target-namespace", defaultValue = "kuadrant-system")
     String gatewayNamespace;
 
-    @ConfigProperty(name = "ApiShift.cluster-domain", defaultValue = "apps.cluster.example.com")
+    @ConfigProperty(name = "apishift.cluster-domain", defaultValue = "apps.cluster.example.com")
     String clusterDomain;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.enabled", defaultValue = "false")
+    @ConfigProperty(name = "apishift.developer-hub.enabled", defaultValue = "false")
     boolean developerHubEnabled;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.url", defaultValue = "none")
+    @ConfigProperty(name = "apishift.developer-hub.url", defaultValue = "none")
     String developerHubUrl;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.component-suffix", defaultValue = "-product")
+    @ConfigProperty(name = "apishift.developer-hub.component-suffix", defaultValue = "-product")
     String componentSuffix;
 
-    @ConfigProperty(name = "ApiShift.observability.enabled", defaultValue = "false")
+    @ConfigProperty(name = "apishift.observability.enabled", defaultValue = "false")
     boolean observabilityEnabled;
 
     private record ProductContext(
@@ -334,7 +334,7 @@ public class MigrationService {
                 + "  namespace: " + namespace + "\n"
                 + "  labels:\n"
                 + "    app.kubernetes.io/managed-by: apishift\n"
-                + "    \"ApiShift.io/product\": \"" + productSysName + "\"";
+                + "    \"apishift.io/product\": \"" + productSysName + "\"";
         yaml = yaml.replaceFirst("(?m)^metadata:(\\s*\\n(\\s+.*\\n)*?)(?=^\\S)", metadataBlock + "\n");
         if (!yaml.contains("  name: " + name)) {
             yaml = yaml.replaceFirst("(?m)^metadata:", metadataBlock);
@@ -539,7 +539,6 @@ public class MigrationService {
                 .filter(r -> "HTTPRoute".equals(r.kind()) && r.name().equals(routeName))
                 .findFirst().map(MigrationPlan.GeneratedResource::namespace).orElse(gatewayNamespace);
         String hostname = sysName + "." + clusterDomain;
-        String gfUrl = developerHubUrl.equals("none") ? "https://ApiShift." + clusterDomain : developerHubUrl;
 
         StringBuilder fallback = new StringBuilder();
         fallback.append("apiVersion: backstage.io/v1alpha1\n")
@@ -552,11 +551,11 @@ public class MigrationService {
                 .append("    kuadrant.io/namespace: ").append(namespace).append("\n")
                 .append("    kuadrant.io/httproute: ").append(routeName).append("\n")
                 .append("    kuadrant.io/apiproduct: ").append(sysName).append("\n")
-                .append("    ApiShift.io/managed-by: apishift\n")
-                .append("    ApiShift.io/migration-plan-id: ").append(planId).append("\n")
+                .append("    apishift.io/managed-by: apishift\n")
+                .append("    apishift.io/migration-plan-id: ").append(planId).append("\n")
                 .append("    backstage.io/kubernetes-namespace: ").append(namespace).append("\n")
                 .append("    backstage.io/kubernetes-id: ").append(sysName).append("\n")
-                .append("    backstage.io/kubernetes-label-selector: \"app.kubernetes.io/managed-by=ApiShift,ApiShift.io/product=").append(sysName).append("\"\n")
+                .append("    backstage.io/kubernetes-label-selector: \"app.kubernetes.io/managed-by=apishift,apishift.io/product=").append(sysName).append("\"\n")
                 .append("    backstage.io/managed-by-origin-location: \"ApiShift:").append(sysName).append("\"\n")
                 .append("  tags:\n")
                 .append("    - connectivity-link\n")
@@ -644,7 +643,7 @@ public class MigrationService {
     private String buildCatalogInfo(List<ThreeScaleProduct> products, String strategy,
             Map<String, String> oasCache, List<MigrationPlan.GeneratedResource> resources) {
         StringBuilder sb = new StringBuilder();
-        String gfUrl = developerHubUrl.equals("none") ? "https://ApiShift." + clusterDomain : developerHubUrl;
+        String gfUrl = developerHubUrl.equals("none") ? "https://apishift." + clusterDomain : developerHubUrl;
 
         for (int i = 0; i < products.size(); i++) {
             ThreeScaleProduct p = products.get(i);
@@ -667,10 +666,10 @@ public class MigrationService {
               .append("    kuadrant.io/namespace: ").append(ns).append("\n")
               .append("    kuadrant.io/httproute: ").append(routeName).append("\n")
               .append("    kuadrant.io/apiproduct: ").append(sysName).append("\n")
-              .append("    ApiShift.io/managed-by: apishift\n")
+              .append("    apishift.io/managed-by: apishift\n")
               .append("    backstage.io/kubernetes-namespace: ").append(ns).append("\n")
               .append("    backstage.io/kubernetes-id: ").append(sysName).append("\n")
-              .append("    backstage.io/kubernetes-label-selector: \"app.kubernetes.io/managed-by=ApiShift,ApiShift.io/product=").append(sysName).append("\"\n")
+              .append("    backstage.io/kubernetes-label-selector: \"app.kubernetes.io/managed-by=apishift,apishift.io/product=").append(sysName).append("\"\n")
               .append("    backstage.io/managed-by-origin-location: \"ApiShift:").append(sysName).append("\"\n")
               .append("  tags:\n")
               .append("    - connectivity-link\n")
@@ -784,12 +783,12 @@ public class MigrationService {
                         authorino.kuadrant.io/managed-by: authorino
                         app: %s
                         app.kubernetes.io/managed-by: apishift
-                        ApiShift.io/product: "%s"
+                        apishift.io/product: "%s"
                       annotations:
                         secret.kuadrant.io/plan-id: "%s"
-                        ApiShift.io/3scale-application-id: "%d"
-                        ApiShift.io/3scale-application-name: "%s"
-                        ApiShift.io/migrated-from: "3scale-user-key"
+                        apishift.io/3scale-application-id: "%d"
+                        apishift.io/3scale-application-name: "%s"
+                        apishift.io/migrated-from: "3scale-user-key"
                     stringData:
                       api_key: "%s"
                     type: Opaque
@@ -859,7 +858,7 @@ public class MigrationService {
                     backstage.io/kubernetes-id: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    "ApiShift.io/product": "%s"
+                    "apishift.io/product": "%s"
                     backstage.io/kubernetes-id: %s
                 spec:
                   targetRef:
@@ -902,7 +901,7 @@ public class MigrationService {
                   namespace: %s
                   labels:
                     app.kubernetes.io/managed-by: apishift
-                    "ApiShift.io/product": "%s"
+                    "apishift.io/product": "%s"
                 spec:
                   targetRef:
                     group: gateway.networking.k8s.io

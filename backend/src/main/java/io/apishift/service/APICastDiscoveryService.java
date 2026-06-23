@@ -22,7 +22,7 @@ public class APICastDiscoveryService {
     @Inject
     KubernetesClient kubernetesClient;
 
-    @ConfigProperty(name = "ApiShift.apicast.discovery", defaultValue = "true")
+    @ConfigProperty(name = "apishift.apicast.discovery", defaultValue = "true")
     boolean discoveryEnabled;
 
     private static final CustomResourceDefinitionContext APIMANAGER_CTX = new CustomResourceDefinitionContext.Builder()

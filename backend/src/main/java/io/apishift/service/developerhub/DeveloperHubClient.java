@@ -25,22 +25,22 @@ public class DeveloperHubClient {
 
     private static final Logger LOG = Logger.getLogger(DeveloperHubClient.class);
 
-    @ConfigProperty(name = "ApiShift.developer-hub.scaffolder-url", defaultValue = "")
+    @ConfigProperty(name = "apishift.developer-hub.scaffolder-url", defaultValue = "")
     Optional<String> scaffolderUrl;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.scaffolder-token", defaultValue = "")
+    @ConfigProperty(name = "apishift.developer-hub.scaffolder-token", defaultValue = "")
     Optional<String> scaffolderToken;
 
-    @ConfigProperty(name = "ApiShift.cluster-domain", defaultValue = "apps.cluster.example.com")
+    @ConfigProperty(name = "apishift.cluster-domain", defaultValue = "apps.cluster.example.com")
     String clusterDomain;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.component-suffix", defaultValue = "-product")
+    @ConfigProperty(name = "apishift.developer-hub.component-suffix", defaultValue = "-product")
     String componentSuffix;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.enabled", defaultValue = "false")
+    @ConfigProperty(name = "apishift.developer-hub.enabled", defaultValue = "false")
     boolean developerHubEnabled;
 
-    @ConfigProperty(name = "ApiShift.developer-hub.url", defaultValue = "none")
+    @ConfigProperty(name = "apishift.developer-hub.url", defaultValue = "none")
     String developerHubUrl;
 
     @Inject
