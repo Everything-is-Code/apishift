@@ -8,15 +8,13 @@ import io.apishift.model.ProjectInfo;
 import io.apishift.model.ThreeScaleProduct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ClusterService {
-
-    private static final Logger LOG = Logger.getLogger(ClusterService.class);
 
     @Inject
     KubernetesClient kubernetesClient;
@@ -68,7 +66,7 @@ public class ClusterService {
                 }
             }
         } catch (Exception e) {
-            LOG.debug("Failed to enrich namespaces from 3scale products", e);
+            Log.debugf(e, "Failed to enrich namespaces from 3scale products");
         }
     }
 
@@ -100,7 +98,7 @@ public class ClusterService {
                     items.forEach(r -> namespaces.add(r.getMetadata().getNamespace()));
                 }
             } catch (Exception e) {
-                LOG.debugf(e, "Failed to collect namespaces for CRD %s/%s/%s", crd[0], crd[1], crd[2]);
+                Log.debugf(e, "Failed to collect namespaces for CRD %s/%s/%s", crd[0], crd[1], crd[2]);
             }
         }
         return namespaces;
