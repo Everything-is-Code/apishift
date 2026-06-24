@@ -4,6 +4,8 @@ import io.apishift.model.APICastConfig;
 import io.apishift.model.MigrationPlan;
 import io.apishift.service.APICastDiscoveryService;
 import io.apishift.service.APICastToIstioMapper;
+import io.apishift.security.ApiShiftRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -61,6 +63,7 @@ public class APICastResource {
 
     @POST
     @Path("/map")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response mapAPICastToIstio(Map<String, String> request) {
         String namespace = request.get("namespace");
@@ -87,6 +90,7 @@ public class APICastResource {
 
     @POST
     @Path("/map-all")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public Response mapAll() {
         List<APICastConfig> configs = discoveryService.discoverAllAPIManagers();
         var plans = mapper.mapMultipleAPICasts(configs);

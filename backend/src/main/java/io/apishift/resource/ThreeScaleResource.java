@@ -9,6 +9,8 @@ import io.apishift.model.ThreeScaleSourceStatus;
 import io.apishift.model.ThreeScaleSourceView;
 import io.apishift.service.ThreeScaleService;
 import io.apishift.service.ThreeScaleSourceRegistry;
+import io.apishift.security.ApiShiftRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -60,6 +62,7 @@ public class ThreeScaleResource {
 
     @POST
     @Path("/refresh")
+    @RolesAllowed({ApiShiftRoles.OPERATOR, ApiShiftRoles.ADMIN})
     public ThreeScaleRefreshResult refreshDiscovery() {
         return ThreeScaleRefreshResult.fromMap(threeScaleService.refreshDiscovery());
     }
@@ -74,6 +77,7 @@ public class ThreeScaleResource {
 
     @POST
     @Path("/sources")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public ThreeScaleSourceView addSource(ThreeScaleSource source) {
         sourceRegistry.addSource(source);
         return ThreeScaleSourceView.from(source);
@@ -81,6 +85,7 @@ public class ThreeScaleResource {
 
     @DELETE
     @Path("/sources/{id}")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public void removeSource(@PathParam("id") String id) {
         if ("default".equals(id)) {
             throw new BadRequestException("Cannot remove default source");

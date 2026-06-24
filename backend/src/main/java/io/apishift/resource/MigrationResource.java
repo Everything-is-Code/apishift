@@ -13,6 +13,8 @@ import io.apishift.service.cluster.ClusterResourceApplyService;
 import io.apishift.service.developerhub.DeveloperHubClient;
 import io.apishift.service.export.ExportImportService;
 import io.apishift.service.export.ImportExportResponse;
+import io.apishift.security.ApiShiftRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -62,6 +64,7 @@ public class MigrationResource {
 
     @POST
     @Path("/analyze")
+    @RolesAllowed({ApiShiftRoles.OPERATOR, ApiShiftRoles.ADMIN})
     @Operation(operationId = "analyzeMigration")
     public MigrationPlan analyze(AnalyzeRequest request) {
         String clusterId = request.targetClusterId() != null ? request.targetClusterId() : "local";
@@ -74,6 +77,7 @@ public class MigrationResource {
 
     @POST
     @Path("/import-export")
+    @RolesAllowed({ApiShiftRoles.OPERATOR, ApiShiftRoles.ADMIN})
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public ImportExportResponse importExport(@RestForm("file") FileUpload file) {
@@ -82,6 +86,7 @@ public class MigrationResource {
 
     @POST
     @Path("/plans/{id}/apply")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public ApplyResult applyPlan(@PathParam("id") String id, ApplyRequest request) {
         MigrationPlan plan = migrationService.getPlan(id);
         if (plan == null) {
@@ -146,6 +151,7 @@ public class MigrationResource {
 
     @POST
     @Path("/plans/{id}/revert")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public ApplyResult revertPlan(@PathParam("id") String id) {
         MigrationPlan plan = migrationService.getPlan(id);
         if (plan == null) {
@@ -197,6 +203,7 @@ public class MigrationResource {
 
     @POST
     @Path("/revert-bulk")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public BulkRevertResult revertBulk(BulkRevertRequest request) {
         List<ApplyResult> planResults = new ArrayList<>();
         int totalReverted = 0;
@@ -255,6 +262,7 @@ public class MigrationResource {
 
     @POST
     @Path("/plans/{id}/confirm-registration")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public Map<String, String> confirmRegistration(@PathParam("id") String id, ConfirmRegistrationRequest request) {
         MigrationPlan plan = migrationService.getPlan(id);
         if (plan == null) {

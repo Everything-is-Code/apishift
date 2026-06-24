@@ -609,6 +609,10 @@ components:
           type: boolean
         credentialConfigured:
           type: boolean
+  securitySchemes:
+    SecurityScheme:
+      type: openIdConnect
+      description: Authentication
 paths:
   /api/apicast/analyze/{namespace}/{name}:
     get:
@@ -680,11 +684,18 @@ paths:
           content:
             application/json:
               schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Map API Cast To Istio
       tags:
       - API Cast Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/apicast/map-all:
     post:
       operationId: mapAll
@@ -694,9 +705,16 @@ paths:
           content:
             application/json:
               schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Map All
       tags:
       - API Cast Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/audit/reports:
     get:
       operationId: listReports
@@ -727,11 +745,18 @@ paths:
           content:
             application/json:
               schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Chat
       tags:
       - Chat Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/chat/faq-status:
     get:
       operationId: faqStatus
@@ -766,9 +791,16 @@ paths:
           content:
             application/json:
               schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Warm Faq Cache
       tags:
       - Chat Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/cluster/features:
     get:
       operationId: getFeatures
@@ -868,11 +900,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TargetClusterView"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Add Target Cluster
       tags:
       - Cluster Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/cluster/targets/{id}:
     delete:
       operationId: removeTargetCluster
@@ -885,9 +924,16 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Remove Target Cluster
       tags:
       - Cluster Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/cluster/targets/{id}/validate:
     get:
       operationId: validateTargetCluster
@@ -1006,11 +1052,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MigrationPlan"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Analyze
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - operator
+        - admin
   /api/migration/import-export:
     post:
       operationId: importExport
@@ -1031,9 +1085,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ImportExportResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Import Export
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - operator
+        - admin
   /api/migration/plans:
     get:
       operationId: listPlans
@@ -1090,11 +1152,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplyResult"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Apply Plan
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/migration/plans/{id}/catalog-info/{productName}:
     get:
       operationId: getCatalogInfo
@@ -1143,11 +1212,18 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Confirm Registration
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/migration/plans/{id}/drift:
     get:
       operationId: checkDrift
@@ -1185,9 +1261,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApplyResult"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Revert Plan
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/migration/plans/{id}/test-commands:
     get:
       operationId: getTestCommands
@@ -1238,11 +1321,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BulkRevertResult"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Revert Bulk
       tags:
       - Migration Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/threescale/backends:
     get:
       operationId: listBackends
@@ -1307,9 +1397,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ThreeScaleRefreshResult"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Refresh Discovery
       tags:
       - Three Scale Resource
+      security:
+      - SecurityScheme:
+        - operator
+        - admin
   /api/threescale/sources:
     get:
       operationId: listSources
@@ -1340,11 +1438,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ThreeScaleSourceView"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
         "400":
           description: Bad Request
       summary: Add Source
       tags:
       - Three Scale Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/threescale/sources/{id}:
     delete:
       operationId: removeSource
@@ -1357,9 +1462,16 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       summary: Remove Source
       tags:
       - Three Scale Resource
+      security:
+      - SecurityScheme:
+        - admin
   /api/threescale/sources/{id}/status:
     get:
       operationId: getSourceStatus

@@ -8,6 +8,8 @@ import io.apishift.model.TargetClusterView;
 import io.apishift.service.ClusterReadinessService;
 import io.apishift.service.ClusterRegistry;
 import io.apishift.service.ClusterService;
+import io.apishift.security.ApiShiftRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -69,6 +71,7 @@ public class ClusterResource {
 
     @POST
     @Path("/targets")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public TargetClusterView addTargetCluster(TargetCluster cluster) {
         clusterRegistry.addCluster(cluster);
         return TargetClusterView.from(cluster);
@@ -76,6 +79,7 @@ public class ClusterResource {
 
     @DELETE
     @Path("/targets/{id}")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public void removeTargetCluster(@PathParam("id") String id) {
         if ("local".equals(id)) {
             throw new BadRequestException("Cannot remove local cluster");

@@ -6,6 +6,8 @@ import io.apishift.model.ChatMessage;
 import io.apishift.service.ApiShiftMetrics;
 import io.apishift.service.ThreeScaleService;
 import jakarta.enterprise.event.Observes;
+import io.apishift.security.ApiShiftRoles;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -100,6 +102,7 @@ public class ChatResource {
     }
 
     @POST
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public Response chat(ChatMessage userMessage) {
         try {
             String normalized = userMessage.content().trim().toLowerCase();
@@ -135,6 +138,7 @@ public class ChatResource {
 
     @POST
     @Path("/warm-faq")
+    @RolesAllowed(ApiShiftRoles.ADMIN)
     public Response warmFaqCache() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
