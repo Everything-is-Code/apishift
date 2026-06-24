@@ -84,6 +84,12 @@ See the root [README.md](../../README.md) for the full consolidated mapping and 
 | `connectivityLink.gatewayClassName` | `istio` | Gateway class name |
 | `clusterDomain` | `apps.cluster.example.com` | Cluster apps domain for generated hostnames |
 | `cors.allowedOrigins` | `""` | Allowed browser origins (`CORS_ALLOWED_ORIGINS`); defaults to `https://<route.host>` when set |
+| `auth.enabled` | `false` | Enable REST authentication (`APISHIFT_AUTH_ENABLED`) |
+| `auth.protectReads` | `false` | Protect sensitive GET endpoints (`APISHIFT_AUTH_PROTECT_READS`) |
+| `auth.oidc.authServerUrl` | `""` | OIDC issuer URL for JWT bearer validation |
+| `auth.oidc.clientId` | `apishift-backend` | OIDC client ID |
+| `auth.oidc.roleClaimPath` | `realm_access.roles` | JWT claim path for roles |
+| `auth.oidc.tenantEnabled` | `true` | Enable Quarkus OIDC when `authServerUrl` is set |
 | `rbac.clusterAdmin` | `false` | Bind cluster-admin role to backend SA (dev only) |
 | `route.enabled` | `true` | Create OpenShift Route |
 | `route.host` | `""` | Route hostname (auto-generated if empty) |
@@ -121,8 +127,27 @@ Helm values below are rendered into the backend container environment and map to
 | `observability.enabled` | `OBSERVABILITY_ENABLED` | `apishift.observability.enabled` |
 | `observability.otelCollectorEndpoint` | `OTEL_ENDPOINT` (when enabled) | `quarkus.otel.exporter.otlp.endpoint` |
 | `datagrid.*` (when enabled) | `DATAGRID_HOST`, `DATAGRID_PORT`, credentials | `quarkus.infinispan-client.*` |
+| `auth.enabled` | `APISHIFT_AUTH_ENABLED` | `apishift.auth.enabled` |
+| `auth.protectReads` | `APISHIFT_AUTH_PROTECT_READS` | `apishift.auth.protect-reads` |
+| `auth.oidc.authServerUrl` | `OIDC_AUTH_SERVER_URL` | `quarkus.oidc.auth-server-url` |
+| `auth.oidc.clientId` | `OIDC_CLIENT_ID` | `quarkus.oidc.client-id` |
+| `auth.oidc.roleClaimPath` | `OIDC_ROLE_CLAIM_PATH` | `quarkus.oidc.roles.role-claim-path` |
+| `auth.oidc.tenantEnabled` | `OIDC_TENANT_ENABLED` | `quarkus.oidc.tenant-enabled` |
 
-### Values documented but **not wired** in the chart
+When `auth.enabled=true`, the chart mounts a frontend `auth-config.js` ConfigMap so the Angular interceptor sends credentials to the backend. Operators must supply JWT tokens via browser SSO or extend the ConfigMap; embedded Basic auth is dev-only (`QUARKUS_PROFILE=dev`).
+
+### Enabling auth on Helm installs
+
+```bash
+helm upgrade --install apishift apishift/apishift \
+  --set auth.enabled=true \
+  --set auth.protectReads=true \
+  --set auth.oidc.authServerUrl=https://keycloak.example.com/realms/apishift \
+  --set auth.oidc.clientId=apishift-backend
+```
+
+**Upgrade path:** existing releases keep `auth.enabled=false` (chart default). Enable auth only after upgrading to a release that includes PR1–PR3 backend/frontend changes and configuring OIDC roles (`admin`, `operator`, `viewer`).
+
 
 These appear in `values.yaml` or older docs but are **not** set on the backend Deployment. The application uses its built-in defaults instead.
 

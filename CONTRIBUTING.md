@@ -56,6 +56,13 @@ When adding or changing a REST endpoint or response DTO:
 4. Migrate affected facades in `frontend/src/app/core/api/` to generated types when schemas are stable.
 5. Ensure backend and frontend CI are green.
 
+**Authentication checklist** (when `apishift.auth.enabled=true`):
+
+- **Mutations** (`POST`, `PUT`, `DELETE`): add `@RolesAllowed` — `admin` for destructive/config changes, `{operator, admin}` for operational workflows (analyze, refresh).
+- **Sensitive reads**: add path to `ReadProtectionAuthorizationFilter.isProtectedReadPath()` if the endpoint exposes plans, audit, hub, products, or targets data.
+- **Public probes**: keep health, readiness, status, and policy-mapping endpoints unauthenticated; document new public paths in `docs/ARCHITECTURE.md`.
+- **Tests**: extend `AuthEnforcementTest` or `AuthReadProtectionTest` for new 401/403 behavior; default test profile keeps auth off for regression suite.
+
 **Fastest path (containers):**
 
 ```bash

@@ -103,6 +103,28 @@ Quarkus 3.x / Java 17. Packages follow a loose layered layout:
 
 Persistence: **PostgreSQL** (Flyway migrations in `src/main/resources/db/migration/`). Discovery cache: **Infinispan / Data Grid** (remote Hot Rod client).
 
+### Security (REST auth)
+
+Controlled by `apishift.auth.enabled` and `apishift.auth.protect-reads` (env: `APISHIFT_AUTH_ENABLED`, `APISHIFT_AUTH_PROTECT_READS`). Implementation lives in `io.apishift.security`:
+
+| Component | Role |
+|-----------|------|
+| `ApiShiftAuthorizationController` | Disables all `@RolesAllowed` when auth flag is off |
+| `@RolesAllowed` on resource methods | Mutation RBAC (admin vs operator) |
+| `ReadProtectionAuthorizationFilter` | GET path guard when `protect-reads=true` |
+| `ApiShiftHttpSecurity` | Permits `/q/health*`, `/q/metrics*`; admin-only `/mcp*` |
+
+**Endpoint matrix (when auth enabled):**
+
+| Access | Endpoints |
+|--------|-----------|
+| Public | `/q/health*`, `/q/metrics*`, `GET /api/migration/policy-mapping`, `GET /api/cluster/features`, `GET /api/cluster/readiness`, `GET /api/threescale/status`, `GET /api/chat/status`, `GET /api/apicast/discover*` |
+| Viewer+ (reads, if `protect-reads`) | `GET /api/migration/plans*`, `GET /api/audit/reports`, `GET /api/hub/*`, `GET /api/threescale/products*`, `GET /api/cluster/targets*` |
+| Operator+ | `POST /api/migration/analyze`, `POST /api/migration/import-export`, `POST /api/threescale/refresh` |
+| Admin | `POST` apply/revert/revert-bulk/confirm-registration, targets/sources CRUD, APICast map, chat POST/warm-faq, `/mcp*` |
+
+Frontend: `core/auth/auth.interceptor.ts` attaches Bearer or Basic on `/api/*` when runtime auth config is enabled. See root [README.md](../README.md#rest-api-authentication).
+
 ### Outbound ports and adapters
 
 Phase 4 introduced an outbound **port** for the 3scale Admin API:

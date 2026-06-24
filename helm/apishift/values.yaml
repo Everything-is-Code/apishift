@@ -116,6 +116,15 @@ cors:
   # When empty, Helm uses https://<route.host> if route.host is set, else http://localhost:4200
   allowedOrigins: ""
 
+auth:
+  enabled: false
+  protectReads: false
+  oidc:
+    authServerUrl: ""
+    clientId: apishift-backend
+    roleClaimPath: realm_access.roles
+    tenantEnabled: true
+
 route:
   enabled: true
   host: ""
