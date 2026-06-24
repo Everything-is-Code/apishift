@@ -9,17 +9,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import io.quarkus.logging.Log;
+
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * HTTP adapter for a single 3scale Admin API instance.
  * Instances are created by ThreeScaleSourceRegistry.
  */
 public class ThreeScaleAdminApiClient implements ThreeScaleAdminPort {
-
-    private static final Logger LOG = Logger.getLogger(ThreeScaleAdminApiClient.class.getName());
 
     private final String sourceId;
     private final String adminUrl;
@@ -116,7 +114,7 @@ public class ThreeScaleAdminApiClient implements ThreeScaleAdminPort {
                 return objectMapper.convertValue(root.get("proxy"), Map.class);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to get proxy for service " + serviceId, e);
+            Log.warnf(e, "Failed to get proxy for service %d", serviceId);
         }
         return Collections.emptyMap();
     }
@@ -141,7 +139,7 @@ public class ThreeScaleAdminApiClient implements ThreeScaleAdminPort {
                 if (collection.size() < perPage) break;
                 page++;
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error fetching " + path + " page " + page + " from source " + sourceId, e);
+                Log.warnf(e, "Error fetching %s page %d from source %s", path, page, sourceId);
                 break;
             }
         }
@@ -175,7 +173,7 @@ public class ThreeScaleAdminApiClient implements ThreeScaleAdminPort {
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
-            LOG.warning("3scale Admin API [" + sourceId + "] returned " + response.statusCode() + " for " + url);
+            Log.warnf("3scale Admin API [%s] returned %d for %s", sourceId, response.statusCode(), url);
             return null;
         }
         return objectMapper.readTree(response.body());

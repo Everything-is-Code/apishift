@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import io.apishift.model.DriftEntry;
 import io.apishift.model.MigrationPlan;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +16,6 @@ import java.util.List;
  */
 @ApplicationScoped
 public class ClusterResourceApplyService {
-
-    private static final Logger LOG = Logger.getLogger(ClusterResourceApplyService.class);
 
     public void applyYaml(KubernetesClient client, String yaml, String namespace) {
         GenericKubernetesResource generic = unmarshal(yaml, namespace);
@@ -47,7 +45,7 @@ public class ClusterResourceApplyService {
             } else {
                 status = "error";
                 message = msg;
-                LOG.debugf("Drift check error for %s/%s: %s", res.kind(), res.name(), msg);
+                Log.debugf("Drift check error for %s/%s: %s", res.kind(), res.name(), msg);
             }
         }
         return new DriftEntry(res.kind(), res.name(), res.namespace(), status, message);

@@ -2,7 +2,7 @@ package io.apishift.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -10,8 +10,6 @@ import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
 public class KuadrantCtlService {
-
-    private static final Logger LOG = Logger.getLogger(KuadrantCtlService.class);
 
     @ConfigProperty(name = "apishift.kuadrantctl.path", defaultValue = "/usr/local/bin/kuadrantctl")
     String kuadrantctlPath;
@@ -54,7 +52,7 @@ public class KuadrantCtlService {
             }
             return output;
         } catch (Exception e) {
-            LOG.error("kuadrantctl execution failed", e);
+            Log.errorf(e, "kuadrantctl execution failed");
             return "ERROR: " + e.getMessage();
         }
     }
@@ -78,7 +76,7 @@ public class KuadrantCtlService {
             }
             return output;
         } catch (Exception e) {
-            LOG.error("kuadrantctl execution failed", e);
+            Log.errorf(e, "kuadrantctl execution failed");
             return "ERROR: " + e.getMessage();
         }
     }

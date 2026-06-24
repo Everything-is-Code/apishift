@@ -5,15 +5,13 @@ import io.apishift.model.APICastConfig.*;
 import io.apishift.model.MigrationPlan;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
 public class APICastToIstioMapper {
-
-    private static final Logger LOG = Logger.getLogger(APICastToIstioMapper.class);
 
     @ConfigProperty(name = "apishift.cluster-domain", defaultValue = "apps.cluster.example.com")
     String clusterDomain;
@@ -22,7 +20,7 @@ public class APICastToIstioMapper {
     String gatewayClassName;
 
     public List<MigrationPlan.GeneratedResource> mapAPICastToIstio(APICastConfig config) {
-        LOG.infof("Mapping APIcast '%s' to Istio Gateway resources...", config.apiManagerName());
+        Log.infof("Mapping APIcast '%s' to Istio Gateway resources...", config.apiManagerName());
 
         List<MigrationPlan.GeneratedResource> resources = new ArrayList<>();
         String ns = config.namespace();
@@ -53,12 +51,12 @@ public class APICastToIstioMapper {
             resources.add(generateServiceEntry(name, ns, config.service()));
         }
 
-        LOG.infof("Generated %d resources for '%s'", resources.size(), name);
+        Log.infof("Generated %d resources for '%s'", resources.size(), name);
         return resources;
     }
 
     public List<List<MigrationPlan.GeneratedResource>> mapMultipleAPICasts(List<APICastConfig> configs) {
-        LOG.infof("Batch mapping %d APIManagers...", configs.size());
+        Log.infof("Batch mapping %d APIManagers...", configs.size());
         return configs.stream().map(this::mapAPICastToIstio).toList();
     }
 

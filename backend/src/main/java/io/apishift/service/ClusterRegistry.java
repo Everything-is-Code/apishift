@@ -2,7 +2,6 @@ package io.apishift.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.apishift.util.LogSanitizer;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.Config;
@@ -14,15 +13,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class ClusterRegistry {
-
-    private static final Logger LOG = Logger.getLogger(ClusterRegistry.class);
 
     @Inject
     KubernetesClient localClient;
@@ -52,7 +49,7 @@ public class ClusterRegistry {
                     if (tc.enabled()) addCluster(tc);
                 }
             } catch (Exception e) {
-                LOG.warn("Failed to parse TARGET_CLUSTERS JSON", e);
+                Log.warnf(e, "Failed to parse TARGET_CLUSTERS JSON");
             }
         }
 
@@ -60,7 +57,7 @@ public class ClusterRegistry {
             discoverArgoCDClusters();
         }
 
-        LOG.infof("ClusterRegistry initialized with %d cluster(s): %s", clusters.size(), clusters.keySet());
+        Log.infof("ClusterRegistry initialized with %d cluster(s): %s", clusters.size(), clusters.keySet());
     }
 
     public void addCluster(TargetCluster cluster) {
@@ -68,9 +65,9 @@ public class ClusterRegistry {
         try {
             KubernetesClient client = buildClient(cluster);
             clients.put(cluster.id(), client);
-            LOG.infof("Registered target cluster: %s (%s)", cluster.id(), cluster.apiServerUrl());
+            Log.infof("Registered target cluster: %s (%s)", cluster.id(), cluster.apiServerUrl());
         } catch (Exception e) {
-            LOG.warnf("Failed to create client for cluster %s: %s", cluster.id(), e.getMessage());
+            Log.warnf("Failed to create client for cluster %s: %s", cluster.id(), e.getMessage());
         }
     }
 
@@ -164,8 +161,8 @@ public class ClusterRegistry {
                             token = config.get("bearerToken").asText();
                         }
                     } catch (JsonProcessingException e) {
-                        LOG.warnf(e, "Failed to parse ArgoCD cluster config for '%s'",
-                                LogSanitizer.sanitize(name));
+                        Log.warnf(e, "Failed to parse ArgoCD cluster config for '%s'",
+                                name);
                     }
                 }
 
@@ -173,10 +170,10 @@ public class ClusterRegistry {
                 TargetCluster cluster = new TargetCluster(
                         id, "ArgoCD: " + name, server, token, "argocd-secret", false, true);
                 addCluster(cluster);
-                LOG.infof("Discovered ArgoCD cluster: %s -> %s", LogSanitizer.sanitize(name), LogSanitizer.sanitize(server));
+                Log.infof("Discovered ArgoCD cluster: %s -> %s", name, server);
             }
         } catch (Exception e) {
-            LOG.warnf(e, "ArgoCD cluster discovery failed (this is expected if no ArgoCD present)");
+            Log.warnf(e, "ArgoCD cluster discovery failed (this is expected if no ArgoCD present)");
         }
     }
 

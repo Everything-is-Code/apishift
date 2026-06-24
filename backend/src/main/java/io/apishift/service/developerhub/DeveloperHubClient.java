@@ -2,12 +2,11 @@ package io.apishift.service.developerhub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.apishift.model.MigrationPlan;
-import io.apishift.util.LogSanitizer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,8 +21,6 @@ import java.util.*;
  */
 @ApplicationScoped
 public class DeveloperHubClient {
-
-    private static final Logger LOG = Logger.getLogger(DeveloperHubClient.class);
 
     @ConfigProperty(name = "apishift.developer-hub.scaffolder-url", defaultValue = "")
     Optional<String> scaffolderUrl;
@@ -99,7 +96,7 @@ public class DeveloperHubClient {
             try {
                 triggerScaffolderTemplate("apishift-unregister-component", Map.of("componentName", compName));
             } catch (Exception e) {
-                LOG.warnf(e, "Failed to unregister component %s", LogSanitizer.sanitize(compName));
+                Log.warnf(e, "Failed to unregister component %s", compName);
             }
         }
     }
@@ -134,20 +131,20 @@ public class DeveloperHubClient {
                 payload.put("resources", resourcesPayload);
 
                 HttpResponse<String> resp = sendJsonPost(url, payload);
-                LOG.infof("Developer Hub migration-event POST for %s → HTTP %d", sysName, resp.statusCode());
+                Log.infof("Developer Hub migration-event POST for %s → HTTP %d", sysName, resp.statusCode());
                 if (resp.statusCode() >= 400) {
-                    LOG.warnf("Developer Hub migration-event error for %s: %s", sysName, resp.body());
+                    Log.warnf("Developer Hub migration-event error for %s: %s", sysName, resp.body());
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Failed to POST migration-event to Developer Hub");
+            Log.warnf(e, "Failed to POST migration-event to Developer Hub");
         }
     }
 
     private void registerCatalogEntities(MigrationPlan plan) {
         String catalogYaml = plan.catalogInfoYaml();
         if (catalogYaml == null || catalogYaml.isBlank()) {
-            LOG.info("No catalog-info YAML in plan, skipping catalog registration");
+            Log.info("No catalog-info YAML in plan, skipping catalog registration");
             return;
         }
         try {
@@ -165,13 +162,13 @@ public class DeveloperHubClient {
                 locationPayload.put("target", catalogEndpoint);
 
                 HttpResponse<String> resp = sendJsonPost(locationUrl, locationPayload);
-                LOG.infof("Catalog location POST for %s → HTTP %d", sysName, resp.statusCode());
+                Log.infof("Catalog location POST for %s → HTTP %d", sysName, resp.statusCode());
                 if (resp.statusCode() >= 400) {
-                    LOG.warnf("Catalog location error for %s: %s", sysName, resp.body());
+                    Log.warnf("Catalog location error for %s: %s", sysName, resp.body());
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Failed to register catalog entities");
+            Log.warnf(e, "Failed to register catalog entities");
         }
     }
 
@@ -182,7 +179,7 @@ public class DeveloperHubClient {
                 unregister3ScaleEntity(toSystemName(productName), baseUrl);
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Failed to unregister 3scale entities");
+            Log.warnf(e, "Failed to unregister 3scale entities");
         }
     }
 
@@ -194,7 +191,7 @@ public class DeveloperHubClient {
 
             HttpResponse<String> resp = sendAuthorizedGet(entitiesUrl, Duration.ofSeconds(15));
             if (resp.statusCode() != 200) {
-                LOG.warnf("Could not query 3scale entity '%s': HTTP %d", sysName, resp.statusCode());
+                Log.warnf("Could not query 3scale entity '%s': HTTP %d", sysName, resp.statusCode());
                 return;
             }
 
@@ -219,7 +216,7 @@ public class DeveloperHubClient {
                 String locationRef = String.valueOf(
                         annotations.getOrDefault("backstage.io/origin-location-ref", ""));
 
-                LOG.infof("Unregistering 3scale entity '%s' (uid=%s, origin=%s)", sysName, uid, originLocation);
+                Log.infof("Unregistering 3scale entity '%s' (uid=%s, origin=%s)", sysName, uid, originLocation);
                 if (locationRef != null && !locationRef.isBlank()) {
                     deleteLocationByRef(baseUrl, locationRef);
                 } else {
@@ -227,7 +224,7 @@ public class DeveloperHubClient {
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Error unregistering 3scale entity '%s'", LogSanitizer.sanitize(sysName));
+            Log.warnf(e, "Error unregistering 3scale entity '%s'", sysName);
         }
     }
 
@@ -247,11 +244,11 @@ public class DeveloperHubClient {
                             .DELETE()
                             .build();
                     httpClient.send(delReq, HttpResponse.BodyHandlers.ofString());
-                    LOG.infof("Deleted 3scale location %s", locId);
+                    Log.infof("Deleted 3scale location %s", locId);
                 }
             }
         } catch (Exception e) {
-            LOG.warnf(e, "Error deleting location ref '%s'", LogSanitizer.sanitize(locationRef));
+            Log.warnf(e, "Error deleting location ref '%s'", locationRef);
         }
     }
 
@@ -262,15 +259,15 @@ public class DeveloperHubClient {
                     .timeout(Duration.ofSeconds(15));
             addAuthHeader(reqBuilder);
             HttpResponse<String> resp = httpClient.send(reqBuilder.DELETE().build(), HttpResponse.BodyHandlers.ofString());
-            LOG.infof("Deleted 3scale entity uid=%s → HTTP %d", LogSanitizer.sanitize(uid), resp.statusCode());
+            Log.infof("Deleted 3scale entity uid=%s → HTTP %d", uid, resp.statusCode());
         } catch (Exception e) {
-            LOG.warnf(e, "Error deleting entity uid '%s'", LogSanitizer.sanitize(uid));
+            Log.warnf(e, "Error deleting entity uid '%s'", uid);
         }
     }
 
     private void triggerScaffolderTemplate(String templateName, Map<String, Object> values) {
         if (scaffolderUrl.isEmpty() || scaffolderUrl.get().isBlank()) {
-            LOG.info("Scaffolder URL not configured, skipping template trigger");
+            Log.info("Scaffolder URL not configured, skipping template trigger");
             return;
         }
         try {
@@ -288,7 +285,7 @@ public class DeveloperHubClient {
             HttpResponse<String> resp = httpClient.send(
                     reqBuilder.POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(payload))).build(),
                     HttpResponse.BodyHandlers.ofString());
-            LOG.infof("Scaffolder API response: %d — %s", resp.statusCode(), resp.body());
+            Log.infof("Scaffolder API response: %d — %s", resp.statusCode(), resp.body());
 
             if (resp.statusCode() >= 400) {
                 throw new WebApplicationException(
@@ -298,13 +295,13 @@ public class DeveloperHubClient {
         } catch (HttpTimeoutException e) {
             String msg = "Developer Hub Scaffolder API timed out after 30s. The Component may not have been registered. "
                     + "Check the Scaffolder tasks in Developer Hub or retry using POST /api/migration/plans/{id}/confirm-registration.";
-            LOG.error(msg, e);
+            Log.errorf(e, "%s", msg);
             throw new WebApplicationException(msg, 504);
         } catch (WebApplicationException e) {
             throw e;
         } catch (Exception e) {
             String msg = "Failed to trigger Scaffolder template: " + e.getMessage();
-            LOG.error(msg, e);
+            Log.errorf(e, "%s", msg);
             throw new WebApplicationException(msg, 502);
         }
     }

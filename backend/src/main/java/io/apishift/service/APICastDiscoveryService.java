@@ -9,15 +9,13 @@ import io.apishift.model.APICastConfig.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class APICastDiscoveryService {
-
-    private static final Logger LOG = Logger.getLogger(APICastDiscoveryService.class);
 
     @Inject
     KubernetesClient kubernetesClient;
@@ -41,14 +39,14 @@ public class APICastDiscoveryService {
 
     public List<APICastConfig> discoverAllAPIManagers() {
         if (!discoveryEnabled) {
-            LOG.info("APICast discovery is disabled");
+            Log.info("APICast discovery is disabled");
             return List.of();
         }
-        LOG.info("Scanning all namespaces for APIManagers with APIcast self-managed...");
+        Log.info("Scanning all namespaces for APIManagers with APIcast self-managed...");
         try {
             var items = kubernetesClient.genericKubernetesResources(APIMANAGER_CTX)
                     .inAnyNamespace().list().getItems();
-            LOG.infof("Found %d total APIManagers in cluster", items.size());
+            Log.infof("Found %d total APIManagers in cluster", items.size());
 
             return items.stream()
                     .filter(this::hasSelfManagedAPICast)
@@ -56,13 +54,13 @@ public class APICastDiscoveryService {
                     .map(this::analyzeAndEnrich)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            LOG.warnf("Failed to discover APIManagers: %s", e.getMessage());
+            Log.warnf("Failed to discover APIManagers: %s", e.getMessage());
             return List.of();
         }
     }
 
     public List<APICastConfig> discoverByNamespace(String namespace) {
-        LOG.infof("Scanning namespace '%s' for APIManagers...", namespace);
+        Log.infof("Scanning namespace '%s' for APIManagers...", namespace);
         try {
             return kubernetesClient.genericKubernetesResources(APIMANAGER_CTX)
                     .inNamespace(namespace).list().getItems().stream()
@@ -71,27 +69,27 @@ public class APICastDiscoveryService {
                     .map(this::analyzeAndEnrich)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            LOG.warnf("Failed to discover APIManagers in %s: %s", namespace, e.getMessage());
+            Log.warnf("Failed to discover APIManagers in %s: %s", namespace, e.getMessage());
             return List.of();
         }
     }
 
     public APICastConfig discoverByName(String name, String namespace) {
-        LOG.infof("Looking for APIManager '%s/%s'...", namespace, name);
+        Log.infof("Looking for APIManager '%s/%s'...", namespace, name);
         try {
             var am = kubernetesClient.genericKubernetesResources(APIMANAGER_CTX)
                     .inNamespace(namespace).withName(name).get();
             if (am == null || !hasSelfManagedAPICast(am)) {
-                LOG.warnf("APIManager '%s/%s' not found or not self-managed", namespace, name);
+                Log.warnf("APIManager '%s/%s' not found or not self-managed", namespace, name);
                 return null;
             }
             if (!isReady(am)) {
-                LOG.warnf("APIManager '%s/%s' is not ready", namespace, name);
+                Log.warnf("APIManager '%s/%s' is not ready", namespace, name);
                 return null;
             }
             return analyzeAndEnrich(am);
         } catch (Exception e) {
-            LOG.warnf("Failed to discover APIManager %s/%s: %s", namespace, name, e.getMessage());
+            Log.warnf("Failed to discover APIManager %s/%s: %s", namespace, name, e.getMessage());
             return null;
         }
     }

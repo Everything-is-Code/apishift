@@ -7,15 +7,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class ThreeScaleSourceRegistry {
-
-    private static final Logger LOG = Logger.getLogger(ThreeScaleSourceRegistry.class);
 
     @ConfigProperty(name = "apishift.threescale.admin-url", defaultValue = "http://localhost")
     String defaultAdminUrl;
@@ -48,11 +46,11 @@ public class ThreeScaleSourceRegistry {
                     if (src.enabled()) addSource(src);
                 }
             } catch (Exception e) {
-                LOG.warn("Failed to parse THREESCALE_SOURCES JSON", e);
+                Log.warnf(e, "Failed to parse THREESCALE_SOURCES JSON");
             }
         }
 
-        LOG.infof("ThreeScaleSourceRegistry initialized with %d source(s): %s",
+        Log.infof("ThreeScaleSourceRegistry initialized with %d source(s): %s",
                 sources.size(), sources.keySet());
     }
 
@@ -60,7 +58,7 @@ public class ThreeScaleSourceRegistry {
         sources.put(source.id(), source);
         clients.put(source.id(), new ThreeScaleAdminApiClient(
                 source.id(), source.adminUrl(), source.accessToken(), objectMapper));
-        LOG.infof("Registered 3scale source: %s (%s)", source.id(), source.adminUrl());
+        Log.infof("Registered 3scale source: %s (%s)", source.id(), source.adminUrl());
     }
 
     public void removeSource(String id) {

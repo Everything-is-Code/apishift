@@ -14,7 +14,7 @@ import io.quarkus.runtime.StartupEvent;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.commons.configuration.StringConfiguration;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ChatResource {
 
-    private static final Logger LOG = Logger.getLogger(ChatResource.class);
     private static final String FAQ_CACHE = "apishift-faq";
 
     private static final String[] FAQ_PROMPTS = {
@@ -60,7 +59,7 @@ public class ChatResource {
     private RemoteCache<String, String> getOrCreateFaqCache() {
         RemoteCache<String, String> cache = cacheManager.getCache(FAQ_CACHE);
         if (cache == null) {
-            LOG.info("Creating FAQ cache: " + FAQ_CACHE);
+            Log.infof("Creating FAQ cache: %s", FAQ_CACHE);
             cache = cacheManager.administration()
                     .getOrCreateCache(FAQ_CACHE, new StringConfiguration(
                             "<distributed-cache name=\"" + FAQ_CACHE + "\">"
@@ -75,10 +74,10 @@ public class ChatResource {
         executor.submit(() -> {
             try {
                 Thread.sleep(15000);
-                LOG.info("Starting FAQ cache warm-up...");
+                Log.info("Starting FAQ cache warm-up...");
                 RemoteCache<String, String> cache = getOrCreateFaqCache();
                 if (cache == null) {
-                    LOG.warn("FAQ cache not available, skipping warm-up");
+                    Log.warn("FAQ cache not available, skipping warm-up");
                     return;
                 }
                 int loaded = 0;
@@ -92,9 +91,9 @@ public class ChatResource {
                         loaded++;
                     }
                 }
-                LOG.infof("FAQ cache warm-up complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
+                Log.infof("FAQ cache warm-up complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
             } catch (Exception e) {
-                LOG.warn("FAQ cache warm-up interrupted", e);
+                Log.warnf(e, "FAQ cache warm-up interrupted");
             }
         });
         executor.shutdown();
@@ -108,13 +107,13 @@ public class ChatResource {
             try {
                 faqCache = getOrCreateFaqCache();
             } catch (Exception e) {
-                LOG.debug("FAQ cache not available");
+                Log.debug("FAQ cache not available");
             }
 
             if (faqCache != null) {
                 String cached = faqCache.get(normalized);
                 if (cached != null) {
-                    LOG.infof("FAQ cache hit for: %s", userMessage.content());
+                    Log.infof("FAQ cache hit for: %s", userMessage.content());
                     apiShiftMetrics.recordChatRequest("cached");
                     return Response.ok(new ChatMessage("assistant", cached, true)).build();
                 }
@@ -126,7 +125,7 @@ public class ChatResource {
             apiShiftMetrics.recordChatRequest("llm");
             return Response.ok(new ChatMessage("assistant", response, false)).build();
         } catch (Exception e) {
-            LOG.error("AI chat failed", e);
+            Log.errorf(e, "AI chat failed");
             String errorMsg = extractUserFriendlyError(e);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                     .entity(new ChatMessage("error", errorMsg))
@@ -155,9 +154,9 @@ public class ChatResource {
                         loaded++;
                     }
                 }
-                LOG.infof("FAQ cache refresh complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
+                Log.infof("FAQ cache refresh complete: %d/%d entries", loaded, FAQ_PROMPTS.length);
             } catch (Exception e) {
-                LOG.warn("FAQ cache refresh failed", e);
+                Log.warnf(e, "FAQ cache refresh failed");
             }
         });
         executor.shutdown();
@@ -228,15 +227,15 @@ public class ChatResource {
                 response = cleanThinkingBlocks(response);
                 if (response != null && !response.isBlank()) {
                     cache.put(key, response, 24, TimeUnit.HOURS);
-                    LOG.infof("FAQ cached [%d/%d]: %s", displayIndex, FAQ_PROMPTS.length, prompt);
+                    Log.infof("FAQ cached [%d/%d]: %s", displayIndex, FAQ_PROMPTS.length, prompt);
                     return true;
                 }
                 return false;
             } catch (Exception e) {
                 if (attempt >= maxAttempts) {
-                    LOG.warnf("FAQ cache warm-up failed for: %s — %s", prompt, e.getMessage());
+                    Log.warnf("FAQ cache warm-up failed for: %s — %s", prompt, e.getMessage());
                 } else {
-                    LOG.infof("FAQ warm-up retry %d/%d for: %s — %s",
+                    Log.infof("FAQ warm-up retry %d/%d for: %s — %s",
                             attempt, maxAttempts, prompt, e.getMessage());
                     try {
                         Thread.sleep(10_000L);
@@ -260,12 +259,12 @@ public class ChatResource {
         try {
             ctx.append("### 3scale Status\n").append(tools.getThreeScaleStatus()).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch 3scale status for FAQ warm-up context", e);
+            Log.debugf(e, "Failed to fetch 3scale status for FAQ warm-up context");
         }
         try {
             ctx.append("### 3scale Products (summary)\n").append(buildProductSummary(userQuestion)).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch products for FAQ warm-up context", e);
+            Log.debugf(e, "Failed to fetch products for FAQ warm-up context");
         }
         ctx.append("---\n\n## User Question\n").append(userQuestion);
         return ctx.toString();
@@ -278,25 +277,25 @@ public class ChatResource {
         try {
             ctx.append("### 3scale Status\n").append(tools.getThreeScaleStatus()).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch 3scale status for context", e);
+            Log.debugf(e, "Failed to fetch 3scale status for context");
         }
 
         try {
             ctx.append("### 3scale Products (summary)\n").append(buildProductSummary(userQuestion)).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch products for context", e);
+            Log.debugf(e, "Failed to fetch products for context");
         }
 
         try {
             ctx.append("### OpenShift Projects\n").append(tools.listProjects()).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch projects for context", e);
+            Log.debugf(e, "Failed to fetch projects for context");
         }
 
         try {
             ctx.append("### kuadrantctl\n").append(tools.getKuadrantctlVersion()).append("\n\n");
         } catch (Exception e) {
-            LOG.debug("Failed to fetch kuadrantctl version for context", e);
+            Log.debugf(e, "Failed to fetch kuadrantctl version for context");
         }
 
         ctx.append("---\n\n## User Question\n").append(userQuestion);

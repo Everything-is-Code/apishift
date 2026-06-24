@@ -8,14 +8,12 @@ import io.apishift.model.MigrationPrerequisite;
 import io.apishift.repository.MigrationPlanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.*;
 
 @ApplicationScoped
 public class ClusterReadinessService {
-
-    private static final Logger LOG = Logger.getLogger(ClusterReadinessService.class);
 
     @Inject
     ClusterRegistry clusterRegistry;
@@ -147,10 +145,10 @@ public class ClusterReadinessService {
             return crd != null ? "satisfied" : "missing";
         } catch (Exception e) {
             if (isRbacOrConnectionError(e)) {
-                LOG.debugf("CRD probe for %s returned unknown: %s", prerequisiteId, e.getMessage());
+                Log.debugf("CRD probe for %s returned unknown: %s", prerequisiteId, e.getMessage());
                 return "unknown";
             }
-            LOG.debugf("CRD probe for %s returned missing: %s", prerequisiteId, e.getMessage());
+            Log.debugf("CRD probe for %s returned missing: %s", prerequisiteId, e.getMessage());
             return "missing";
         }
     }
@@ -171,7 +169,7 @@ public class ClusterReadinessService {
             return mapper.readValue(json,
                     mapper.getTypeFactory().constructCollectionType(List.class, MigrationPrerequisite.class));
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize prerequisites JSON", e);
+            Log.warnf(e, "Failed to deserialize prerequisites JSON");
             return List.of();
         }
     }

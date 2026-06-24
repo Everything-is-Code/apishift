@@ -10,7 +10,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.jboss.logging.Logger;
+import io.quarkus.logging.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationPlanEntity, String> {
-
-    private static final Logger LOG = Logger.getLogger(MigrationPlanRepository.class);
 
     @Inject
     ObjectMapper objectMapper;
@@ -141,7 +139,7 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
             return objectMapper.readValue(json,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize string list JSON", e);
+            Log.warnf(e, "Failed to deserialize string list JSON");
             return List.of();
         }
     }
@@ -154,7 +152,7 @@ public class MigrationPlanRepository implements PanacheRepositoryBase<MigrationP
             return objectMapper.readValue(json,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, MigrationPrerequisite.class));
         } catch (Exception e) {
-            LOG.warn("Failed to deserialize prerequisites JSON", e);
+            Log.warnf(e, "Failed to deserialize prerequisites JSON");
             return List.of();
         }
     }
