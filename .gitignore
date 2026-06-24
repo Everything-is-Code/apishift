@@ -43,3 +43,4 @@ Thumbs.db
 
 # ATL / SDD local agent cache
 .atl/
+.engram/
