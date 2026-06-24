@@ -6,5 +6,7 @@ public final class ApiShiftRoles {
     public static final String OPERATOR = "operator";
     public static final String VIEWER = "viewer";
 
+    public static final String[] READ_ACCESS = {VIEWER, OPERATOR, ADMIN};
+
     private ApiShiftRoles() {}
 }

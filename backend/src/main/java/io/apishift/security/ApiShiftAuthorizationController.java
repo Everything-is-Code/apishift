@@ -2,8 +2,8 @@ package io.apishift.security;
 
 import io.quarkus.security.spi.runtime.AuthorizationController;
 import jakarta.annotation.Priority;
-import jakarta.enterprise.inject.Alternative;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
 import jakarta.interceptor.Interceptor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
