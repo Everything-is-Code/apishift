@@ -1,0 +1,16 @@
+{{- if .Values.auth.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "apishift.fullname" . }}-frontend-auth
+  labels:
+    {{- include "apishift.labels" . | nindent 4 }}
+data:
+  auth-config.js: |
+    window.__APISHIFT_AUTH__ = {
+      enabled: true,
+      bearerToken: '',
+      basicUsername: '',
+      basicPassword: ''
+    };
+{{- end }}

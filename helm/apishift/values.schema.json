@@ -432,6 +432,41 @@
           }
         }
       }
+    },
+    "auth": {
+      "type": "object",
+      "description": "REST API authentication and authorization (OIDC bearer in production)",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable REST auth (APISHIFT_AUTH_ENABLED). Default false preserves upgrade compatibility."
+        },
+        "protectReads": {
+          "type": "boolean",
+          "description": "Require viewer+ role on sensitive GET endpoints (APISHIFT_AUTH_PROTECT_READS)"
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "authServerUrl": {
+              "type": "string",
+              "description": "OIDC issuer URL (OIDC_AUTH_SERVER_URL), e.g. https://keycloak.example.com/realms/apishift"
+            },
+            "clientId": {
+              "type": "string",
+              "description": "OIDC client ID for bearer validation (OIDC_CLIENT_ID)"
+            },
+            "roleClaimPath": {
+              "type": "string",
+              "description": "JWT claim path for roles (OIDC_ROLE_CLAIM_PATH)"
+            },
+            "tenantEnabled": {
+              "type": "boolean",
+              "description": "Enable Quarkus OIDC tenant when authServerUrl is set (OIDC_TENANT_ENABLED)"
+            }
+          }
+        }
+      }
     }
   },
   "required": ["backend", "frontend"]

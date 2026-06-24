@@ -540,6 +540,48 @@ helm install ApiShift ApiShift/ApiShift \
 
 ---
 
+## REST API authentication
+
+Authentication is **disabled by default** (`APISHIFT_AUTH_ENABLED=false`). When enabled, the backend validates OIDC JWT bearer tokens (production) or HTTP Basic with embedded users (dev profile only).
+
+| Flag / env | Default | Purpose |
+|------------|---------|---------|
+| `APISHIFT_AUTH_ENABLED` | `false` | Master switch; when off, all endpoints behave as pre-auth releases |
+| `APISHIFT_AUTH_PROTECT_READS` | `false` | When `true`, sensitive GET paths require viewer, operator, or admin |
+| `OIDC_AUTH_SERVER_URL` | — | Keycloak (or compatible) issuer URL for bearer validation |
+| `OIDC_CLIENT_ID` | `apishift-backend` | Resource-server client ID |
+| `OIDC_ROLE_CLAIM_PATH` | `realm_access.roles` | JWT claim containing role names |
+
+### Roles
+
+| Role | Mutations | Reads (when `protect-reads=true`) |
+|------|-----------|-------------------------------------|
+| `admin` | apply, revert, targets/sources CRUD, APICast map, chat | all protected reads |
+| `operator` | analyze, import-export, threescale refresh | all protected reads |
+| `viewer` | — | protected reads only |
+
+### Local dev (Basic auth)
+
+```bash
+# .env
+APISHIFT_AUTH_ENABLED=true
+
+# frontend/public/auth-config.local.js (copy from auth-config.local.example.js)
+# enabled: true, basicUsername: admin, basicPassword: admin
+```
+
+Embedded dev users: `admin/admin`, `operator/operator`, `viewer/viewer`.
+
+### Production (Helm + OIDC)
+
+See [helm/apishift/README.md](helm/apishift/README.md#enabling-auth-on-helm-installs). Map IdP groups to JWT roles `admin`, `operator`, and `viewer`. The SPA sends `Authorization: Bearer` via the frontend interceptor; configure SSO token handoff separately (RHDH plugin out of scope for #102).
+
+### Always public (even when auth enabled)
+
+Health/metrics probes, `/api/migration/policy-mapping`, `/api/cluster/features`, `/api/cluster/readiness`, `/api/threescale/status`, `/api/chat/status`, `/api/apicast/discover*`.
+
+---
+
 ## API Endpoints
 
 ### Core APIs
