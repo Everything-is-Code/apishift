@@ -74,8 +74,11 @@ services:
       DATAGRID_USERNAME: developer
       DATAGRID_PASSWORD: changeme
       # Optional OpenShift API (enable APICAST_DISCOVERY / THREESCALE_CRD_DISCOVERY in .env)
-      QUARKUS_KUBERNETES_CLIENT_MASTER_URL: ${KUBE_API_URL:-}
+      KUBE_API_URL: ${KUBE_API_URL:-}
+      KUBE_TOKEN: ${KUBE_TOKEN:-}
+      QUARKUS_KUBERNETES_CLIENT_API_SERVER_URL: ${KUBE_API_URL:-}
       QUARKUS_KUBERNETES_CLIENT_TOKEN: ${KUBE_TOKEN:-}
+      QUARKUS_KUBERNETES_CLIENT_TRUST_CERTS: "true"
     depends_on:
       postgresql:
         condition: service_healthy

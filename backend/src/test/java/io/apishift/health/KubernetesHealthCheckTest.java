@@ -18,7 +18,7 @@ class KubernetesHealthCheckTest {
 
         KubernetesHealthCheck check = new KubernetesHealthCheck();
         setField(check, "kubernetesClient", client);
-        setField(check, "configuredMasterUrl", Optional.empty());
+        setField(check, "configuredApiServerUrl", Optional.empty());
 
         HealthCheckResponse response = check.call();
         assertEquals(HealthCheckResponse.Status.UP, response.getStatus());
@@ -35,7 +35,7 @@ class KubernetesHealthCheckTest {
 
         KubernetesHealthCheck check = new KubernetesHealthCheck();
         setField(check, "kubernetesClient", client);
-        setField(check, "configuredMasterUrl", Optional.of("https://api.example.com:6443"));
+        setField(check, "configuredApiServerUrl", Optional.of("https://api.example.com:6443"));
 
         HealthCheckResponse response = check.call();
         assertTrue(response.getStatus() == HealthCheckResponse.Status.UP);
@@ -50,7 +50,7 @@ class KubernetesHealthCheckTest {
 
         KubernetesHealthCheck check = new KubernetesHealthCheck();
         setField(check, "kubernetesClient", client);
-        setField(check, "configuredMasterUrl", Optional.of("https://api.example.com:6443"));
+        setField(check, "configuredApiServerUrl", Optional.of("https://api.example.com:6443"));
 
         HealthCheckResponse response = check.call();
         assertTrue(response.getStatus() == HealthCheckResponse.Status.DOWN);

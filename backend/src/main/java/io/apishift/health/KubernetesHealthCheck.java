@@ -19,8 +19,8 @@ public class KubernetesHealthCheck implements HealthCheck {
     @Inject
     KubernetesClient kubernetesClient;
 
-    @ConfigProperty(name = "quarkus.kubernetes-client.master-url")
-    Optional<String> configuredMasterUrl;
+    @ConfigProperty(name = "quarkus.kubernetes-client.api-server-url")
+    Optional<String> configuredApiServerUrl;
 
     @Override
     public HealthCheckResponse call() {
@@ -40,7 +40,7 @@ public class KubernetesHealthCheck implements HealthCheck {
         if (isInsideKubernetesCluster()) {
             return true;
         }
-        return configuredMasterUrl.filter(url -> !url.isBlank()).isPresent();
+        return configuredApiServerUrl.filter(url -> !url.isBlank()).isPresent();
     }
 
     private static boolean isInsideKubernetesCluster() {
