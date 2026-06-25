@@ -119,6 +119,20 @@ spec:
                   name: {{ include "apishift.datagrid" . }}-secret
                   key: DATAGRID_PASSWORD
             {{- end }}
+            - name: APISHIFT_AUTH_ENABLED
+              value: {{ .Values.auth.enabled | default false | quote }}
+            - name: APISHIFT_AUTH_PROTECT_READS
+              value: {{ .Values.auth.protectReads | default false | quote }}
+            {{- if .Values.auth.oidc.authServerUrl }}
+            - name: OIDC_AUTH_SERVER_URL
+              value: {{ .Values.auth.oidc.authServerUrl | quote }}
+            - name: OIDC_TENANT_ENABLED
+              value: {{ .Values.auth.oidc.tenantEnabled | default true | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.auth.oidc.clientId | default "apishift-backend" | quote }}
+            - name: OIDC_ROLE_CLAIM_PATH
+              value: {{ .Values.auth.oidc.roleClaimPath | default "realm_access.roles" | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           readinessProbe:

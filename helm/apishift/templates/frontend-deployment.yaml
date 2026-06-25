@@ -29,6 +29,13 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+          {{- if .Values.auth.enabled }}
+          volumeMounts:
+            - name: frontend-auth
+              mountPath: /opt/app-root/src/auth-config.js
+              subPath: auth-config.js
+              readOnly: true
+          {{- end }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           readinessProbe:
@@ -37,3 +44,9 @@ spec:
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+      {{- if .Values.auth.enabled }}
+      volumes:
+        - name: frontend-auth
+          configMap:
+            name: {{ include "apishift.fullname" . }}-frontend-auth
+      {{- end }}
