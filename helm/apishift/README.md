@@ -148,6 +148,9 @@ helm upgrade --install apishift apishift/apishift \
 
 **Upgrade path:** existing releases keep `auth.enabled=false` (chart default). Enable auth only after upgrading to a release that includes PR1–PR3 backend/frontend changes and configuring OIDC roles (`admin`, `operator`, `viewer`).
 
+> **Important:** In production, `auth.enabled=true` requires a non-empty `auth.oidc.authServerUrl`. Without it, mutations are protected but no valid auth mechanism exists (HTTP Basic is dev-only).
+
+### Values documented but **not wired** in the chart
 
 These appear in `values.yaml` or older docs but are **not** set on the backend Deployment. The application uses its built-in defaults instead.
 
