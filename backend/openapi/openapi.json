@@ -895,6 +895,12 @@
           }
         }
       }
+    },
+    "securitySchemes" : {
+      "SecurityScheme" : {
+        "type" : "openIdConnect",
+        "description" : "Authentication"
+      }
     }
   },
   "paths" : {
@@ -997,12 +1003,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Map API Cast To Istio",
-        "tags" : [ "API Cast Resource" ]
+        "tags" : [ "API Cast Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/apicast/map-all" : {
@@ -1016,10 +1031,19 @@
                 "schema" : { }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Map All",
-        "tags" : [ "API Cast Resource" ]
+        "tags" : [ "API Cast Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/audit/reports" : {
@@ -1066,12 +1090,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Chat",
-        "tags" : [ "Chat Resource" ]
+        "tags" : [ "Chat Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/chat/faq-status" : {
@@ -1121,10 +1154,19 @@
                 "schema" : { }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Warm Faq Cache",
-        "tags" : [ "Chat Resource" ]
+        "tags" : [ "Chat Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/cluster/features" : {
@@ -1271,12 +1313,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Add Target Cluster",
-        "tags" : [ "Cluster Resource" ]
+        "tags" : [ "Cluster Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/cluster/targets/{id}" : {
@@ -1293,10 +1344,19 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Remove Target Cluster",
-        "tags" : [ "Cluster Resource" ]
+        "tags" : [ "Cluster Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/cluster/targets/{id}/validate" : {
@@ -1469,12 +1529,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Analyze",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "operator", "admin" ]
+        } ]
       }
     },
     "/api/migration/import-export" : {
@@ -1506,10 +1575,19 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Import Export",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "operator", "admin" ]
+        } ]
       }
     },
     "/api/migration/plans" : {
@@ -1593,12 +1671,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Apply Plan",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/migration/plans/{id}/catalog-info/{productName}" : {
@@ -1670,12 +1757,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Confirm Registration",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/migration/plans/{id}/drift" : {
@@ -1729,10 +1825,19 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Revert Plan",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/migration/plans/{id}/test-commands" : {
@@ -1808,12 +1913,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Revert Bulk",
-        "tags" : [ "Migration Resource" ]
+        "tags" : [ "Migration Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/threescale/backends" : {
@@ -1907,10 +2021,19 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Refresh Discovery",
-        "tags" : [ "Three Scale Resource" ]
+        "tags" : [ "Three Scale Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "operator", "admin" ]
+        } ]
       }
     },
     "/api/threescale/sources" : {
@@ -1957,12 +2080,21 @@
               }
             }
           },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "400" : {
             "description" : "Bad Request"
           }
         },
         "summary" : "Add Source",
-        "tags" : [ "Three Scale Resource" ]
+        "tags" : [ "Three Scale Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/threescale/sources/{id}" : {
@@ -1979,10 +2111,19 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "summary" : "Remove Source",
-        "tags" : [ "Three Scale Resource" ]
+        "tags" : [ "Three Scale Resource" ],
+        "security" : [ {
+          "SecurityScheme" : [ "admin" ]
+        } ]
       }
     },
     "/api/threescale/sources/{id}/status" : {
