@@ -1,9 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/APIshift-on-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/APIshift.png">
-    <img src="docs/assets/APIshift.png" alt="ApiShift Logo" width="220">
-  </picture>
+  <img src="docs/assets/APIshift.svg" alt="ApiShift Logo" width="280">
 </p>
 
 # ApiShift - 3scale to Connectivity Link Migration
