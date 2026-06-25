@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="ApiShift Logo" width="120">
+  <img src="docs/assets/APIshift.png" alt="ApiShift Logo" width="220">
 </p>
 
 # ApiShift - 3scale to Connectivity Link Migration
