@@ -178,9 +178,11 @@ class MigrationServiceTest extends MigrationServiceTestSupport {
 
         MigrationPlan plan = service.analyze("shared", List.of("demo-api", "other-api"), "local");
 
-        assertEquals(2, countKind(plan, "HTTPRoute"));
+        assertEquals(4, countKind(plan, "HTTPRoute"));
         assertTrue(resourceNames(plan, "HTTPRoute").contains("demo-api-route"));
         assertTrue(resourceNames(plan, "HTTPRoute").contains("other-api-route"));
+        assertTrue(resourceNames(plan, "HTTPRoute").contains("demo-api-docs-route"));
+        assertTrue(resourceNames(plan, "HTTPRoute").contains("other-api-docs-route"));
     }
 
     @Test

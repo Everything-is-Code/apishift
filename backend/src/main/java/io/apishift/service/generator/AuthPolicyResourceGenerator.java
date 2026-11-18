@@ -37,6 +37,9 @@ public class AuthPolicyResourceGenerator {
                             "oidc-auth":
                               jwt:
                                 issuerUrl: %s
+                              credentials:
+                                authorizationHeader:
+                                  prefix: Bearer
                       """.formatted(issuer);
         } else {
             authSection = """
@@ -47,6 +50,9 @@ public class AuthPolicyResourceGenerator {
                                   matchLabels:
                                     app: %s
                                 allNamespaces: false
+                              credentials:
+                                customHeader:
+                                  name: X-API-Key
                       """.formatted(product.systemName());
         }
 

@@ -643,7 +643,6 @@ export class MigrationWizardStateService {
     if (this.plan.catalogInfoYaml) {
       const catalogYaml = this.editedComponentYaml || this.plan.catalogInfoYaml;
       folder.file('catalog-info.yaml', catalogYaml);
-      resources.push('catalog-info.yaml');
     }
 
     const kustomization = `apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n${resources.map((r) => '  - ' + r).join('\n')}\n`;

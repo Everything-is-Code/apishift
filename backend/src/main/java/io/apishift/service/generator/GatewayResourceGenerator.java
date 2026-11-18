@@ -26,7 +26,7 @@ public class GatewayResourceGenerator {
                   gatewayClassName: %s
                   listeners:
                     - name: http
-                      port: 80
+                      port: 8080
                       protocol: HTTP
                       hostname: "*.%s"
                       allowedRoutes:
