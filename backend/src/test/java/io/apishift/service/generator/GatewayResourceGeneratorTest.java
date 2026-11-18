@@ -30,6 +30,7 @@ class GatewayResourceGeneratorTest {
         assertEquals("apishift-shared", resource.name());
         assertEquals("kuadrant-system", resource.namespace());
         assertTrue(resource.yaml().contains("gatewayClassName: istio"));
+        assertTrue(resource.yaml().contains("port: 8080"));
         assertTrue(resource.yaml().contains("apishift.io/type\": \"shared\""));
     }
 }

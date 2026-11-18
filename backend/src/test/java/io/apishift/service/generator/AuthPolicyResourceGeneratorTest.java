@@ -19,6 +19,7 @@ class AuthPolicyResourceGeneratorTest {
 
         assertEquals("AuthPolicy", resource.kind());
         assertTrue(resource.yaml().contains("apikey-auth"));
+        assertTrue(resource.yaml().contains("X-API-Key"));
         assertTrue(resource.yaml().contains("demo-api"));
     }
 
@@ -30,6 +31,7 @@ class AuthPolicyResourceGeneratorTest {
 
         assertTrue(resource.yaml().contains("oidc-auth"));
         assertTrue(resource.yaml().contains("issuerUrl"));
+        assertTrue(resource.yaml().contains("prefix: Bearer"));
     }
 
     @Test

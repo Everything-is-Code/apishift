@@ -237,6 +237,7 @@ public class MigrationService {
                                 .formatted(sysName));
             }
 
+            resources.add(buildDocsRoute(sysName + "-docs-route", ns, gatewayName, hostname, ctx));
             resources.add(authPolicyResourceGenerator.build(sysName + "-auth", ns, routeName, productReady, authMode));
             resources.add(rateLimitResourceGenerator.build(sysName + "-ratelimit", ns, routeName, productReady, derivedRateLimit));
             addSuggestedPolicyWarnings(sysName, productReady, gatewayStrategy, consolidationWarnings);
@@ -833,6 +834,48 @@ public class MigrationService {
                 .thenComparing(MigrationPlan.GeneratedResource::name));
     }
 
+    private MigrationPlan.GeneratedResource buildDocsRoute(
+            String name, String namespace, String gatewayName, String hostname, ProductContext ctx) {
+        String svc = ctx.backendSvcName() != null ? ctx.backendSvcName() : name;
+        String backendNamespace = null;
+        if (!ctx.resolvedBackends().isEmpty()) {
+            ResolvedBackend backend = ctx.resolvedBackends().get(0);
+            if (backend.svcName() != null && !backend.svcName().isBlank()) {
+                svc = backend.svcName();
+            }
+            if (backend.svcNamespace() != null && !backend.svcNamespace().isBlank()) {
+                backendNamespace = backend.svcNamespace();
+            }
+        }
+        StringBuilder yaml = new StringBuilder();
+        yaml.append("apiVersion: gateway.networking.k8s.io/v1\n");
+        yaml.append("kind: HTTPRoute\n");
+        yaml.append("metadata:\n");
+        yaml.append("  name: ").append(name).append('\n');
+        yaml.append("  namespace: ").append(namespace).append('\n');
+        yaml.append("  labels:\n");
+        yaml.append("    app.kubernetes.io/managed-by: apishift\n");
+        yaml.append("    \"apishift.io/docs\": \"true\"\n");
+        yaml.append("spec:\n");
+        yaml.append("  hostnames:\n");
+        yaml.append("    - ").append(hostname).append('\n');
+        yaml.append("  parentRefs:\n");
+        yaml.append("    - name: ").append(gatewayName).append('\n');
+        yaml.append("      namespace: ").append(gatewayNamespace).append('\n');
+        yaml.append("  rules:\n");
+        yaml.append("    - matches:\n");
+        yaml.append("        - path:\n");
+        yaml.append("            type: PathPrefix\n");
+        yaml.append("            value: /q\n");
+        yaml.append("      backendRefs:\n");
+        yaml.append("        - name: ").append(svc).append('\n');
+        if (backendNamespace != null) {
+            yaml.append("          namespace: ").append(backendNamespace).append('\n');
+        }
+        yaml.append("          port: 8080\n");
+        return new MigrationPlan.GeneratedResource("HTTPRoute", name, namespace, yaml.toString());
+    }
+
     private MigrationPlan.GeneratedResource buildApiProduct(
             String name, String namespace, String routeName, ThreeScaleProduct product) {
 
@@ -878,7 +921,7 @@ public class MigrationService {
                     team: platform-engineering
                     email: "platform@%s"
                   documentation:
-                    openAPISpecURL: "https://%s/q/openapi"
+                    openAPISpecURL: "https://%s/q/openapi?format=json"
                     swaggerUI: "https://%s/q/swagger-ui"
                 """.formatted(name, namespace, namespace, product.systemName(), product.systemName(), product.systemName(),
                 routeName, product.name(), desc, authType, clusterDomain, hostname, hostname);
